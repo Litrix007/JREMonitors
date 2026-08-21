@@ -1,0 +1,8 @@
+{
+  "type": "E233-5000",
+  "defaultFormation": "10+5",
+  "inputPresets": ["GAP-ATS-P", "GAP-ATS-S"],
+  "inputs": {
+    "atsPEmergencyBrake": -1
+  }
+}

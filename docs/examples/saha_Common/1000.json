@@ -1,0 +1,19 @@
+{
+  "parent": "base.json",
+  "type": "E233-1000",
+  "defaultFormation": "10",
+  "inputPresets": ["ATC-6", "Mi5000-DATC"],
+  "inputs": {
+    "constantSpeed": 213,
+    "catenaryVoltage": 232,
+    "datcInchingActivated": 92,
+    "tascEnabled": 95,
+    "tascPattern": 97,
+    "tascBrake": 96,
+    "tascFixedDistance": 254,
+    "vehicleDoorAllClosed": 253,
+    "platformDoorAllClosed": 252,
+    "platformInterlocking": 251,
+    "platformDecoupling": 250
+  }
+}

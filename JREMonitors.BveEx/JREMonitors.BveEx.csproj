@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')"/>
+    <PropertyGroup>
+        <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+        <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+        <ProjectGuid>{7E7FDBED-8D2C-4572-B5C6-6C885FFB01FD}</ProjectGuid>
+        <OutputType>Library</OutputType>
+        <AppDesignerFolder>Properties</AppDesignerFolder>
+        <RootNamespace>JREMonitors.BveEx</RootNamespace>
+        <AssemblyName>BveEx.Plugins.JREMonitors</AssemblyName>
+        <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
+        <FileAlignment>512</FileAlignment>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    </PropertyGroup>
+    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+        <PlatformTarget>AnyCPU</PlatformTarget>
+        <DebugType>pdbonly</DebugType>
+        <Optimize>true</Optimize>
+        <OutputPath>bin\Release\</OutputPath>
+        <DefineConstants>TRACE</DefineConstants>
+        <ErrorReport>prompt</ErrorReport>
+        <WarningLevel>4</WarningLevel>
+    </PropertyGroup>
+    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+        <DebugSymbols>true</DebugSymbols>
+        <DebugType>full</DebugType>
+        <Optimize>false</Optimize>
+        <DefineConstants>DEBUG;TRACE</DefineConstants>
+        <ErrorReport>prompt</ErrorReport>
+        <WarningLevel>4</WarningLevel>
+        <OutputPath>bin\Debug\</OutputPath>
+    </PropertyGroup>
+    <ItemGroup>
+        <Reference Include="BveTs">
+            <Private>False</Private>
+            <HintPath>D:\Programs\BVE5\BveTs.exe</HintPath>
+        </Reference>
+        <Reference Include="Mackoy.XmlInterfaces">
+            <Private>False</Private>
+            <HintPath>D:\Programs\BVE5\Mackoy.XmlInterfaces.dll</HintPath>
+        </Reference>
+        <Reference Include="Microsoft.CSharp"/>
+        <Reference Include="mscorlib"/>
+        <Reference Include="System"/>
+        <Reference Include="System.Core"/>
+        <Reference Include="System.Data"/>
+        <Reference Include="System.Drawing"/>
+        <Reference Include="System.Numerics"/>
+        <Reference Include="System.Xml"/>
+        <Reference Include="System.Windows.Forms"/>
+    </ItemGroup>
+    <ItemGroup>
+        <Compile Include="Builders\Base\E233BuilderBase.cs"/>
+        <Compile Include="Builders\Base\IVehicleBuilder.cs"/>
+        <Compile Include="Builders\Base\JREVehicleBuilderBase.cs"/>
+        <Compile Include="Builders\Base\VehicleBuildContext.cs"/>
+        <Compile Include="Builders\Base\VehicleBuilderBase.cs"/>
+        <Compile Include="Builders\Base\VehiclePostBuildContext.cs"/>
+        <Compile Include="Builders\E233_0Builder.cs"/>
+        <Compile Include="Builders\E233_1000Builder.cs"/>
+        <Compile Include="Builders\E233_3000Builder.cs"/>
+        <Compile Include="Builders\E233_5000Builder.cs"/>
+        <Compile Include="Configs\Runtime\InfoAssistantConfig.cs"/>
+        <Compile Include="Configs\Runtime\RuntimeConfig.cs"/>
+        <Compile Include="Configs\Vehicle\CabProjectionConfig.cs"/>
+        <Compile Include="Configs\Vehicle\ConfigPath.cs"/>
+        <Compile Include="Configs\Vehicle\DisplayConfig.cs"/>
+        <Compile Include="Configs\Vehicle\E233Config.cs"/>
+        <Compile Include="Configs\Vehicle\E233_0Config.cs"/>
+        <Compile Include="Configs\Vehicle\E233_1000Config.cs"/>
+        <Compile Include="Configs\Vehicle\E233_3000Config.cs"/>
+        <Compile Include="Configs\Vehicle\E233_5000Config.cs"/>
+        <Compile Include="Configs\Vehicle\ExternalDisplayConfig.cs"/>
+        <Compile Include="Configs\Vehicle\JREVehicleConfig.cs"/>
+        <Compile Include="Configs\Vehicle\LightingConfig.cs"/>
+        <Compile Include="Configs\Vehicle\MonitorConfig.cs"/>
+        <Compile Include="Configs\Vehicle\OutputsConfig.cs"/>
+        <Compile Include="Configs\Vehicle\TIMS\TIMSConfig.cs"/>
+        <Compile Include="Configs\Vehicle\TIMS\TIMSICCardConfig.cs"/>
+        <Compile Include="Configs\Vehicle\TIMS\TIMSPolymorphicResolver.cs"/>
+        <Compile Include="Configs\Vehicle\TIMS\TIMSRouteNodeConfig.cs"/>
+        <Compile Include="Configs\Vehicle\VehicleConfig.cs"/>
+        <Compile Include="Converters\Color3JsonConverter.cs"/>
+        <Compile Include="Converters\Vector2JsonConverter.cs"/>
+        <Compile Include="Monitors\BveMonitorManagerD3D9Ex.cs"/>
+        <Compile Include="Monitors\BveMonitorManagerFactory.cs"/>
+        <Compile Include="Monitors\D3D9RingBuffer.cs"/>
+        <Compile Include="Monitors\MonitorHolderBase.cs"/>
+        <Compile Include="Monitors\BveMonitorManagerBase.cs"/>
+        <Compile Include="Monitors\BveMonitorManagerD3D9.cs"/>
+        <Compile Include="Monitors\BveWindowHook.cs"/>
+        <Compile Include="Monitors\MeshVertex.cs"/>
+        <Compile Include="Monitors\MonitorProperties.cs"/>
+        <Compile Include="Monitors\LightingProperties.cs"/>
+        <Compile Include="Monitors\PanelElementFactory.cs"/>
+        <Compile Include="Monitors\Quad2D.cs"/>
+        <Compile Include="Monitors\D3D9ExBufferQueue.cs"/>
+        <Compile Include="PluginMain.cs"/>
+        <Compile Include="Properties\AssemblyInfo.cs"/>
+        <Compile Include="Providers\BveSignalProvider.cs"/>
+        <Compile Include="Providers\BveSoundProvider.cs"/>
+        <Compile Include="Providers\BveTimeProvider.cs"/>
+        <Compile Include="Providers\BvePanelDataProvider.cs"/>
+        <Compile Include="Providers\BveVehicleStateProvider.cs"/>
+        <Compile Include="Providers\IJumpStationListener.cs"/>
+        <Compile Include="Providers\JumpStationManager.cs"/>
+        <Compile Include="Registries\BuiltinInputIds.cs"/>
+        <Compile Include="Registries\BuiltinInputPresetRegistry.cs"/>
+        <Compile Include="Registries\VehicleBuilderRegistry.cs"/>
+        <Compile Include="Services\BveBlockingService.cs"/>
+        <Compile Include="Services\BveTIMSICCardService.cs"/>
+        <Compile Include="Services\TIMSICCardLoader.cs"/>
+        <Compile Include="Services\BveTIMSService.cs"/>
+        <Compile Include="Services\Car\BveCarStateService.cs"/>
+        <Compile Include="Services\Car\BveDoorStateService.cs"/>
+        <Compile Include="Services\Car\BvePassengerStateService.cs"/>
+        <Compile Include="Services\Car\CarDoorController.cs"/>
+        <Compile Include="Services\Car\CarDoorIds.cs"/>
+        <Compile Include="Utils\ArrayableInt32DictionaryConverter.cs"/>
+        <Compile Include="Utils\AssistantTextWrapper.cs"/>
+        <Compile Include="Utils\AtsPluginHelper.cs"/>
+        <Compile Include="Utils\ConfigFileWatcher.cs"/>
+        <Compile Include="Utils\ConfigLoader.cs"/>
+        <Compile Include="Utils\DoorRepairer.cs"/>
+        <Compile Include="Utils\NodeConverterResolver.cs"/>
+        <Compile Include="Utils\PerformanceData.cs"/>
+        <Compile Include="Utils\ProjectionHelper.cs"/>
+        <Compile Include="Utils\NeedlePhysicsHelper.cs"/>
+        <Compile Include="Utils\SignalHelper.cs"/>
+        <Compile Include="Utils\BveListHelper.cs"/>
+    </ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\JREMonitors.Core\JREMonitors.Core.csproj">
+            <Project>{21d66418-9b03-4233-8afa-a6d1052dd37f}</Project>
+            <Name>JREMonitors.Core</Name>
+        </ProjectReference>
+        <ProjectReference Include="..\JREMonitors.E233\JREMonitors.E233.csproj">
+            <Project>{e6936026-62e2-4fef-bb5d-1b7fa075451a}</Project>
+            <Name>JREMonitors.E233</Name>
+        </ProjectReference>
+        <ProjectReference Include="..\JREMonitors.JRE\JREMonitors.JRE.csproj">
+            <Project>{28a560ab-2380-4a64-9784-0821f7652af4}</Project>
+            <Name>JREMonitors.JRE</Name>
+        </ProjectReference>
+    </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="BveEx.CoreExtensions" Version="2.0.8"/>
+        <PackageReference Include="BveEx.Diagnostics" Version="2.0.0"/>
+        <PackageReference Include="BveEx.PluginHost" Version="2.1.0"/>
+        <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="10.0.8"/>
+        <PackageReference Include="Microsoft.Bcl.HashCode" Version="1.1.1"/>
+        <PackageReference Include="ObjectiveHarmonyPatch" Version="1.2.0"/>
+        <PackageReference Include="SlimDX" Version="4.0.13.44">
+            <PrivateAssets>all</PrivateAssets>
+            <ExcludeAssets>runtime</ExcludeAssets>
+        </PackageReference>
+        <PackageReference Include="System.Buffers" Version="4.6.1"/>
+        <PackageReference Include="System.IO.Pipelines" Version="10.0.8"/>
+        <PackageReference Include="System.Memory" Version="4.6.3"/>
+        <PackageReference Include="System.Numerics.Vectors" Version="4.6.1"/>
+        <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="6.1.2"/>
+        <PackageReference Include="System.Text.Encodings.Web" Version="10.0.8"/>
+        <PackageReference Include="System.Text.Json" Version="10.0.8"/>
+        <PackageReference Include="System.Threading.Tasks.Extensions" Version="4.6.3"/>
+        <PackageReference Include="System.ValueTuple" Version="4.6.2"/>
+        <PackageReference Include="Vortice.Direct2D1" Version="2.4.2"/>
+        <PackageReference Include="Vortice.Direct3D11" Version="2.4.2"/>
+        <PackageReference Include="Vortice.DirectX" Version="2.4.2"/>
+        <PackageReference Include="Vortice.DirectComposition" Version="2.4.2"/>
+        <PackageReference Include="Vortice.DXGI" Version="2.4.2"/>
+        <PackageReference Include="Vortice.Mathematics" Version="1.4.25"/>
+    </ItemGroup>
+    <ItemGroup>
+        <Content Include="..\README.md" Link="README.md" CopyToOutputDirectory="PreserveNewest"/>
+        <Content Include="..\docs\SETUP.md" Link="docs\SETUP.md" CopyToOutputDirectory="PreserveNewest"/>
+        <Content Include="..\docs\examples\**\*" Link="docs\examples\%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest"/>
+    </ItemGroup>
+    <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets"/>
+
+</Project>

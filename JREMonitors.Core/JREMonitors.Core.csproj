@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')"/>
+    <PropertyGroup>
+        <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+        <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+        <ProjectGuid>{21D66418-9B03-4233-8AFA-A6D1052DD37F}</ProjectGuid>
+        <OutputType>Library</OutputType>
+        <AppDesignerFolder>Properties</AppDesignerFolder>
+        <RootNamespace>JREMonitors.Core</RootNamespace>
+        <AssemblyName>JREMonitors.Core</AssemblyName>
+        <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
+        <FileAlignment>512</FileAlignment>
+        <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    </PropertyGroup>
+    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+        <PlatformTarget>AnyCPU</PlatformTarget>
+        <DebugSymbols>true</DebugSymbols>
+        <DebugType>full</DebugType>
+        <Optimize>false</Optimize>
+        <OutputPath>bin\Debug\</OutputPath>
+        <DefineConstants>DEBUG;TRACE</DefineConstants>
+        <ErrorReport>prompt</ErrorReport>
+        <WarningLevel>4</WarningLevel>
+    </PropertyGroup>
+    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+        <PlatformTarget>AnyCPU</PlatformTarget>
+        <DebugType>pdbonly</DebugType>
+        <Optimize>true</Optimize>
+        <OutputPath>bin\Release\</OutputPath>
+        <DefineConstants>TRACE</DefineConstants>
+        <ErrorReport>prompt</ErrorReport>
+        <WarningLevel>4</WarningLevel>
+    </PropertyGroup>
+    <ItemGroup>
+        <Reference Include="mscorlib"/>
+        <Reference Include="System"/>
+        <Reference Include="System.Core"/>
+        <Reference Include="System.Data"/>
+        <Reference Include="System.Windows.Forms"/>
+        <Reference Include="System.Drawing"/>
+        <Reference Include="System.Numerics"/>
+        <Reference Include="System.Xml"/>
+    </ItemGroup>
+    <ItemGroup>
+        <Compile Include="Boosters\Baker.cs"/>
+        <Compile Include="Boosters\CommandRecorder.cs"/>
+        <Compile Include="Contexts\ContextDictionary.cs"/>
+        <Compile Include="Contexts\DisplayController.cs"/>
+        <Compile Include="Contexts\MonitorSoundController.cs"/>
+        <Compile Include="Contexts\PropertyKey.cs"/>
+        <Compile Include="Contexts\ScopedRenderContext.cs"/>
+        <Compile Include="Debugger\DebugForm.cs"/>
+        <Compile Include="Debugger\IDebugger.cs"/>
+        <Compile Include="DirtyUpdate\FrameCollector.cs"/>
+        <Compile Include="DirtyUpdate\IDirtyReporter.cs"/>
+        <Compile Include="Constants\Epsilons.cs"/>
+        <Compile Include="Contexts\MonitorContext.cs"/>
+        <Compile Include="Contexts\RenderContext.cs"/>
+        <Compile Include="DirtyUpdate\DirtyArea.cs"/>
+        <Compile Include="DirtyUpdate\DirtyUpdateManager.cs"/>
+        <Compile Include="DirtyUpdate\FrameDirtyReport.cs"/>
+        <Compile Include="Layouts\BitmapScaleDrawer.cs"/>
+        <Compile Include="Layouts\Col.cs"/>
+        <Compile Include="Layouts\ContentArrangement.cs"/>
+        <Compile Include="Layouts\ContentOrientation.cs"/>
+        <Compile Include="Layouts\IContentHashable.cs"/>
+        <Compile Include="Layouts\LayoutRect.cs"/>
+        <Compile Include="Layouts\IBoundsDrawer.cs"/>
+        <Compile Include="Layouts\IContentMeasurableBoundsDrawer.cs"/>
+        <Compile Include="Layouts\Text\RichText.cs"/>
+        <Compile Include="Layouts\Text\TextLayout.cs"/>
+        <Compile Include="Managers\ResourceGroup.cs"/>
+        <Compile Include="Managers\ExecutionGraph.cs"/>
+        <Compile Include="Managers\DisposableStack.cs"/>
+        <Compile Include="Managers\FontManager.cs"/>
+        <Compile Include="Managers\TickUpdateManager.cs"/>
+        <Compile Include="Monitors\Monitor.cs"/>
+        <Compile Include="Monitors\MonitorManager.cs"/>
+        <Compile Include="Monitors\MonitorOutput.cs"/>
+        <Compile Include="Monitors\ExternalDisplayForm.cs"/>
+        <Compile Include="Monitors\PendingClickQueue.cs"/>
+        <Compile Include="Monitors\RingBufferBase.cs"/>
+        <Compile Include="Monitors\ScreenBackgroundBuffer.cs"/>
+        <Compile Include="Monitors\ScreenDisplayMode.cs"/>
+        <Compile Include="Reactive\Base.cs"/>
+        <Compile Include="Reactive\Computed.cs"/>
+        <Compile Include="Reactive\PropertySlot.cs"/>
+        <Compile Include="Reactive\ReactiveArray.cs"/>
+        <Compile Include="Reactive\ReactiveEffect.cs"/>
+        <Compile Include="Reactive\ReactiveScope.cs"/>
+        <Compile Include="Reactive\ResourceSlot.cs"/>
+        <Compile Include="Reactive\Signal.cs"/>
+        <Compile Include="Services\Render\BakerCache.cs"/>
+        <Compile Include="Services\Render\BrushCache.cs"/>
+        <Compile Include="Services\Render\ResourceCache.cs"/>
+        <Compile Include="Services\Render\TextMetricsCache.cs"/>
+        <Compile Include="Providers\ISoundProvider.cs"/>
+        <Compile Include="Providers\TickTracker.cs"/>
+        <Compile Include="Reactive\ReactiveList.cs"/>
+        <Compile Include="Services\BlockingService.cs"/>
+        <Compile Include="Lighting\AdaptiveScreenLightingEffect.cs"/>
+        <Compile Include="Lighting\GhostingEffect.cs"/>
+        <Compile Include="Shadows\InnerShadowEffectNodes.cs"/>
+        <Compile Include="Shadows\InnerShadowProcessor.cs"/>
+        <Compile Include="Shadows\InnerShadowModels.cs"/>
+        <Compile Include="State\Legacy\DirtyTracker.cs"/>
+        <Compile Include="State\Legacy\DirtyValue.cs"/>
+        <Compile Include="State\Legacy\IDirty.cs"/>
+        <Compile Include="State\Legacy\ITransactional.cs"/>
+        <Compile Include="State\Legacy\IVersionedDirty.cs"/>
+        <Compile Include="Svg\SvgBoundsDrawer.cs"/>
+        <Compile Include="Svg\SvgCircle.cs"/>
+        <Compile Include="Svg\SvgDocument.cs"/>
+        <Compile Include="Svg\SvgDocumentProperties.cs"/>
+        <Compile Include="Svg\SvgEllipse.cs"/>
+        <Compile Include="Svg\SvgGroup.cs"/>
+        <Compile Include="Svg\SvgNode.cs"/>
+        <Compile Include="Svg\SvgPath.cs"/>
+        <Compile Include="Svg\SvgParser.cs"/>
+        <Compile Include="Svg\SvgRect.cs"/>
+        <Compile Include="Svg\SvgUse.cs"/>
+        <Compile Include="Layouts\AdjacencyManagerBase.cs"/>
+        <Compile Include="Layouts\IExpandableElement.cs"/>
+        <Compile Include="Layouts\LayoutLength.cs"/>
+        <Compile Include="Layouts\ILayoutable.cs"/>
+        <Compile Include="Layouts\LayoutUnitType.cs"/>
+        <Compile Include="Layouts\PlaceHolder.cs"/>
+        <Compile Include="Layouts\RowGrid.cs"/>
+        <Compile Include="Layouts\Text\ContentFlowDirection.cs"/>
+        <Compile Include="Layouts\Row.cs"/>
+        <Compile Include="Monitors\MonitorDrawState.cs"/>
+        <Compile Include="Monitors\Screen.cs"/>
+        <Compile Include="State\DataHub.cs"/>
+        <Compile Include="Properties\AssemblyInfo.cs"/>
+        <Compile Include="Providers\IDelayProvider.cs"/>
+        <Compile Include="Providers\IPanelDataProvider.cs"/>
+        <Compile Include="Providers\ITickUpdatable.cs"/>
+        <Compile Include="Providers\ITimeProvider.cs"/>
+        <Compile Include="Providers\RandomDelayProvider.cs"/>
+        <Compile Include="Services\DelayService.cs"/>
+        <Compile Include="Shadows\DropShadow.cs"/>
+        <Compile Include="Shadows\DropShadowProcessor.cs"/>
+        <Compile Include="Utils\ArrayHelper.cs"/>
+        <Compile Include="Utils\ColorHelper.cs"/>
+        <Compile Include="Utils\GeometryHelper.cs"/>
+        <Compile Include="Utils\MeasureResult.cs"/>
+        <Compile Include="Utils\Render\FontSize.cs"/>
+        <Compile Include="Utils\Render\RenderHelper.cs"/>
+        <Compile Include="Utils\Render\TextEffect.cs"/>
+        <Compile Include="Utils\Render\TextSpacing.cs"/>
+        <Compile Include="Utils\Render\TextWeight.cs"/>
+        <Compile Include="Utils\ResourceHelper.cs"/>
+        <Compile Include="Utils\StringHelper.cs"/>
+        <Compile Include="Utils\TimeSpanHelper.cs"/>
+        <Compile Include="Utils\Win32Helper.cs"/>
+        <Compile Include="Widgets\BoundsDrawerWidget.cs"/>
+        <Compile Include="Widgets\ViewModel.cs"/>
+        <Compile Include="Widgets\Widget.cs"/>
+        <Compile Include="Widgets\WidgetSwitcher.cs"/>
+    </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="Microsoft.Bcl.HashCode" Version="1.1.1"/>
+        <PackageReference Include="System.Buffers" Version="4.6.1"/>
+        <PackageReference Include="System.Memory" Version="4.6.3"/>
+        <PackageReference Include="System.Numerics.Vectors" Version="4.6.1"/>
+        <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="6.1.2"/>
+        <PackageReference Include="System.Xml.XDocument" Version="4.3.0"/>
+        <PackageReference Include="Vortice.D3DCompiler" Version="2.4.2"/>
+        <PackageReference Include="Vortice.Direct2D1" Version="2.4.2"/>
+        <PackageReference Include="Vortice.Direct3D11" Version="2.4.2"/>
+        <PackageReference Include="Vortice.DirectComposition" Version="2.4.2"/>
+        <PackageReference Include="Vortice.DirectX" Version="2.4.2"/>
+        <PackageReference Include="Vortice.DXGI" Version="2.4.2"/>
+        <PackageReference Include="Vortice.Mathematics" Version="1.4.25"/>
+    </ItemGroup>
+    <ItemGroup>
+        <None Include="Shadows\OffsetInnerShadow.hlsl"/>
+        <None Include="Shadows\ImageInnerShadow.hlsl"/>
+        <None Include="Lighting\AdaptiveScreenLighting.hlsl"/>
+        <None Include="Lighting\Ghosting.hlsl"/>
+    </ItemGroup>
+    <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets"/>
+    <ItemGroup>
+        <EmbeddedResource Include="**\*.cso"/>
+    </ItemGroup>
+
+    <Target Name="CompileHLSL" BeforeTargets="PrepareForBuild">
+        <PropertyGroup>
+            <FxcAbsoluteExe Condition="!Exists('$(FxcAbsoluteExe)')">D:\Windows Kits\10\bin\10.0.26100.0\x64\fxc.exe</FxcAbsoluteExe>
+            <IncludeHeaders Condition="!Exists('$(IncludeHeaders)')">D:\Windows Kits\10\Include\10.0.26100.0\um</IncludeHeaders>
+        </PropertyGroup>
+
+        <ItemGroup>
+            <D2DShader Include="Shadows\OffsetInnerShadow.hlsl"/>
+            <D2DShader Include="Shadows\ImageInnerShadow.hlsl"/>
+            <D2DShader Include="Lighting\AdaptiveScreenLighting.hlsl"/>
+            <D2DShader Include="Lighting\Ghosting.hlsl"/>
+        </ItemGroup>
+
+        <Exec Command="&quot;$(FxcAbsoluteExe)&quot; /T ps_5_0 /E main /I &quot;$(IncludeHeaders)&quot; /Fo &quot;%(D2DShader.RelativeDir)%(D2DShader.Filename).cso&quot; &quot;%(D2DShader.Identity)&quot; /D D2D_FULL_SHADER /D D2D_ENTRY=main"
+              Condition="'$(DesignTimeBuild)' != 'true' and Exists('$(FxcAbsoluteExe)') and '@(D2DShader)' != ''"/>
+
+        <Exec Command="&quot;$(FxcAbsoluteExe)&quot; /T vs_5_0 /E main /I &quot;$(IncludeHeaders)&quot; /Fo &quot;%(D3DVertexShader.RelativeDir)%(D3DVertexShader.Filename).cso&quot; &quot;%(D3DVertexShader.Identity)&quot;"
+              Condition="'$(DesignTimeBuild)' != 'true' and Exists('$(FxcAbsoluteExe)') and '@(D3DVertexShader)' != ''"/>
+
+        <Exec Command="&quot;$(FxcAbsoluteExe)&quot; /T ps_5_0 /E main /I &quot;$(IncludeHeaders)&quot; /Fo &quot;%(D3DPositionShader.RelativeDir)%(D3DPositionShader.Filename).cso&quot; &quot;%(D3DPositionShader.Identity)&quot;"
+              Condition="'$(DesignTimeBuild)' != 'true' and Exists('$(FxcAbsoluteExe)') and '@(D3DPositionShader)' != ''"/>
+    </Target>
+</Project>

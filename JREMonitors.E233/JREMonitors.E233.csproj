@@ -1,0 +1,290 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')"/>
+    <PropertyGroup>
+        <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+        <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+        <ProjectGuid>{E6936026-62E2-4FEF-BB5D-1B7FA075451A}</ProjectGuid>
+        <OutputType>Library</OutputType>
+        <AppDesignerFolder>Properties</AppDesignerFolder>
+        <RootNamespace>JREMonitors.E233</RootNamespace>
+        <AssemblyName>JREMonitors.E233</AssemblyName>
+        <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
+        <FileAlignment>512</FileAlignment>
+    </PropertyGroup>
+    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+        <PlatformTarget>AnyCPU</PlatformTarget>
+        <DebugSymbols>true</DebugSymbols>
+        <DebugType>full</DebugType>
+        <Optimize>false</Optimize>
+        <OutputPath>bin\Debug\</OutputPath>
+        <DefineConstants>DEBUG;TRACE</DefineConstants>
+        <ErrorReport>prompt</ErrorReport>
+        <WarningLevel>4</WarningLevel>
+    </PropertyGroup>
+    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+        <PlatformTarget>AnyCPU</PlatformTarget>
+        <DebugType>pdbonly</DebugType>
+        <Optimize>true</Optimize>
+        <OutputPath>bin\Release\</OutputPath>
+        <DefineConstants>TRACE</DefineConstants>
+        <ErrorReport>prompt</ErrorReport>
+        <WarningLevel>4</WarningLevel>
+    </PropertyGroup>
+    <ItemGroup>
+        <EmbeddedResource Include="Resources\Brightness.svg"/>
+        <EmbeddedResource Include="Resources\Home.svg"/>
+        <EmbeddedResource Include="Resources\JRE.png"/>
+        <EmbeddedResource Include="Resources\MeterScreenWithSafetyLamps0.png"/>
+        <EmbeddedResource Include="Resources\TidScreenWithSafetyLamps0.png"/>
+        <EmbeddedResource Include="Resources\MeterScreenWithSafetyLamps1000.png"/>
+        <EmbeddedResource Include="Resources\TidScreenWithSafetyLamps1000.png"/>
+        <EmbeddedResource Include="Resources\MeterScreenWithSafetyLamps3000.png"/>
+        <EmbeddedResource Include="Resources\TidScreenWithSafetyLamps3000.png"/>
+    </ItemGroup>
+    <ItemGroup>
+        <Reference Include="mscorlib"/>
+        <Reference Include="System"/>
+        <Reference Include="System.Core"/>
+        <Reference Include="System.Data"/>
+        <Reference Include="System.Drawing"/>
+        <Reference Include="System.Numerics"/>
+        <Reference Include="System.Xml"/>
+    </ItemGroup>
+    <ItemGroup>
+        <Compile Include="Buttons\VectorBrightnessButton.cs"/>
+        <Compile Include="Buttons\CycleDrawerIconSwitchButton.cs"/>
+        <Compile Include="Buttons\IButton.cs"/>
+        <Compile Include="Buttons\IClickable.cs"/>
+        <Compile Include="Buttons\LevelIconDrawer.cs"/>
+        <Compile Include="Buttons\TIMSButton.cs"/>
+        <Compile Include="Buttons\CycleSvgIconSwitchButton.cs"/>
+        <Compile Include="Buttons\InfoButtonGroup.cs"/>
+        <Compile Include="Buttons\VectorButton.cs"/>
+        <Compile Include="Constants\Buttons.cs"/>
+        <Compile Include="Constants\Fonts.cs"/>
+        <Compile Include="Constants\FontSizes.cs"/>
+        <Compile Include="Constants\Icons.cs"/>
+        <Compile Include="Constants\Images.cs"/>
+        <Compile Include="Constants\DirectInputIds.cs"/>
+        <Compile Include="Constants\MonitorColors.cs"/>
+        <Compile Include="Constants\MonitorSizes.cs"/>
+        <Compile Include="Constants\RefreshSpeeds.cs"/>
+        <Compile Include="Constants\ScreenIds.cs"/>
+        <Compile Include="Constants\ScreenSizes.cs"/>
+        <Compile Include="Constants\Shadows.cs"/>
+        <Compile Include="Constants\SoundIds.cs"/>
+        <Compile Include="Constants\TidScreens.cs"/>
+        <Compile Include="E233MonitorInterlockMediator.cs"/>
+        <Compile Include="E233MonitorStateController.cs"/>
+        <Compile Include="Lamps\Lamp.cs"/>
+        <Compile Include="Lamps\LampAdjacencyManager.cs"/>
+        <Compile Include="Lamps\LampBackgroundType.cs"/>
+        <Compile Include="Lamps\LampBorderColor.cs"/>
+        <Compile Include="Lamps\LampColor.cs"/>
+        <Compile Include="Lamps\LampPanel.cs"/>
+        <Compile Include="MeterScreen\Background\MeterBackgroundRoot0.cs"/>
+        <Compile Include="MeterScreen\Background\MeterBackgroundRoot1000.cs"/>
+        <Compile Include="MeterScreen\Background\MeterBackgroundRoot3000.cs"/>
+        <Compile Include="MeterScreen\Background\MeterBackgroundRoot5000.cs"/>
+        <Compile Include="MeterScreen\Background\MeterBackgroundRootBase.cs"/>
+        <Compile Include="MeterScreen\Background\Base\BcBackground.cs"/>
+        <Compile Include="MeterScreen\Background\Base\BrakeBackground.cs"/>
+        <Compile Include="MeterScreen\Background\Base\CatenaryVoltGaugeBackground.cs"/>
+        <Compile Include="MeterScreen\Background\Base\AtcSpeedGaugeBackground.cs"/>
+        <Compile Include="MeterScreen\Background\Base\DeviceVoltGaugeBackground.cs"/>
+        <Compile Include="MeterScreen\Background\Base\GaugeBackground.cs"/>
+        <Compile Include="MeterScreen\Background\Base\GaugeStyle.cs"/>
+        <Compile Include="MeterScreen\Background\Base\Highlight200KpaWidget.cs"/>
+        <Compile Include="MeterScreen\Background\Base\MrBackground.cs"/>
+        <Compile Include="MeterScreen\Background\Base\NormalSpeedGaugeBackground.cs"/>
+        <Compile Include="MeterScreen\Base\RootProperties.cs"/>
+        <Compile Include="MeterScreen\Foreground\Atc\AtcAbsoluteStopCross.cs"/>
+        <Compile Include="MeterScreen\Foreground\Atc\AtcNeedle.cs"/>
+        <Compile Include="MeterScreen\Foreground\Atc\AtcSpeedGaugeForeground.cs"/>
+        <Compile Include="MeterScreen\Foreground\Atc\AtcPatternGauge.cs"/>
+        <Compile Include="MeterScreen\Foreground\Base\BcForeground.cs"/>
+        <Compile Include="MeterScreen\Foreground\Base\BrakeForeground.cs"/>
+        <Compile Include="MeterScreen\Foreground\Base\MrForeground.cs"/>
+        <Compile Include="MeterScreen\Foreground\Base\NormalSpeedGaugeNeedle.cs"/>
+        <Compile Include="MeterScreen\Foreground\Base\SpeedNumTitle.cs"/>
+        <Compile Include="MeterScreen\Foreground\MeterForegroundRoot0.cs"/>
+        <Compile Include="MeterScreen\Foreground\MeterForegroundRoot1000.cs"/>
+        <Compile Include="MeterScreen\Foreground\MeterForegroundRoot3000.cs"/>
+        <Compile Include="MeterScreen\Foreground\MeterForegroundRoot5000.cs"/>
+        <Compile Include="MeterScreen\Foreground\MeterForegroundRootBase.cs"/>
+        <Compile Include="MeterScreen\LampGroups\MeterAtsStateLampGroup.cs"/>
+        <Compile Include="MeterScreen\LampGroups\MeterNormalAtcLampGroup.cs"/>
+        <Compile Include="MeterScreen\LampGroups\MeterTascLampGroup.cs"/>
+        <Compile Include="MeterScreen\LampGroups\VehicleStateLampGroup.cs"/>
+        <Compile Include="MeterScreen\MeterScreen0.cs"/>
+        <Compile Include="MeterScreen\MeterScreen1000.cs"/>
+        <Compile Include="MeterScreen\MeterScreen3000.cs"/>
+        <Compile Include="MeterScreen\MeterScreen5000.cs"/>
+        <Compile Include="Needles\GaugeNeedle.cs"/>
+        <Compile Include="Needles\VerticalNeedle.cs"/>
+        <Compile Include="Properties\AssemblyInfo.cs"/>
+        <Compile Include="E233Screens.cs"/>
+        <Compile Include="TickMarks\GaugeTickMarks.cs"/>
+        <Compile Include="TickMarks\VerticalTickMarks.cs"/>
+        <Compile Include="TidScreen\Background\TidChangeToTIMSWarningBackgroundRoot.cs"/>
+        <Compile Include="TidScreen\Foreground\TidChangeToTIMSWarningForegroundRoot.cs"/>
+        <Compile Include="TidScreen\Foreground\TidForegroundRoot0.cs"/>
+        <Compile Include="TidScreen\Foreground\TidForegroundRoot1000.cs"/>
+        <Compile Include="TidScreen\Foreground\TidForegroundRoot3000.cs"/>
+        <Compile Include="TidScreen\Foreground\TidForegroundRootBase.cs"/>
+        <Compile Include="TidScreen\LampGroups\TidAtsLampGroup.cs"/>
+        <Compile Include="TidScreen\LampGroups\TidNormalAtcLampGroup.cs"/>
+        <Compile Include="TidScreen\LampGroups\TidTascCompactLampGroup.cs"/>
+        <Compile Include="TidScreen\LampGroups\TidTascWideLampGroup.cs"/>
+        <Compile Include="TidScreen\LampGroups\TidLampGroupBase.cs"/>
+        <Compile Include="TidScreen\TidChangeToTIMSWarning.cs"/>
+        <Compile Include="TidScreen\TidScreen0.cs"/>
+        <Compile Include="TidScreen\TidScreen1000.cs"/>
+        <Compile Include="TidScreen\TIdScreen3000.cs"/>
+        <Compile Include="TidScreen\TIdScreen5000.cs"/>
+        <Compile Include="TIMS\C00AA\C00AAScreen.cs"/>
+        <Compile Include="TIMS\C00AA\C00AAForegroundRoot.cs"/>
+        <Compile Include="TIMS\C00AA\C00AAButtonGroup.cs"/>
+        <Compile Include="TIMS\C01AX\C01AXBackground.cs"/>
+        <Compile Include="TIMS\C01AX\C01ABGreenCarInfo.cs"/>
+        <Compile Include="TIMS\C01AX\C01AXBaseInfoGroup.cs"/>
+        <Compile Include="TIMS\C01AX\C01AXButtonGroup.cs"/>
+        <Compile Include="TIMS\C01AX\C01AANormalCarInfo.cs"/>
+        <Compile Include="TIMS\C01AX\C01AXCarInfoViewModel.cs"/>
+        <Compile Include="TIMS\C01AX\C01AXForegroundRoot.cs"/>
+        <Compile Include="TIMS\C01AX\C01AXScreen.cs"/>
+        <Compile Include="TIMS\D00AA\D00AAButtonGroup.cs"/>
+        <Compile Include="TIMS\D00AA\D00AAForegroundRoot.cs"/>
+        <Compile Include="TIMS\D00AA\D00AAScreen.cs"/>
+        <Compile Include="TIMS\D01AX\D01AXCarDoor.cs"/>
+        <Compile Include="TIMS\D01AX\D01AXBackground.cs"/>
+        <Compile Include="TIMS\D01AX\D01AXButtonGroup.cs"/>
+        <Compile Include="TIMS\D01AX\D01AXCarStateGroup.cs"/>
+        <Compile Include="TIMS\D01AX\D01AXCarDoorGroup.cs"/>
+        <Compile Include="TIMS\D01AX\D01AXForegroundRoot.cs"/>
+        <Compile Include="TIMS\D01AX\D01AXBaseInfoGroup.cs"/>
+        <Compile Include="TIMS\D01AX\D01AXScreen.cs"/>
+        <Compile Include="TIMS\D01AX\D01AXNormalTimeText.cs"/>
+        <Compile Include="TIMS\D01AX\D01AXTrainTypeButtonGroup.cs"/>
+        <Compile Include="TIMS\D01AX\EDen\D01AXEDenDestinationText.cs"/>
+        <Compile Include="TIMS\D01AX\EDen\D01AXEDenGroup.cs"/>
+        <Compile Include="TIMS\D01AX\EDen\D01AXEDenHeader.cs"/>
+        <Compile Include="TIMS\D01AX\EDen\D01AXEDenLocationIndicator.cs"/>
+        <Compile Include="TIMS\D01AX\EDen\D01AXEDenNextDutyInfo.cs"/>
+        <Compile Include="TIMS\D01AX\EDen\D01AXEDenRouteSetInformation.cs"/>
+        <Compile Include="TIMS\D01AX\EDen\D01AXEDenSlowSectionInfo.cs"/>
+        <Compile Include="TIMS\D01AX\EDen\D01AXEDenTimeCol.cs"/>
+        <Compile Include="TIMS\D01AX\EDen\D01AXEDenStationInfo.cs"/>
+        <Compile Include="TIMS\D01AX\MDen\D01AXMDenGroup.cs"/>
+        <Compile Include="TIMS\D01AX\MDen\D01AXMDenHeader.cs"/>
+        <Compile Include="TIMS\D01AX\MDen\D01AXMDenTimeRow.cs"/>
+        <Compile Include="TIMS\D01AX\MDen\D01AXMDenTimeText.cs"/>
+        <Compile Include="TIMS\D02AA\D02AABackground.cs"/>
+        <Compile Include="TIMS\D02AA\D02AAEquipmentInformation.cs"/>
+        <Compile Include="TIMS\D02AA\D02AAForegroundRoot.cs"/>
+        <Compile Include="TIMS\D02AA\D02AAScreen.cs"/>
+        <Compile Include="TIMS\D05AA\D05AABackground.cs"/>
+        <Compile Include="TIMS\D05AA\D05AABrakeInformation.cs"/>
+        <Compile Include="TIMS\D05AA\D05AAButtonGroup.cs"/>
+        <Compile Include="TIMS\D05AA\D05AAForegroundRoot.cs"/>
+        <Compile Include="TIMS\D05AA\D05AAScreen.cs"/>
+        <Compile Include="TIMS\D05AB\D05ABBackground.cs"/>
+        <Compile Include="TIMS\D05AB\D05ABDataTable.cs"/>
+        <Compile Include="TIMS\D05AB\D05ABNotchInformation.cs"/>
+        <Compile Include="TIMS\D05AB\D05ABButtonGroup.cs"/>
+        <Compile Include="TIMS\D05AB\D05ABForegroundRoot.cs"/>
+        <Compile Include="TIMS\D05AB\D05ABScreen.cs"/>
+        <Compile Include="TIMS\D05AB\D05ABViewModelBase.cs"/>
+        <Compile Include="TIMS\ICCard\TIMSMileageCorrectionPoint.cs"/>
+        <Compile Include="TIMS\ICCard\TIMSSlowSection.cs"/>
+        <Compile Include="TIMS\ICCard\TIMSStationBlockRange.cs"/>
+        <Compile Include="TIMS\ICCard\TIMSSignalSystemChangePoint.cs"/>
+        <Compile Include="TIMS\ICCard\TIMSICCardService.cs"/>
+        <Compile Include="TIMS\ICCard\TIMSStation.cs"/>
+        <Compile Include="TIMS\ICCard\TIMSDestination.cs"/>
+        <Compile Include="TIMS\ICCard\TIMSDisplayMode.cs"/>
+        <Compile Include="TIMS\ICCard\TIMSLeg.cs"/>
+        <Compile Include="TIMS\ICCard\TIMSMileageDirection.cs"/>
+        <Compile Include="TIMS\ICCard\TIMSNextDuty.cs"/>
+        <Compile Include="TIMS\ICCard\TIMSScheduleType.cs"/>
+        <Compile Include="TIMS\ICCard\TIMSStationSwitchMode.cs"/>
+        <Compile Include="TIMS\ICCard\TIMSStationTask.cs"/>
+        <Compile Include="TIMS\ICCard\TIMSStopType.cs"/>
+        <Compile Include="TIMS\S00AA\S00AABackgroundRoot.cs"/>
+        <Compile Include="TIMS\S00AA\S00AAScreen.cs"/>
+        <Compile Include="TIMS\S00AB\S00ABForegroundRoot.cs"/>
+        <Compile Include="TIMS\S00AB\S00ABScreen.cs"/>
+        <Compile Include="TIMS\TIMSBigGreenCarWidget.cs"/>
+        <Compile Include="TIMS\TIMSBlockTypes.cs"/>
+        <Compile Include="TIMS\TIMSBrightnessButton.cs"/>
+        <Compile Include="TIMS\TIMSCarGroup.cs"/>
+        <Compile Include="TIMS\TIMSCarWidget.cs"/>
+        <Compile Include="TIMS\TIMSCircle.cs"/>
+        <Compile Include="TIMS\TIMSCommonBackground.cs"/>
+        <Compile Include="TIMS\TIMSCommonButtonGroup.cs"/>
+        <Compile Include="TIMS\TIMSCommonForegroundRoot.cs"/>
+        <Compile Include="TIMS\TIMSConductorButtonGroup.cs"/>
+        <Compile Include="TIMS\TIMSDoorStateGroup.cs"/>
+        <Compile Include="TIMS\TIMSDriverButtonGroup.cs"/>
+        <Compile Include="TIMS\TIMSFormationViewModel.cs"/>
+        <Compile Include="TIMS\TIMSRadioChannelWidget.cs"/>
+        <Compile Include="TIMS\TIMSSideDoorStateGroup.cs"/>
+        <Compile Include="TIMS\TIMSideDoorWidget.cs"/>
+        <Compile Include="TIMS\TIMSExtensions.cs"/>
+        <Compile Include="TIMS\TIMSHelper.cs"/>
+        <Compile Include="TIMS\TIMSFormationSpecs.cs"/>
+        <Compile Include="TIMS\TIMSTextExtentions.cs"/>
+        <Compile Include="TIMS\TIMSTrainType.cs"/>
+        <Compile Include="TIMS\TIMSVehicleSpec.cs"/>
+        <Compile Include="TIMS\TIMSService.cs"/>
+        <Compile Include="TIMS\TIMSVehicleDirection.cs"/>
+        <Compile Include="TIMS\TIMSVehicleStateWidget.cs"/>
+        <Compile Include="TIMS\TIMSViewModel.cs"/>
+        <Compile Include="TIMS\TIMSVolumeButton.cs"/>
+        <Compile Include="TIMS\TIMSScreenTitle.cs"/>
+        <Compile Include="TIMS\X00AA\X00AABackgroundRoot.cs"/>
+        <Compile Include="TIMS\X00AA\X00AAForegroundRoot.cs"/>
+        <Compile Include="TIMS\X00AA\X00AAScreen.cs"/>
+        <Compile Include="ViewModels\AtcSpeedViewModel.cs"/>
+        <Compile Include="ViewModels\AtsStateViewModel.cs"/>
+        <Compile Include="ViewModels\ButtonViewModel.cs"/>
+        <Compile Include="ViewModels\LampPanelViewModel.cs"/>
+        <Compile Include="ViewModels\MeterBackgroundBaseViewModel.cs"/>
+        <Compile Include="ViewModels\MeterForegroundRootBaseViewModel.cs"/>
+        <Compile Include="ViewModels\NormalAtcViewModel.cs"/>
+        <Compile Include="ViewModels\TascViewModel.cs"/>
+        <Compile Include="ViewModels\VehicleStateLampGroupViewModel.cs"/>
+        <Compile Include="ViewModels\VolumeButtonViewModel.cs"/>
+    </ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\JREMonitors.Core\JREMonitors.Core.csproj">
+            <Project>{21d66418-9b03-4233-8afa-a6d1052dd37f}</Project>
+            <Name>JREMonitors.Core</Name>
+        </ProjectReference>
+        <ProjectReference Include="..\JREMonitors.JRE\JREMonitors.JRE.csproj">
+            <Project>{28a560ab-2380-4a64-9784-0821f7652af4}</Project>
+            <Name>JREMonitors.JRE</Name>
+        </ProjectReference>
+    </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="Microsoft.Bcl.HashCode" Version="1.1.1"/>
+        <PackageReference Include="System.Buffers" Version="4.6.1"/>
+        <PackageReference Include="System.Memory" Version="4.6.3"/>
+        <PackageReference Include="System.Numerics.Vectors" Version="4.6.1"/>
+        <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="6.1.2"/>
+        <PackageReference Include="Vortice.Direct2D1" Version="2.4.2"/>
+        <PackageReference Include="Vortice.DirectX" Version="2.4.2"/>
+        <PackageReference Include="Vortice.DXGI" Version="2.4.2"/>
+        <PackageReference Include="Vortice.Mathematics" Version="1.4.25"/>
+    </ItemGroup>
+    <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets"/>
+    <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+         Other similar extension points exist, see Microsoft.Common.targets.
+    <Target Name="BeforeBuild">
+    </Target>
+    <Target Name="AfterBuild">
+    </Target>
+    -->
+
+</Project>

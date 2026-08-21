@@ -1,0 +1,55 @@
+{
+  "type": "E233-1000",
+  "monitors": {
+    "1": {
+      "cab": {
+        "positions": {
+          "topLeft": [913, 1929],
+          "topRight": [1549, 1929],
+          "bottomLeft": [872, 2405],
+          "bottomRight": [1532, 2405]
+        },
+        "tiltX": 15,
+        "lighting": {
+          "shadowExtent": [1207, 2065],
+          "brightExtent": [1207, 2137],
+          "glassReflectanceLight": 0.03,
+          "glassReflectanceDark": 0,
+          "glareColor": [0.9, 0.95, 1]
+        },
+        "borderRadius": 10
+      }
+    },
+    "2": {
+      "cab": {
+        "positions": {
+          "topLeft": [2308, 1842],
+          "topRight": [3084, 1842],
+          "bottomLeft": [2318, 2391],
+          "bottomRight": [3129, 2391]
+        },
+        "tiltX": 9,
+        "tiltY": -0.5,
+        "origin": [2308, 1842],
+        "lighting": {
+          "shadowExtent": [2728, 1947],
+          "brightExtent": [2728, 1987],
+          "glassReflectanceLight": 0.03,
+          "glassReflectanceDark": 0,
+          "glareColor": [0.9, 0.95, 1]
+        },
+        "borderRadius": 6
+      }
+    },
+    "3": {
+      "resolution": "800x600",
+      "cab": {
+        "enabled": false
+      },
+      "external": {
+        "show": true
+      }
+    }
+  },
+  "enableHotReload": true
+}

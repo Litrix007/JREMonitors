@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')"/>
+    <PropertyGroup>
+        <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+        <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+        <ProjectGuid>{28025233-DAF1-41C8-BACC-98A143982331}</ProjectGuid>
+        <OutputType>Exe</OutputType>
+        <AppDesignerFolder>Properties</AppDesignerFolder>
+        <RootNamespace>JREMonitors.SandBox</RootNamespace>
+        <AssemblyName>JREMonitors.SandBox</AssemblyName>
+        <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
+        <FileAlignment>512</FileAlignment>
+        <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    </PropertyGroup>
+    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+        <PlatformTarget>AnyCPU</PlatformTarget>
+        <DebugSymbols>true</DebugSymbols>
+        <DebugType>full</DebugType>
+        <Optimize>false</Optimize>
+        <OutputPath>bin\Debug\</OutputPath>
+        <DefineConstants>DEBUG;TRACE</DefineConstants>
+        <ErrorReport>prompt</ErrorReport>
+        <WarningLevel>4</WarningLevel>
+    </PropertyGroup>
+    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+        <PlatformTarget>AnyCPU</PlatformTarget>
+        <DebugType>pdbonly</DebugType>
+        <Optimize>true</Optimize>
+        <OutputPath>bin\Release\</OutputPath>
+        <DefineConstants>TRACE</DefineConstants>
+        <ErrorReport>prompt</ErrorReport>
+        <WarningLevel>4</WarningLevel>
+    </PropertyGroup>
+    <ItemGroup>
+        <Reference Include="mscorlib"/>
+        <Reference Include="System"/>
+        <Reference Include="System.Core"/>
+        <Reference Include="System.Data"/>
+        <Reference Include="System.Windows.Forms"/>
+        <Reference Include="System.Drawing"/>
+        <Reference Include="System.Numerics"/>
+        <Reference Include="System.Xml"/>
+    </ItemGroup>
+    <ItemGroup>
+        <Compile Include="Providers\MockSignalProvider.cs"/>
+        <Compile Include="SandboxForm.cs"/>
+        <Compile Include="Program.cs"/>
+        <Compile Include="Properties\AssemblyInfo.cs"/>
+        <Compile Include="Providers\MockPanelDataProvider.cs"/>
+        <Compile Include="Providers\MockVehicleStateProvider.cs"/>
+        <Compile Include="Providers\SystemTimeProvider.cs"/>
+        <Compile Include="Services\MockDoorStateService.cs"/>
+        <Compile Include="Services\MockPassengerStateService.cs"/>
+        <Compile Include="Services\MockTIMSICCardService.cs"/>
+        <Compile Include="Services\MockTIMSService.cs"/>
+        <Compile Include="SandboxMonitorManager.cs"/>
+    </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="Microsoft.Bcl.HashCode" Version="1.1.1"/>
+        <PackageReference Include="System.Buffers" Version="4.6.1"/>
+        <PackageReference Include="System.Memory" Version="4.6.3"/>
+        <PackageReference Include="System.Numerics.Vectors" Version="4.6.1"/>
+        <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="6.1.2"/>
+        <PackageReference Include="Vortice.Direct2D1" Version="2.4.2"/>
+        <PackageReference Include="Vortice.Direct3D11" Version="2.4.2"/>
+        <PackageReference Include="Vortice.DirectX" Version="2.4.2"/>
+        <PackageReference Include="Vortice.DXGI" Version="2.4.2"/>
+        <PackageReference Include="Vortice.Mathematics" Version="1.4.25"/>
+    </ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\JREMonitors.Core\JREMonitors.Core.csproj">
+            <Project>{21d66418-9b03-4233-8afa-a6d1052dd37f}</Project>
+            <Name>JREMonitors.Core</Name>
+        </ProjectReference>
+        <ProjectReference Include="..\JREMonitors.E233\JREMonitors.E233.csproj">
+            <Project>{e6936026-62e2-4fef-bb5d-1b7fa075451a}</Project>
+            <Name>JREMonitors.E233</Name>
+        </ProjectReference>
+        <ProjectReference Include="..\JREMonitors.JRE\JREMonitors.JRE.csproj">
+            <Project>{28a560ab-2380-4a64-9784-0821f7652af4}</Project>
+            <Name>JREMonitors.JRE</Name>
+        </ProjectReference>
+    </ItemGroup>
+    <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets"/>
+    <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+         Other similar extension points exist, see Microsoft.Common.targets.
+    <Target Name="BeforeBuild">
+    </Target>
+    <Target Name="AfterBuild">
+    </Target>
+    -->
+
+</Project>

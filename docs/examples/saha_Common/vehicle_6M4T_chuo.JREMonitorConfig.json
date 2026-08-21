@@ -1,0 +1,17 @@
+{
+  "parent": "base.json",
+  "type": "E233-0",
+  "defaultFormation": "6+4",
+  "inputPresets": ["GAP-ATS-P", "GAP-ATS-S"],
+  "inputs": {
+    "atsPEmergencyBrake": -1,
+    "tascEnabled": 95,
+    "tascPattern": 97,
+    "tascBrake": 96,
+    "tascFixedDistance": 254,
+    "vehicleDoorAllClosed": 253,
+    "platformDoorAllClosed": 252,
+    "platformInterlocking": 251,
+    "platformDecoupling": 250
+  }
+}

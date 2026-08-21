@@ -1,0 +1,31 @@
+{
+  "type": "E233-1000",
+  "defaultFormation": "10",
+  "inputPresets": ["ATC-6", "Mi5000-DATC"],
+  "inputs": {
+    "catenaryVoltage": 232,
+    "tascPattern": 97,
+    "tascBrake": 96,
+    "tascEnabled": 95,
+    "datcInchingActivated": 92,
+    "tascFixedDistance": 254,
+    "vehicleDoorAllClosed": 253,
+    "platformDoorAllClosed": 252,
+    "platformInterlocking": 251,
+    "platformDecoupling": 250,
+    "atcHoldingBrakeActive": 65,
+    "brakeNotch": 100,
+    "tascBrakeNotch": 96,
+    "carDoor1": 210,
+    "carDoor2": 211,
+    "carDoor3": 212,
+    "carDoor4": 213,
+    "carDoor5": 214,
+    "carDoor6": 215,
+    "carDoor7": 216,
+    "carDoor8": 217,
+    "carDoor9": 218,
+    "carDoor10": 219
+  },
+  "defaultSignalSystem": "datc"
+}

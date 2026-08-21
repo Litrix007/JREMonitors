@@ -1,0 +1,43 @@
+{
+  "type": "E233-0",
+  "inputPresets": ["GAP-ATS-P", "GAP-ATS-S"],
+  "defaultFormation": "10",
+  "inputs": {
+    "platformDoorCutout": -2
+  },
+  "monitors": {
+    "1": {
+      "cab": {
+        "positions": {
+          "topLeft": [1262, 1414],
+          "topRight": [1665, 1422],
+          "bottomLeft": [1234, 1723],
+          "bottomRight": [1652, 1725]
+        },
+        "rotation": 2.2,
+        "tiltX": 10,
+        "tiltY": -5.5
+      }
+    },
+    "2": {
+      "cab": {
+        "positions": {
+          "topLeft": [2220, 1391],
+          "topRight": [2667, 1391],
+          "bottomLeft": [2230, 1735],
+          "bottomRight": [2695, 1735]
+        },
+        "tiltX": 15
+      }
+    },
+    "3": {
+      "cab": {
+        "enabled": false
+      },
+      "external": {
+        "show": true
+      }
+    }
+  },
+  "enableHotReload": true
+}

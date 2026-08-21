@@ -1,0 +1,40 @@
+{
+  "monitors": {
+    "1": {
+      "cab": {
+        "borderRadius": 8,
+        "positions": {
+          "topLeft": [729, 1055],
+          "topRight": [1060, 1055],
+          "bottomLeft": [729, 1295],
+          "bottomRight": [1058, 1295]
+        }
+      }
+    },
+    "2": {
+      "cab": {
+        "positions": {
+          "topLeft": [1387, 1055],
+          "topRight": [1746, 1055],
+          "bottomLeft": [1387, 1294],
+          "bottomRight": [1746, 1294]
+        }
+      }
+    },
+    "3": {
+      "cab": {
+        "positions": {
+          "topLeft": [2390, 1079],
+          "topRight": [2712, 1100],
+          "bottomLeft": [2363, 1320],
+          "bottomRight": [2689, 1346]
+        },
+        "origin": [2539, 1211],
+        "rotation": 3.7,
+        "tiltX": -2,
+        "tiltY": 2
+      }
+    }
+  },
+  "enableHotReload": true
+}
