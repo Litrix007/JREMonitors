@@ -42,7 +42,8 @@ namespace JREMonitors.E233.TIMS.C01AX
             doorStateGroup.RightSpacing.Bind(CreateComputed<float>(() =>
             {
                 var formationSpec = ViewModel.FormationSpec.Value;
-                if (spec.C01AASpec.CountPassengers && formationSpec != null && formationSpec.CarCount > 10) return 40;
+                if (spec.C01AASpec.CountPassengers && ((formationSpec != null && formationSpec.CarCount > 10) ||
+                                                       spec.MaxFormationCarCount == 10)) return 40;
                 return 0;
             }));
             AddChild(doorStateGroup);

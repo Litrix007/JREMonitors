@@ -5,10 +5,10 @@ using System.Linq;
 using System.Numerics;
 using System.Threading;
 using System.Windows.Forms;
-using Microsoft.Win32.SafeHandles;
 using JREMonitors.Core.Contexts;
 using JREMonitors.Core.Utils;
 using JREMonitors.Core.Utils.Render;
+using Microsoft.Win32.SafeHandles;
 using Vortice.Direct2D1;
 using Vortice.Direct3D11;
 using Vortice.DirectComposition;
@@ -68,8 +68,19 @@ namespace JREMonitors.Core.Monitors
         /// </summary>
         private volatile bool _formVisible;
 
+        // 帧延迟等待对象（包装 SwapChain 的 waitable handle；ownsHandle=false，句柄归 SwapChain 所有）。
+        // Present 前用 WaitOne(0) 非阻塞探测队列状态，避免双缓冲下 Present 阻塞 STA 线程。
+        private ManualResetEvent _frameLatencyWaitable;
+
+        // 图形资源是否已释放（ShutdownGraphics 幂等标志）
+        private bool _graphicsShutdown;
+
         /// Detach 在首帧前调用 Hide 的场景，抑制首帧 Show
         private volatile bool _hideRequested;
+
+        // STA 退出信号事件：由 STA 线程创建，并在其 finally 中置零并关闭（谁创建谁释放）。
+        // Dispose 仅做快照等待，不参与句柄生命周期管理
+        private volatile IntPtr _hStaExitEvent;
 
         private volatile IntPtr _hwnd = IntPtr.Zero;
         private ID2D1Bitmap1 _intermediateBitmap;
@@ -78,37 +89,31 @@ namespace JREMonitors.Core.Monitors
         private ScreenDisplayMode _mode;
         private volatile bool _needsResize;
         private volatile bool _needsSrcBitmapRecreate;
+
+        // 跳帧挂起标志：共享纹理有内容尚未成功 Present（探测失败置位，成功 Present / 隐藏后清除）
+        private volatile bool _presentPending;
+
+        // 常规 present 消息合并标志：防止 STA 线程繁忙时消息队列积压
+        private volatile bool _presentQueued;
         private volatile int _renderHeight;
         private Size _renderSize;
         private volatile int _renderWidth;
+
+        // 帧延迟信号的重试注册：DWM 释放 buffer 时回调投递 force-present 消息
+        private RegisteredWaitHandle _retryRegistration;
         private volatile bool _running;
         private ID3D11Texture2D _sharedTexture;
+
+        // 重新显示挂起标志：WM_USER_SHOW 置位后窗口暂不显示，
+        // 等 DoPresent 把新帧 Present 进 backbuffer 后才真正 Visible=true，
+        // 避免外屏窗口先显示 SwapChain 里隐藏前的残留画面
+        private volatile bool _showPending;
         private ID2D1Bitmap1 _srcBitmap;
         private volatile bool _staStarted;
 
         private Thread _staThread;
         private int _staThreadId;
         private IDXGISwapChain1 _swapChain;
-
-        // 帧延迟等待对象（包装 SwapChain 的 waitable handle；ownsHandle=false，句柄归 SwapChain 所有）。
-        // Present 前用 WaitOne(0) 非阻塞探测队列状态，避免双缓冲下 Present 阻塞 STA 线程。
-        private ManualResetEvent _frameLatencyWaitable;
-
-        // 跳帧挂起标志：共享纹理有内容尚未成功 Present（探测失败置位，成功 Present / 隐藏后清除）
-        private volatile bool _presentPending;
-
-        // 帧延迟信号的重试注册：DWM 释放 buffer 时回调投递 force-present 消息
-        private RegisteredWaitHandle _retryRegistration;
-
-        // 常规 present 消息合并标志：防止 STA 线程繁忙时消息队列积压
-        private volatile bool _presentQueued;
-
-        // 图形资源是否已释放（ShutdownGraphics 幂等标志）
-        private bool _graphicsShutdown;
-
-        // STA 退出信号事件：由 STA 线程创建，并在其 finally 中置零并关闭（谁创建谁释放）。
-        // Dispose 仅做快照等待，不参与句柄生命周期管理
-        private volatile IntPtr _hStaExitEvent;
 
         public ExternalDisplayForm(
             MonitorContext context,
@@ -255,6 +260,7 @@ namespace JREMonitors.Core.Monitors
         {
             _hideRequested = true;
             _formVisible = false;
+            _showPending = false;
             var hwnd = _hwnd;
             if (_formReady && hwnd != IntPtr.Zero)
                 Win32Helper.PostMessage(hwnd, WM_USER_HIDE, IntPtr.Zero, IntPtr.Zero);
@@ -263,6 +269,7 @@ namespace JREMonitors.Core.Monitors
         /// <summary>
         ///     重新显示已隐藏的窗口（用户关闭或 Hide 后调用）。
         ///     清除 _hideRequested 以允许 DoPresent 首帧 Show，并投递 WM_USER_SHOW 通知 STA 线程恢复可见。
+        ///     实际显示延迟到 DoPresent 成功 Present 新帧之后（_showPending），避免显示隐藏前的残留。
         /// </summary>
         public void Show()
         {
@@ -566,7 +573,8 @@ namespace JREMonitors.Core.Monitors
 
             if (_formShown && !_formVisible)
             {
-                // 隐藏时 SwapChain 保留最后一帧，无需补 present
+                // 隐藏时 SwapChain 保留最后一帧，无需补 present；同时撤销未完成的挂起显示
+                _showPending = false;
                 ClearPendingRetry();
                 return;
             }
@@ -654,7 +662,14 @@ namespace JREMonitors.Core.Monitors
             {
                 _formShown = true;
                 _formVisible = true;
+                _showPending = false;
                 _form.Show();
+            }
+            else if (_showPending)
+            {
+                // 重新显示：新帧已 Present 进 backbuffer，此时才真正显示窗口
+                _showPending = false;
+                _form.Visible = true;
             }
         }
 
@@ -1050,6 +1065,7 @@ namespace JREMonitors.Core.Monitors
                         // 关闭线路时本消息先于 WM_CLOSE 入队，若在此还原全屏样式，
                         // SetWindowPos 触发的 DWM 全屏切换会阻塞 STA，拖住 Dispose 的等待
                         _owner._formVisible = false;
+                        _owner._showPending = false;
                         Visible = false;
                         m.Result = IntPtr.Zero;
                         return;
@@ -1059,7 +1075,9 @@ namespace JREMonitors.Core.Monitors
                         if (_isFullScreen) ToggleFullScreen();
                         _owner._formVisible = true;
                         _owner._hideRequested = false;
-                        Visible = true;
+                        // 不立即 Visible=true：先挂起，等 DoPresent 把新帧 Present 进
+                        // backbuffer 后再显示，避免窗口先亮出隐藏前的残留画面
+                        _owner._showPending = true;
                         m.Result = IntPtr.Zero;
                         return;
                     case WM_ENTERSIZEMOVE:

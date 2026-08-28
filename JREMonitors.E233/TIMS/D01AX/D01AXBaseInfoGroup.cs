@@ -106,11 +106,11 @@ namespace JREMonitors.E233.TIMS.D01AX
             FirstRowTrainNumber = CreateComputed(() =>
                 string.IsNullOrEmpty(_firstRowTrainNumberRaw)
                     ? string.Empty
-                    : TIMSHelper.FormatTrainNumber(_firstRowTrainNumberRaw, true).ToFullWidth());
+                    : TIMSHelper.FormatTrainNumber(_firstRowTrainNumberRaw, '0', false).ToFullWidth());
             SecondRowTrainNumber = CreateComputed(() =>
                 string.IsNullOrEmpty(_secondRowTrainNumberRaw)
                     ? string.Empty
-                    : TIMSHelper.FormatTrainNumber(_secondRowTrainNumberRaw, false).ToFullWidth());
+                    : TIMSHelper.FormatTrainNumber(_secondRowTrainNumberRaw, null, false).ToFullWidth());
         }
 
         public Signal<TIMSDisplayMode> DisplayMode { get; } = new Signal<TIMSDisplayMode>();

@@ -9,6 +9,7 @@ namespace JREMonitors.BveEx.Configs.Vehicle.TIMS
     [JsonPolymorphic(TypeDiscriminatorPropertyName = "type")]
     [JsonDerivedType(typeof(TIMSMileageCorrectionPointConfig), "mileageCorrection")]
     [JsonDerivedType(typeof(TIMSSlowSectionConfig), "slowSection")]
+    [JsonDerivedType(typeof(TIMSAirSectionConfig), "airSection")]
     public abstract class TIMSRouteNodeConfig
     {
     }
@@ -255,6 +256,24 @@ namespace JREMonitors.BveEx.Configs.Vehicle.TIMS
         ///     徐行区间限速。
         /// </summary>
         public int SpeedLimit { get; set; }
+    }
+
+    public class TIMSAirSectionConfig : TIMSRouteNodeConfig
+    {
+        /// <summary>
+        ///     分相区间相对于游戏地图的起始位置。
+        /// </summary>
+        public int StartLocation { get; set; }
+
+        /// <summary>
+        ///     分相区间相对于游戏地图的结束位置，不得小于 StartLocation。
+        /// </summary>
+        public int EndLocation { get; set; }
+
+        /// <summary>
+        ///     进入提示距区间起点的偏移量：车辆位置到达 StartLocation - HintOffset 时播放分相区间提示音。
+        /// </summary>
+        public int HintOffset { get; set; }
     }
 
     public class TIMSMileageCorrectionPointConfig : TIMSRouteNodeConfig

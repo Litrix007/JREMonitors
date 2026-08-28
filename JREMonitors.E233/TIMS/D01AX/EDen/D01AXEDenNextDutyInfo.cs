@@ -13,17 +13,20 @@ namespace JREMonitors.E233.TIMS.D01AX.EDen
 {
     public class D01AXEDenNextDutyInfo : Widget<D01AXEDenNextDutyInfoViewModel>
     {
-        private const float Width = 240;
+        private const float BaseWidth = 240;
         private readonly D01AXSpec _spec;
+        private readonly float _width;
 
         public D01AXEDenNextDutyInfo(RenderContext context, ScopedRenderContext scopedContext, TIMSVehicleSpec spec) :
             base(context, y: 310)
         {
             ViewModel = new D01AXEDenNextDutyInfoViewModel();
+            _width = spec.D01AXSpec.HideNextDutyBackgroundWhenEmpty ? BaseWidth + 8 : BaseWidth;
+            var paddingRight = spec.D01AXSpec.HideNextDutyBackgroundWhenEmpty ? 0 : 30;
             X.Bind(CreateComputed(() =>
                 ViewModel.VehicleDirection.Value == TIMSVehicleDirection.Left
                     ? spec.D01AXSpec.MayShowRouteSetInformation ? 137 : 30
-                    : 800 - 30 - Width));
+                    : 800 - paddingRight - _width));
             _spec = spec.D01AXSpec;
             var title = new BoundsDrawerWidget(context,
                 this.CreateTIMSTextDrawer(
@@ -31,6 +34,7 @@ namespace JREMonitors.E233.TIMS.D01AX.EDen
                         RichTextParser.Raw(ViewModel.IsEmpty.Value ? "\u3000\u3000\u3000" : "次行路"))
                 ),
                 contentColor: MonitorColors.TIMSTitleGrey,
+                backgroundColor: Colors.Black,
                 y: 6);
             AddChild(title);
             var trainNumberText = new BoundsDrawerWidget(scopedContext,
@@ -39,33 +43,38 @@ namespace JREMonitors.E233.TIMS.D01AX.EDen
                     context: scopedContext
                 ),
                 contentColor: MonitorColors.White,
+                backgroundColor: Colors.Black,
                 y: 26);
             AddChild(trainNumberText);
             var arrivalText = new D01AXNormalTimeText(
                 scopedContext,
-                125,
+                _width,
                 6,
                 1,
                 false,
                 ViewModel.ArrivalHoursAndMinutes,
                 ViewModel.ArrivalSeconds,
-                new Signal<string>("\u3000")
+                new Signal<string>("\u3000"),
+                1
             );
+            arrivalText.BackgroundColor.Value = Colors.Black;
             AddChild(arrivalText);
             var departureText = new D01AXNormalTimeText(
                 scopedContext,
-                125,
+                _width,
                 26,
                 1,
                 false,
                 ViewModel.DepartureHoursAndMinutes,
                 ViewModel.DepartureSeconds,
-                ViewModel.DepartureChar
+                ViewModel.DepartureChar,
+                1
             );
+            departureText.BackgroundColor.Value = Colors.Black;
             AddChild(departureText);
         }
 
-        public override RectangleF SelfRelativeDirtyBounds => new RectangleF(0, 0, Width, 52);
+        public override RectangleF SelfRelativeDirtyBounds => new RectangleF(0, 0, _width, 52);
 
         private bool ShowBackground => !ViewModel.IsEmpty.Value || !_spec.HideNextDutyBackgroundWhenEmpty;
 
@@ -88,8 +97,8 @@ namespace JREMonitors.E233.TIMS.D01AX.EDen
         {
             TrainNumber = CreateComputed(() =>
                 string.IsNullOrEmpty(_rawTrainNumber)
-                    ? string.Empty
-                    : TIMSHelper.FormatTrainNumber(_rawTrainNumber, false).PadLeft(7).ToFullWidth());
+                    ? "\u3000\u3000\u3000\u3000\u3000\u3000\u3000"
+                    : TIMSHelper.FormatTrainNumber(_rawTrainNumber, ' ', true).ToFullWidth());
         }
 
         public Signal<bool> IsEmpty { get; } = new Signal<bool>();

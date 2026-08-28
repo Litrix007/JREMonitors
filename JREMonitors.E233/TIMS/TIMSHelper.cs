@@ -135,15 +135,17 @@ namespace JREMonitors.E233.TIMS
             return tickCount % 2 == 0;
         }
 
-        public static string FormatTrainNumber(string input, bool padZero)
+        public static string FormatTrainNumber(string input, char? numberpadChar, bool padType)
         {
             if (string.IsNullOrEmpty(input)) return input;
 
             var match = Regex.Match(input, @"^(?<prefix>\D*)(?<number>\d+)(?<suffix>.*)$");
             if (!match.Success) return input;
             var prefix = match.Groups["prefix"].Value;
+            if (padType) prefix = prefix.PadLeft(2, ' ');
+
             var rawNumber = match.Groups["number"].Value;
-            var number = padZero ? rawNumber.PadLeft(4, '0') : rawNumber;
+            var number = numberpadChar.HasValue ? rawNumber.PadLeft(4, numberpadChar.Value) : rawNumber;
             var rawSuffix = match.Groups["suffix"].Value;
             var finalSuffix = " ";
             if (!string.IsNullOrEmpty(rawSuffix) && StringHelper.IsAsciiLetter(rawSuffix[0]))

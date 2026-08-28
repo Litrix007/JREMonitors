@@ -19,18 +19,21 @@ namespace JREMonitors.E233.TIMS.D01AX.EDen
 {
     public class D01AXEDenSlowSectionInfo : Widget<D01AXEDenSlowSectionInfoViewModel>
     {
-        private const float Width = 390;
+        private const float BaseWidth = 390;
         private const float Height = 52;
+        private readonly float _width;
 
         public D01AXEDenSlowSectionInfo(RenderContext context, RenderContext scopedContext, TIMSVehicleSpec spec) :
             base(context, y: 310)
         {
             ViewModel = new D01AXEDenSlowSectionInfoViewModel();
             IsVisible.Bind(ViewModel.IsVisible);
+            _width = BaseWidth + (spec.D01AXSpec.HideNextDutyBackgroundWhenEmpty ? 22 : 0);
+            var paddingRight = spec.D01AXSpec.HideNextDutyBackgroundWhenEmpty ? 0 : 30;
             X.Bind(CreateComputed(() =>
                 ViewModel.VehicleDirection.Value == TIMSVehicleDirection.Right
                     ? spec.D01AXSpec.MayShowRouteSetInformation ? 137 : 30
-                    : 800 - 30 - Width));
+                    : 800 - paddingRight - _width));
             var title = new BoundsDrawerWidget(context,
                 this.CreateTIMSTextDrawer("徐行", horizontalAlignment: 0.5f, verticalAlignment: 0.5f,
                     useVerticalOverhangMetrics: true),
@@ -85,13 +88,13 @@ namespace JREMonitors.E233.TIMS.D01AX.EDen
             limit2.CustomPreferredHeight.Value = LayoutLength.Absolute(20);
             var limitCol = new Col(context, spreadWidthFlex: false, widgets: new Widget[] { limit1, limit2 },
                 positionSnapToPixels: true);
-            var row = new Row(context, y: 6, explicitAvailableWidth: Width,
+            var row = new Row(context, y: 6, explicitAvailableWidth: _width,
                 widgets: new Widget[] { title, sectionCol, limitCol }, positionSnapToPixels: true);
             AddChild(row);
         }
 
         protected override bool SkipUpdateWhenHidden => false;
-        public override RectangleF SelfRelativeDirtyBounds => new RectangleF(0, 0, Width, Height);
+        public override RectangleF SelfRelativeDirtyBounds => new RectangleF(0, 0, _width, Height);
 
         protected override void OnDraw(float totalScale)
         {
@@ -100,8 +103,8 @@ namespace JREMonitors.E233.TIMS.D01AX.EDen
                 Context.CommonBrush.Color = Colors.Black;
                 Context.DeviceContext.FillRectangle(SelfRelativeDirtyBounds, Context.CommonBrush);
                 Context.CommonBrush.Color = Colors.Yellow;
-                Context.DeviceContext.FillRectangle(new RectangleF(0, 0, Width, 6), Context.CommonBrush);
-                Context.DeviceContext.FillRectangle(new RectangleF(0, 46, Width, 6), Context.CommonBrush);
+                Context.DeviceContext.FillRectangle(new RectangleF(0, 0, _width, 6), Context.CommonBrush);
+                Context.DeviceContext.FillRectangle(new RectangleF(0, 46, _width, 6), Context.CommonBrush);
             });
         }
     }

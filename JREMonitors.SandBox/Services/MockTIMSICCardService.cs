@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using JREMonitors.Core.State;
 using JREMonitors.E233.TIMS;
 using JREMonitors.E233.TIMS.ICCard;
+using JREMonitors.JRE;
 using JREMonitors.JRE.Providers;
 using Vortice.Mathematics;
 
@@ -12,13 +13,15 @@ namespace JREMonitors.SandBox.Services
     {
         public MockTIMSICCardService(DataHub dataHub, IReadOnlyDictionary<string, TIMSFormationSpec> formationSpecs) :
             base(
-                dataHub, formationSpecs, "", "変休B16行路", TIMSDisplayMode.EDen, "10+5",
+                dataHub, formationSpecs, "", "変休B16行路", TIMSDisplayMode.EDen, "10",
                 E233SignalSystem.Datc,
                 new[]
                 {
-                    new TIMSLeg<E233SignalSystem>("2334F", 'P', "10+5", TIMSDisplayMode.EDen,
+                    new TIMSLeg<E233SignalSystem>("2334F", 'P', "10", TIMSDisplayMode.MDen,
                         new TIMSDestination("蒲田"),
-                        new TIMSNextDuty("824B", new TimeSpan(0, 23, 04, 30), new TimeSpan(0, 23, 05, 15)), 0,
+                        new TIMSNextDuty("824B", new TimeSpan(0, 23, 04, 30), new TimeSpan(0, 23, 05, 15)),
+                        // null,
+                        0,
                         new[]
                         {
                             new TIMSStation<E233SignalSystem>("1", "千葉", 0, TIMSMileageDirection.Increment, 300, 305,
@@ -43,12 +46,13 @@ namespace JREMonitors.SandBox.Services
                             {
                                 ShowStopText = true,
                                 StopDuration = 1,
+                                StopType = TIMSStopType.Stop,
                                 StationBlockStartOffset = 200,
                                 // LineStrokeWidth = 5,
                                 Color = new Color3(1, 0, 0),
                                 LineColor = new Color3(0, 0, 1),
                                 LineStrokeWidth = 2,
-                                ArrivalTime = new TimeSpan(0, 8, 30, 46),
+                                // ArrivalTime = new TimeSpan(0, 8, 30, 46),
                                 DepartureTime = new TimeSpan(0, 8, 30, 48)
                             },
                             new TIMSStation<E233SignalSystem>("2", "蘇我", null, TIMSMileageDirection.Increment, 1100,
@@ -106,7 +110,8 @@ namespace JREMonitors.SandBox.Services
                         new[]
                         {
                             new TIMSMileageCorrectionPoint(500, 10000, TIMSMileageDirection.Decrement)
-                        }, new[] { (300, 1200, 45) })
+                        }, new[] { (300, 1200, 45) },
+                        new[] { new TIMSAirSection(2600, 3200, 300) })
                     // new TIMSLeg<E233SignalSystem>("3335F", 'P', "5", TIMSDisplayMode.EDen,
                     //     new TIMSDestination("蒲田"),
                     //     new TIMSNextDuty("824B", new TimeSpan(0, 23, 04, 30), new TimeSpan(0, 23, 05, 15)), 0,

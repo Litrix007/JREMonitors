@@ -68,7 +68,7 @@ namespace JREMonitors.E233.TIMS.D01AX
                         if (isNextMotorInSpec)
                         {
                             var nextCarIdx = isReverse ? carCount - (i + 1) - 1 : i + 1;
-                            var combinedCurrent = ViewModel.Currents[carIdx] + ViewModel.Currents[nextCarIdx];
+                            var combinedCurrent = ViewModel.Currents[i] + ViewModel.Currents[i + 1];
                             var color = combinedCurrent > 0 ? PoweringColor :
                                 combinedCurrent == 0 ? (Color4?)null : RegenerativeColor;
                             _carGroup.AllCars[carIdx].BackgroundColor.Value = color;
@@ -78,7 +78,7 @@ namespace JREMonitors.E233.TIMS.D01AX
                             continue;
                         }
 
-                        var current = ViewModel.Currents[carIdx];
+                        var current = ViewModel.Currents[i];
                         _carGroup.AllCars[carIdx].BackgroundColor.Value = current > 0 ? PoweringColor :
                             current == 0 ? (Color4?)null : RegenerativeColor;
                     }

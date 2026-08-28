@@ -20,9 +20,9 @@ namespace JREMonitors.E233.MeterScreen.Background.Base
         private const float UpWidth1 = 15;
         private const float UpWidth2 = 50;
         private const float UpHeight = 17;
-        private const float DownWidth1 = 10;
-        private const float DownWidth2 = 48;
-        private const float DownHeight = 9;
+        private const float DownWidth1 = 7;
+        private const float DownWidth2 = 51;
+        private const float DownHeight = 7;
         private const float VerticalAlignment200 = 0.9f - 0.55f * (0.9f - 3f / 4);
 
         private const float BorderSlope = (BcBackground.BottomMajorTickMarkWidth - BcBackground.TopMajorTickMarkWidth) /

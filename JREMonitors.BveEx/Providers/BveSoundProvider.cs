@@ -33,7 +33,7 @@ namespace JREMonitors.BveEx.Providers
                 }
                 catch (Exception)
                 {
-                    throw new InvalidOperationException($"Sound path '{pair.Value}' is invalid.");
+                    throw new InvalidOperationException($"Sound path '{pair.Value.Value}' is invalid.");
                 }
 
             _sounds = newSounds;

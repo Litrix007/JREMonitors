@@ -57,6 +57,7 @@ namespace JREMonitors.BveEx.Providers
             SapPressure = vehicleState.SapPressure;
             Current = vehicleState.Current;
             var brakeSystem = _scenario.Vehicle.Instruments.BrakeSystem;
+
             IsCompressorWorking = brakeSystem.Compressor.IsWorking;
             var atsPlugin = _scenario.Vehicle.Instruments.AtsPlugin;
             PowerNotch = atsPlugin.AtsHandles.PowerNotch;

@@ -16,7 +16,7 @@ namespace JREMonitors.SandBox.Providers
         {
             if (_data.TryGetValue(id, out var value)) return value;
 
-            return 0;
+            return 1;
         }
 
         public bool IsActive(string id)

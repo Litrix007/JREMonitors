@@ -1,5 +1,6 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
+using JREMonitors.JRE;
 
 namespace JREMonitors.E233.TIMS.ICCard
 {
@@ -16,7 +17,8 @@ namespace JREMonitors.E233.TIMS.ICCard
             IReadOnlyList<TIMSStation<TSignal>> stations,
             IReadOnlyList<TIMSSignalSystemChangePoint<TSignal>> signalSystemChangePoints,
             IReadOnlyList<TIMSMileageCorrectionPoint> mileageCorrectionPoints,
-            IReadOnlyList<(int startLocation, int endLocation, int speedLimit)> slowSectionLocations)
+            IReadOnlyList<(int startLocation, int endLocation, int speedLimit)> slowSectionLocations,
+            IReadOnlyList<TIMSAirSection> airSections)
         {
             TrainNumber = trainNumber;
             TrainNumberChar = trainNumberChar;
@@ -29,6 +31,7 @@ namespace JREMonitors.E233.TIMS.ICCard
             SignalSystemChangePoints = signalSystemChangePoints ?? Array.Empty<TIMSSignalSystemChangePoint<TSignal>>();
             MileageCorrectionPoints = mileageCorrectionPoints ?? Array.Empty<TIMSMileageCorrectionPoint>();
             SlowSectionLocations = slowSectionLocations ?? Array.Empty<(int, int, int)>();
+            AirSections = airSections ?? Array.Empty<TIMSAirSection>();
         }
 
         public string TrainNumber { get; }
@@ -42,5 +45,6 @@ namespace JREMonitors.E233.TIMS.ICCard
         public IReadOnlyList<TIMSSignalSystemChangePoint<TSignal>> SignalSystemChangePoints { get; }
         public IReadOnlyList<TIMSMileageCorrectionPoint> MileageCorrectionPoints { get; }
         public IReadOnlyList<(int startLocation, int endLocation, int speedLimit)> SlowSectionLocations { get; }
+        public IReadOnlyList<TIMSAirSection> AirSections { get; }
     }
 }

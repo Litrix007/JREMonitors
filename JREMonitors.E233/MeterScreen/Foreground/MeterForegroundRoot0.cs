@@ -48,7 +48,7 @@ namespace JREMonitors.E233.MeterScreen.Foreground
                 false,
                 90,
                 LayoutLength.Flex(),
-                LayoutLength.Absolute(155),
+                LayoutLength.Absolute(153),
                 4
             );
             _tascLampGroup = new MeterTascLampGroup(context,

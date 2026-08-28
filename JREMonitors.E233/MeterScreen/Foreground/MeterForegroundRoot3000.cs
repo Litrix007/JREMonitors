@@ -36,7 +36,7 @@ namespace JREMonitors.E233.MeterScreen.Foreground
                 false,
                 90,
                 LayoutLength.Flex(),
-                LayoutLength.Absolute(155),
+                LayoutLength.Absolute(153),
                 4
             );
             AddLampPanelWhenSafetyLampsVisible(new LampPanel(context, 1023, 432, 310,

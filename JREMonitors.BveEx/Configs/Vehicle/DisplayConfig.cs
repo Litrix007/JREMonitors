@@ -1,4 +1,4 @@
-﻿using JREMonitors.Core.Monitors;
+using JREMonitors.Core.Monitors;
 using Vortice.Mathematics;
 
 namespace JREMonitors.BveEx.Configs.Vehicle
@@ -29,15 +29,16 @@ namespace JREMonitors.BveEx.Configs.Vehicle
         ///         <br />设为1以上的值可显著降低耗时。
         ///     </para>
         ///     <para>
-        ///         D3D9Ex 模式：默认3，最小3，最大5；
+        ///         D3D9Ex 模式：默认MaxFrameLatency+2，最小3，最大7；
         ///         <br />常规稳态延迟1帧，视GPU负载在<c>[0, N-2]</c>帧之间自适应。
-        ///         <br />若积压超过<c>N-2</c>帧将保持上一画面并触发背压停产。
+        ///         <br />推荐设置为<c>N>=MaxFrameLatency+2</c>。
+        ///         <br />不足时会导致监视器内容帧率下降。
         ///     </para>
         /// </remarks>
         public int BufferFrameCount
         {
             get => _bufferFrameCount;
-            set => _bufferFrameCount = MathHelper.Clamp(value, 0, 5);
+            set => _bufferFrameCount = MathHelper.Clamp(value, 0, 7);
         }
 
         /// <summary>

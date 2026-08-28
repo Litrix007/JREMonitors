@@ -70,7 +70,11 @@ namespace JREMonitors.E233.MeterScreen.Foreground.Base
         protected override void OnStaticWarmUp(float totalScale)
         {
             for (var i = 1; i <= BrakeBackground.MaxBrake; i++)
-                _bakers[i - 1].BakeAndDraw(SelfRelativeDirtyBounds, () => Draw(i));
+            {
+                var j = i;
+                _bakers[i - 1].BakeAndDraw(SelfRelativeDirtyBounds, () => Draw(j),
+                    overrideInterpolationMode: InterpolationMode.Cubic);
+            }
         }
 
         private void Draw(int brake)
@@ -108,7 +112,8 @@ namespace JREMonitors.E233.MeterScreen.Foreground.Base
             if (_clampedBrake == 0) return;
             var i = _clampedBrake - 1;
             if (i > 7) i = 7;
-            _bakers[i].BakeAndDraw(SelfRelativeDirtyBounds, () => Draw(i));
+            _bakers[i].BakeAndDraw(SelfRelativeDirtyBounds, () => Draw(i),
+                overrideInterpolationMode: InterpolationMode.Cubic);
         }
     }
 }

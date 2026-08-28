@@ -44,7 +44,7 @@ namespace JREMonitors.E233.MeterScreen.Foreground.Base
                 Max = 1000
             };
             AddChild(_verticalTickMarks);
-            _needle = new VerticalNeedle(context, 0, 0, NeedleHeight, PointColor, true, 140, 1);
+            _needle = new VerticalNeedle(context, 0, 0, NeedleHeight, PointColor, true, 140);
             _needle.RectPartWidth.Value = Width;
             AddChild(_needle);
             Mr = CreateRelayPropertySlot<float>();

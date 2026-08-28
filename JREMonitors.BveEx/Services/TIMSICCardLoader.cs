@@ -7,6 +7,7 @@ using JREMonitors.BveEx.Configs.Vehicle.TIMS;
 using JREMonitors.BveEx.Utils;
 using JREMonitors.E233.TIMS;
 using JREMonitors.E233.TIMS.ICCard;
+using JREMonitors.JRE;
 
 namespace JREMonitors.BveEx.Services
 {
@@ -53,6 +54,7 @@ namespace JREMonitors.BveEx.Services
                     var signalSystemChangePoints = new List<TIMSSignalSystemChangePoint<TSignal>>();
                     var mileageCorrectionPoints = new List<TIMSMileageCorrectionPoint>();
                     var slowSections = new List<(int startLocation, int endLocation, int speedLimit)>();
+                    var airSections = new List<TIMSAirSection>();
                     var seenStationIds = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
                     foreach (var routeNodeConfig in legConfig.RouteNodes)
@@ -70,16 +72,17 @@ namespace JREMonitors.BveEx.Services
                                 throw new InvalidOperationException(
                                     $"Stations in Leg {i} must be sorted in ascending order of their starting position. " +
                                     $"Station '{stationId}' at position {bveStation.MinStopPosition} is out of order compared to the previous station '{timsStations.Last().StationId}' at position {timsStations.Last().MinLocation}.");
-
-                            var arrivalTime = timsStationConfig.OverrideArrivalTime;
-                            if (arrivalTime == null && bveStation.ArrivalTimeMilliseconds >= 0)
-                                arrivalTime = bveStation.ArrivalTime;
-
+                            var stopType = timsStationConfig.StopType ??
+                                           (bveStation.Pass ? TIMSStopType.Pass : TIMSStopType.Stop);
                             var departureTime = timsStationConfig.OverrideDepartureTime;
                             if (bveStation.IsTerminal)
                                 departureTime = null;
                             else if (departureTime == null && bveStation.DepartureTimeMilliseconds >= 0)
                                 departureTime = bveStation.DepartureTime;
+                            var arrivalTime = timsStationConfig.OverrideArrivalTime;
+                            if (arrivalTime == null && bveStation.ArrivalTimeMilliseconds >= 0)
+                                arrivalTime = bveStation.ArrivalTime;
+                            if (arrivalTime == null && stopType == TIMSStopType.Pass) arrivalTime = departureTime;
 
                             var stopDuration = timsStationConfig.OverrideStopDuration;
                             if (stopDuration == null)
@@ -155,8 +158,7 @@ namespace JREMonitors.BveEx.Services
                             )
                             {
                                 TrackName = timsStationConfig.TrackName,
-                                StopType = timsStationConfig.StopType ??
-                                           (bveStation.Pass ? TIMSStopType.Pass : TIMSStopType.Stop),
+                                StopType = stopType,
                                 ShowStopText = timsStationConfig.ShowStopText,
                                 ArrivalTime = arrivalTime,
                                 DepartureTime = departureTime,
@@ -213,10 +215,24 @@ namespace JREMonitors.BveEx.Services
                             slowSections.Add((slowSectionConfig.StartLocation, slowSectionConfig.EndLocation,
                                 slowSectionConfig.SpeedLimit));
                         }
+                        else if (routeNodeConfig is TIMSAirSectionConfig airSectionConfig)
+                        {
+                            if (airSectionConfig.StartLocation < 0 || airSectionConfig.EndLocation < 0)
+                                throw new InvalidOperationException(
+                                    $"Air section locations must be non-negative (Start={airSectionConfig.StartLocation}, End={airSectionConfig.EndLocation}).");
+                            if (airSectionConfig.EndLocation < airSectionConfig.StartLocation)
+                                throw new InvalidOperationException(
+                                    $"Air section EndLocation must not be less than StartLocation (Start={airSectionConfig.StartLocation}, End={airSectionConfig.EndLocation}).");
+                            if (airSectionConfig.HintOffset < 0)
+                                throw new InvalidOperationException(
+                                    $"Air section HintOffset must be non-negative (HintOffset={airSectionConfig.HintOffset}).");
+                            airSections.Add(new TIMSAirSection(airSectionConfig.StartLocation,
+                                airSectionConfig.EndLocation, airSectionConfig.HintOffset));
+                        }
 
                     if (timsStations.Count < 2)
                         throw new InvalidOperationException("Leg must have at least 2 stations.");
-
+                    airSections.Sort((a, b) => a.StartLocation.CompareTo(b.StartLocation));
                     var destination = legConfig.OverrideDestination == null
                         ? null
                         : new TIMSDestination(legConfig.OverrideDestination.Name);
@@ -244,7 +260,8 @@ namespace JREMonitors.BveEx.Services
                         timsStations,
                         signalSystemChangePoints,
                         mileageCorrectionPoints,
-                        slowSections
+                        slowSections,
+                        airSections
                     ));
                 }
             }

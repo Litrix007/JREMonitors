@@ -474,9 +474,9 @@ namespace JREMonitors.E233.Lamps
                 }
 
                 _topLeftInnerShadowEffect.Update(_topLeftInnerShadowImage,
-                    _topLeftInnerShadowRecorder.Record(RecordTopLeftMaskGeometry));
+                    _topLeftInnerShadowRecorder.RecordTransformed(RecordTopLeftMaskGeometry));
                 _bottomRightInnerShadowEffect.Update(_bottomRightInnerShadowImage,
-                    _bottomRightInnerShadowRecorder.Record(RecordBottomRightMaskGeometry));
+                    _bottomRightInnerShadowRecorder.RecordTransformed(RecordBottomRightMaskGeometry));
                 Context.CommonBrush.Color = _onBackgroundColor;
                 Context.InnerShadowProcessor.DrawWithInnerShadows(_onInnerShadowChain,
                     () => Context.DeviceContext.FillRoundedRectangle(rect, Context.CommonBrush));

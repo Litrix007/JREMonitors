@@ -6,6 +6,7 @@ using JREMonitors.Core.Debugger;
 using JREMonitors.Core.Lighting;
 using JREMonitors.Core.Managers;
 using JREMonitors.Core.Shadows;
+using SharpGen.Runtime;
 using Vortice.Direct2D1;
 using Vortice.Direct3D;
 using Vortice.Direct3D11;
@@ -25,19 +26,42 @@ namespace JREMonitors.Core.Contexts
             _adapter = adapter;
             var driverType = adapter != null ? DriverType.Unknown : DriverType.Hardware;
 
-            var creationFlags = DeviceCreationFlags.BgraSupport;
+            // VideoSupport 供后续视频编码管线（ID3D11VideoDevice / MF 硬编 MFT）使用；
+            // 病态无视频能力的设备（虚拟显卡等）上带此 flag 创建会失败，回退到无 flag 重建（视频功能届时不可用）。
+            // 纯功能性声明：不改变渲染路径性能，不启用任何视频硬件任务。
+            var creationFlags = DeviceCreationFlags.BgraSupport | DeviceCreationFlags.VideoSupport;
 #if DEBUG
             creationFlags |= DeviceCreationFlags.Debug;
 #endif
-
-            D3D11.D3D11CreateDevice(
-                adapter,
-                driverType,
-                creationFlags,
-                new[] { FeatureLevel.Level_11_1 },
-                out var d3D11Device,
-                out var d3DContext
-            );
+            ID3D11Device d3D11Device;
+            ID3D11DeviceContext d3DContext;
+            try
+            {
+                D3D11.D3D11CreateDevice(
+                    adapter,
+                    driverType,
+                    creationFlags,
+                    new[] { FeatureLevel.Level_11_1 },
+                    out d3D11Device,
+                    out d3DContext
+                );
+                SupportsVideo = true;
+            }
+            catch (SharpGenException)
+            {
+                creationFlags &= ~DeviceCreationFlags.VideoSupport;
+                D3D11.D3D11CreateDevice(
+                    adapter,
+                    driverType,
+                    creationFlags,
+                    new[] { FeatureLevel.Level_11_1 },
+                    out d3D11Device,
+                    out d3DContext
+                );
+                SupportsVideo = false;
+                Debugger?.AddLineLasting(
+                    "D3D11 device created without VideoSupport; video encode pipeline unavailable");
+            }
 
             using (var multithread = d3D11Device.QueryInterface<ID3D11Multithread>())
             {
@@ -71,6 +95,13 @@ namespace JREMonitors.Core.Contexts
 
         public IDebugger Debugger { get; }
         public Dictionary<PropertyKey, object> Properties { get; private set; } = new Dictionary<PropertyKey, object>();
+
+        /// <summary>
+        ///     D3D11 设备是否带 <c>VideoSupport</c> flag 创建成功（可供视频编码管线使用）。
+        ///     无视频能力的病态设备上回退为 false，视频相关功能届时应检查此属性并禁用。
+        /// </summary>
+        public bool SupportsVideo { get; private set; }
+
         public ID3D11Device D3D11Device { get; private set; }
         public ID3D11Query D3D11FenceQuery { get; private set; }
         public ID3D11DeviceContext D3D11Context { get; private set; }

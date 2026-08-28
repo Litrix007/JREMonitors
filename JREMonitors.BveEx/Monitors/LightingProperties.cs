@@ -23,7 +23,8 @@ namespace JREMonitors.BveEx.Monitors
             Color3 leakColor,
             float glassReflectanceLight,
             float glassReflectanceDark,
-            Color3 glareColor
+            Color3 glareColor,
+            float ambientMax
         )
         {
             Enabled = enabled;
@@ -37,6 +38,7 @@ namespace JREMonitors.BveEx.Monitors
             GlassReflectanceLight = glassReflectanceLight;
             GlassReflectanceDark = glassReflectanceDark;
             GlareColor = glareColor;
+            AmbientMax = ambientMax;
         }
 
         public bool Enabled { get; }
@@ -50,5 +52,6 @@ namespace JREMonitors.BveEx.Monitors
         public float GlassReflectanceLight { get; }
         public float GlassReflectanceDark { get; }
         public Color3 GlareColor { get; }
+        public float AmbientMax { get; } = 1f;
     }
 }

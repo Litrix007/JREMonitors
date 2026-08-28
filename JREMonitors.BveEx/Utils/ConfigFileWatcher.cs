@@ -74,11 +74,9 @@ namespace JREMonitors.BveEx.Utils
             foreach (var fullPath in fullPaths)
             {
                 if (_watchers.ContainsKey(fullPath)) continue;
-                if (!File.Exists(fullPath)) continue;
                 var directory = Path.GetDirectoryName(fullPath);
-                if (string.IsNullOrEmpty(directory)) continue;
+                if (string.IsNullOrEmpty(directory) || !Directory.Exists(directory)) continue;
                 var fileName = Path.GetFileName(fullPath);
-
                 var watcher = new FileSystemWatcher(directory, fileName)
                 {
                     NotifyFilter = NotifyFilters.FileName | NotifyFilters.DirectoryName |

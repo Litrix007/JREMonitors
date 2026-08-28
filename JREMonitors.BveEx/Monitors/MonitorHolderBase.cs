@@ -333,7 +333,7 @@ namespace JREMonitors.BveEx.Monitors
                 Properties.Cab.Positions.TopLeft, Properties.Cab.Positions.TopRight,
                 Properties.Cab.Positions.BottomRight, Properties.Cab.Positions.BottomLeft
             };
-            var origin = Properties.Cab.Origin ?? q[0];
+            var origin = Properties.Cab.Origin ?? (q[0] + q[1] + q[2] + q[3]) / 4f;
             // 逆向投影：从 BVE 相机经 Q 各角发射射线，用 m^-1（消去整个 R_3D 与 origin 平移）变回未旋转的 Mesh 局部系，
             // 与局部 z=0 平面求交得 L0..L3。L 位于“未旋转的轴对齐局部系”，即 c0..c3 的逆投影。
             float minLx = float.MaxValue, maxLx = float.MinValue;
@@ -469,11 +469,15 @@ namespace JREMonitors.BveEx.Monitors
             // 1. Cab.Enabled 跳变：启用<->禁用之间的资源迁移
             if (!oldEnabled && newEnabled)
             {
-                // false→true：重建 effects（构造期未创建）+ cab 资源 + _vehiclePanelElement
-                ProjectEffect = new ID2D1Effect(Context.D2D1Context.CreateEffect(EffectGuids.Transform3D));
-                ProjectEffect.SetValue((int)Transform3DProperties.BorderMode, BorderMode.Soft);
-                ProjectEffect.SetValue((int)Transform3DProperties.InterpolationMode,
-                    Transform3DInterpolationMode.Linear);
+                // false→true：复用 true→false 保留的 ProjectEffect + cab 资源 + _vehiclePanelElement
+                if (ProjectEffect == null)
+                {
+                    ProjectEffect = new ID2D1Effect(Context.D2D1Context.CreateEffect(EffectGuids.Transform3D));
+                    ProjectEffect.SetValue((int)Transform3DProperties.BorderMode, BorderMode.Soft);
+                    ProjectEffect.SetValue((int)Transform3DProperties.InterpolationMode,
+                        Transform3DInterpolationMode.Linear);
+                }
+
                 EnsureCabResources(newProps);
                 _vehiclePanelElement = new Needle(_scenario.TimeManager);
                 NeedlePhysicsHelper.InjectPhysicsSolver(_vehiclePanelElement, _scenario);
@@ -693,7 +697,8 @@ namespace JREMonitors.BveEx.Monitors
             var shadowExtent = _lighting.ShadowExtent ?? new Vector2(0, 1e6f - 1e3f);
             var halfW = Properties.Size.Width / 2f;
             var halfH = Properties.Size.Height / 2f;
-            var ambientFactor = MathHelper.Clamp(RetrieveAmbient(), 0f, 1f);
+            var ambientScale = _lighting.AmbientMax > 0f ? _lighting.AmbientMax : 1f;
+            var ambientFactor = MathHelper.Clamp(RetrieveAmbient() / ambientScale, 0f, 1f);
             var dimGamma = _lighting.NightDimmingResponse +
                            (1f - _lighting.NightDimmingResponse) * ambientFactor;
             var perceptualB = (float)Math.Pow(MathHelper.Clamp(brightness, 0f, 1f), dimGamma);

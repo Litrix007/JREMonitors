@@ -432,7 +432,7 @@ namespace JREMonitors.E233.TIMS.D01AX.EDen
             if (isThisStationStarting || isThisStationAlighting) return;
             colStates.StationTask.Value = GetStationTask(station.StationTask);
             colStates.TrackName.Value = station.TrackName?.ToFullWidth().Trim() ?? "";
-            var arrivalIndicator = GetArrivalIndicatorText(station);
+            var arrivalIndicator = GetArrivalIndicatorText(station, TIMSService.VehicleDirection);
             colStates.ArrivalIndicator.Value = arrivalIndicator;
             if (string.IsNullOrEmpty(arrivalIndicator))
             {
@@ -464,8 +464,7 @@ namespace JREMonitors.E233.TIMS.D01AX.EDen
 
             var departureIndicator = GetDepartureIndicatorText(station);
             colStates.DepartureIndicator.Value = departureIndicator;
-            if (isThisStationTerminal || station.StopType == TIMSStopType.Pass ||
-                !string.IsNullOrEmpty(departureIndicator))
+            if (isThisStationTerminal || !string.IsNullOrEmpty(departureIndicator))
                 return;
             colStates.DepartureMinutes.Value = GetMinutes(station.DepartureTime);
             colStates.DepartureSeconds.Value = TIMSHelper.GetSeconds(station.DepartureTime, false, true);
@@ -521,15 +520,25 @@ namespace JREMonitors.E233.TIMS.D01AX.EDen
             return time.Value.Minutes.ToString().PadLeft(2, '0').ToFullWidth();
         }
 
-        private string GetArrivalIndicatorText(TIMSStation<E233SignalSystem> station)
+        private static string GetArrivalIndicatorText(TIMSStation<E233SignalSystem> station,
+            TIMSVehicleDirection vehicleDirection)
         {
             if (station.StopType == TIMSStopType.Pass)
-                return TIMSService.VehicleDirection == TIMSVehicleDirection.Left ? "←" : "→";
-            if (!station.ArrivalTime.HasValue)
+                return vehicleDirection == TIMSVehicleDirection.Left ? "←" : "→";
+            if (!IsArrivalTimeDisplayed(station))
                 if (station.StopType == TIMSStopType.Stop && station.ShowStopText)
                     return "停";
-
             return "";
+        }
+
+        private static bool IsArrivalTimeDisplayed(TIMSStation<E233SignalSystem> station)
+        {
+            if (!station.ArrivalTime.HasValue) return false;
+            if (station.StopDuration <= 0) return true;
+            var calculatedDeparture = station.ArrivalTime.Value.Add(TimeSpan.FromSeconds(station.StopDuration));
+            if (station.DepartureTime.HasValue && calculatedDeparture > station.DepartureTime.Value)
+                calculatedDeparture = station.DepartureTime.Value;
+            return !station.DepartureTime.HasValue || calculatedDeparture != station.DepartureTime.Value;
         }
 
         private string GetDepartureIndicatorText(TIMSStation<E233SignalSystem> station)

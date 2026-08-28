@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using JREMonitors.JRE.Services.Car;
 using Vortice.Mathematics;
 
 namespace JREMonitors.E233.TIMS
@@ -94,6 +95,7 @@ namespace JREMonitors.E233.TIMS
     {
         public const int MaxCarCount = 15;
         public const int MaxGreenCarCount = 2;
+        public const int GreenCarCapacity = 90;
 
         public TIMSFormationSpec(IReadOnlyList<TIMSCarSpec> cars)
         {
@@ -102,32 +104,39 @@ namespace JREMonitors.E233.TIMS
             var doorCountPerCar = new List<int>(CarCount);
             var unitCarCounts = new List<int>();
             var greenCarIndices = new List<int>();
+            var carPassengerConfigs = new List<CarPassengerConfig>(CarCount);
+
             var currentUnitCount = 0;
+            var currentSubFormationId = 0;
+
             for (var i = 0; i < cars.Count; i++)
             {
                 var car = cars[i];
                 doorCountPerCar.Add(car.DoorCount);
                 currentUnitCount++;
+                var capacity = car.CarType == TIMSCarType.GreenCar ? GreenCarCapacity : (int?)null;
+                var allowOverload = car.CarType != TIMSCarType.GreenCar;
+                carPassengerConfigs.Add(new CarPassengerConfig(currentSubFormationId, capacity, allowOverload));
                 if (car.CarType == TIMSCarType.GreenCar)
                 {
                     HasGreenCar = true;
                     greenCarIndices.Add(i);
                 }
 
-                if (car.CarType == TIMSCarType.LastCar)
+                if (car.HasWaterTank) HasWaterTank = true;
+                var isEndOfUnit = car.CarType == TIMSCarType.LastCar || i == cars.Count - 1;
+                if (isEndOfUnit)
                 {
                     unitCarCounts.Add(currentUnitCount);
                     currentUnitCount = 0;
+                    currentSubFormationId++;
                 }
-
-                if (car.HasWaterTank) HasWaterTank = true;
             }
-
-            if (currentUnitCount > 0) unitCarCounts.Add(currentUnitCount);
 
             DoorCountPerCar = doorCountPerCar;
             UnitCarCounts = unitCarCounts;
             GreenCarIndices = greenCarIndices;
+            CarPassengerConfigs = carPassengerConfigs;
         }
 
         public int CarCount { get; }
@@ -135,6 +144,7 @@ namespace JREMonitors.E233.TIMS
         public IReadOnlyList<int> DoorCountPerCar { get; }
         public IReadOnlyList<int> UnitCarCounts { get; }
         public IReadOnlyList<int> GreenCarIndices { get; }
+        public IReadOnlyList<CarPassengerConfig> CarPassengerConfigs { get; }
         public bool HasGreenCar { get; }
         public bool HasWaterTank { get; }
         public TIMSCarSpec this[int index] => Cars[index];

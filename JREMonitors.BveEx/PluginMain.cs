@@ -51,8 +51,9 @@ namespace JREMonitors.BveEx
         private DebugForm _debugForm;
         private bool _disposed;
         private HarmonyPatch _drawPatch;
-        private bool _enableHotReload;
+        private readonly bool _enableHotReload;
         private JumpStationManager _jumpStationManager = new JumpStationManager();
+        private string _loadFailedMessage;
         private MonitorContext _monitorContext;
         private BveMonitorManagerBase _monitorManager;
         private INative _native;
@@ -115,20 +116,38 @@ namespace JREMonitors.BveEx
             var configPath3 = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(scenarioPath) ?? "",
                 $"{Path.GetFileNameWithoutExtension(scenarioPath)}.JREMonitorConfig.json"));
             _configPaths = new[] { configPath1, configPath2, configPath3 };
+            var configRead = false;
+            string loadError = null;
             try
             {
                 _vehicleConfig = ConfigLoader.LoadConfig<VehicleConfig>(_configPaths, out var readPaths);
-                _vehicleConfig.Validate();
                 _initialConfigReadPaths = readPaths;
+                configRead = true;
+                _vehicleConfig.Validate();
                 BuildRootAndMonitors(_vehicleConfig);
                 ApplyShowDebugWindow(_vehicleConfig.Display.ShowDebugWindow);
-                BveHacker.PreviewScenarioCreated += OnPreviewScenarioCreated;
             }
             catch (Exception ex)
             {
+                loadError = ex.Message;
                 DisposeMonitorResources();
                 BveHacker.LoadingProgressForm.ThrowError(new LoadError($"Error loading config: {ex.Message}",
                     "JREMonitors", 0, 0));
+            }
+
+            BveHacker.PreviewScenarioCreated += OnPreviewScenarioCreated;
+            if (configRead)
+            {
+                _enableHotReload = _vehicleConfig.EnableHotReload;
+                if (_enableHotReload && _configWatcher == null)
+                    _configWatcher = new ConfigFileWatcher(GetWatchPaths(_initialConfigReadPaths),
+                        () => _pendingConfigReload = true);
+                if (loadError != null)
+                    _loadFailedMessage = $"[JREMonitors] {_vehicleConfig.VehicleName} load failed: {loadError}";
+            }
+            else
+            {
+                _loadFailedMessage = $"[JREMonitors] Config load failed: {loadError}";
             }
 
             FixNativeScenarioClosedBug();
@@ -189,8 +208,8 @@ namespace JREMonitors.BveEx
 
         private PatchInvokationResult OnDraw(object sender, PatchInvokedEventArgs e)
         {
-            if (_disposed || _monitorManager == null || !_succeed) return PatchInvokationResult.DoNothing(e);
             _assistantTextWrapper?.Tick();
+            if (_disposed || _monitorManager == null || !_succeed) return PatchInvokationResult.DoNothing(e);
             _debugForm?.SetType(DrawType);
             _debugForm?.ClearLeft(DrawType);
             _debugForm?.ClearLeftDefault();
@@ -243,8 +262,13 @@ namespace JREMonitors.BveEx
 
         private void OnPreviewScenarioCreated(ScenarioCreatedEventArgs e)
         {
-            if (_monitorManager == null) return;
             _scenario = e.Scenario;
+            if (_monitorManager == null)
+            {
+                ShowLoadFailedMessage();
+                return;
+            }
+
             _dataHub.Put(e.Scenario);
             try
             {
@@ -255,16 +279,23 @@ namespace JREMonitors.BveEx
                 DisposeMonitorResources();
                 BveHacker.LoadingProgressForm.ThrowError(new LoadError($"Error loading config: {ex.Message}",
                     "JREMonitors", 0, 0));
+                _loadFailedMessage = $"[JREMonitors] {_vehicleConfig.VehicleName} load failed: {ex.Message}";
+                ShowLoadFailedMessage();
                 return;
             }
 
             _succeed = true;
-            _enableHotReload = _vehicleConfig.EnableHotReload;
-            if (_enableHotReload && _configWatcher == null)
-                _configWatcher = new ConfigFileWatcher(_initialConfigReadPaths, () => _pendingConfigReload = true);
             _assistantTextWrapper.SyncScale();
             _assistantTextWrapper.Attach();
             _assistantTextWrapper.Text = $"[JREMonitors] {_vehicleConfig.VehicleName} Loaded";
+        }
+
+        private void ShowLoadFailedMessage()
+        {
+            if (_loadFailedMessage == null) return;
+            _assistantTextWrapper.SyncScale();
+            _assistantTextWrapper.Attach();
+            _assistantTextWrapper.Text = _loadFailedMessage;
         }
 
         public override void Tick(TimeSpan elapsed)
@@ -293,6 +324,8 @@ namespace JREMonitors.BveEx
         [Conditional("DEBUG")]
         private void DebugMessages(TimeSpan elapsed)
         {
+            _debugForm?.AddLine(
+                $"power: {_scenario.Vehicle.Instruments.AtsPlugin.AtsHandles.PowerNotch}; brake： {_scenario.Vehicle.Instruments.AtsPlugin.AtsHandles.BrakeNotch}");
             _debugForm?.AddLine(
                 $"{_scenario.Vehicle.Dynamics.MotorCar.Count}M{_scenario.Vehicle.Dynamics.TrailerCar.Count}T");
             _debugForm?.AddLine($"passenger count: {BveHacker.Scenario.Vehicle.Conductor.Passenger.Count}");
@@ -327,7 +360,6 @@ namespace JREMonitors.BveEx
 
         private void ApplyPendingReload()
         {
-            if (!_succeed) return;
             VehicleConfig newConfig;
             IReadOnlyList<string> readPaths;
             try
@@ -342,18 +374,26 @@ namespace JREMonitors.BveEx
                 return;
             }
 
-            var error = newConfig.GetType() != _vehicleConfig.GetType()
+            var error = _monitorManager == null || newConfig.GetType() != _vehicleConfig?.GetType()
                 ? FullRebuild(newConfig)
                 : ReconfigureSameVehicle(newConfig);
             if (error == null)
             {
-                _configWatcher?.UpdatePaths(readPaths);
+                _configWatcher?.UpdatePaths(GetWatchPaths(readPaths));
+                _loadFailedMessage = null;
                 NotifyHotReloadSucceeded();
             }
             else
             {
                 NotifyHotReloadFailed(error);
             }
+        }
+
+        private IEnumerable<string> GetWatchPaths(IReadOnlyList<string> readPaths)
+        {
+            return _configPaths
+                .Concat(readPaths ?? Array.Empty<string>())
+                .Distinct(StringComparer.OrdinalIgnoreCase);
         }
 
         private void NotifyHotReloadSucceeded()
@@ -399,7 +439,6 @@ namespace JREMonitors.BveEx
 
         private string FullRebuild(VehicleConfig newConfig)
         {
-            var wasSucceed = _succeed;
             _succeed = false;
             try
             {
@@ -420,7 +459,7 @@ namespace JREMonitors.BveEx
             {
                 DisposeMonitorResources();
                 _debugForm?.AddLineLasting($"Hot reload failed: {ex}");
-                _succeed = wasSucceed;
+                _vehicleConfig = null;
                 return ex.Message;
             }
         }

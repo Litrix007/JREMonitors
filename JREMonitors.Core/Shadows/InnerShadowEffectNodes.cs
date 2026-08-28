@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
 using System.Security.Cryptography;
 using System.Text;
@@ -18,6 +18,7 @@ namespace JREMonitors.Core.Shadows
         void SetAccumulatedInputEffect(ID2D1Effect accumEffect);
         void SetBaseGeometry(ID2D1Image baseGeometry);
         void SetBlurredMaskInputEffect(ID2D1Effect blurredMaskEffect);
+        void SetBlurredMaskInput(ID2D1Image blurredMask);
         void ClearInputs();
     }
 
@@ -63,6 +64,11 @@ namespace JREMonitors.Core.Shadows
         public void SetBlurredMaskInputEffect(ID2D1Effect blurredMaskEffect)
         {
             SetInputEffect(2, blurredMaskEffect);
+        }
+
+        public void SetBlurredMaskInput(ID2D1Image blurredMask)
+        {
+            SetInput(2, blurredMask, true);
         }
 
         public void ClearInputs()
@@ -168,6 +174,11 @@ namespace JREMonitors.Core.Shadows
             SetInputEffect(2, blurredMaskEffect);
         }
 
+        public void SetBlurredMaskInput(ID2D1Image blurredMask)
+        {
+            SetInput(2, blurredMask, true);
+        }
+
         public void ClearInputs()
         {
             SetInput(0, null, true);
@@ -186,6 +197,10 @@ namespace JREMonitors.Core.Shadows
             factory.UnregisterEffect(typeof(Implementation).GUID);
         }
 
+        /// <summary>
+        ///     更新阴影遮罩。
+        ///     要求遮罩处于 Scene 坐标而非相对坐标，请使用<see cref="JREMonitors.Core.Boosters.CommandRecorder.RecordTransformed" />。
+        /// </summary>
         public void Update(ImageInnerShadow shadow, ID2D1Image shadowMask)
         {
             Update(shadow);
@@ -204,6 +219,10 @@ namespace JREMonitors.Core.Shadows
             _impl.UpdateConstants(constants);
         }
 
+        /// <summary>
+        ///     更新阴影遮罩。
+        ///     要求遮罩处于 Scene 坐标而非相对坐标，请使用<see cref="JREMonitors.Core.Boosters.CommandRecorder.RecordTransformed" />。
+        /// </summary>
         public void Update(ID2D1Image imageMask)
         {
             RawShadowMask = imageMask;

@@ -18,7 +18,7 @@ namespace JREMonitors.E233.TIMS.D01AX.MDen
             AddChild(new BoundsDrawerWidget(context, this.CreateTIMSTextDrawer("着"),
                 contentColor: MonitorColors.White, x: 328, y: StartY));
             AddChild(new BoundsDrawerWidget(context, this.CreateTIMSTextDrawer("発"),
-                contentColor: MonitorColors.White, x: 534, y: StartY));
+                contentColor: MonitorColors.White, x: 535, y: StartY));
             AddChild(new BoundsDrawerWidget(context, this.CreateTIMSTextDrawer("番線"),
                 contentColor: MonitorColors.White, x: 670, y: StartY));
             AddChild(new BoundsDrawerWidget(context, this.CreateTIMSTextDrawer("制限", horizontalAlignment: 1),

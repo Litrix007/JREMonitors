@@ -67,6 +67,12 @@ namespace JREMonitors.E233
                     else if (_m3StateController != null) TryChangeToDefaultScreen(_m3, _m3StateController);
                 }
             }
+            else
+            {
+                if (_m1 != null && _m1StateController != null) TryChangeToDefaultScreen(_m1, _m1StateController);
+                if (_m2 != null && _m2StateController != null) TryChangeToDefaultScreen(_m2, _m2StateController);
+                if (_m3 != null && _m3StateController != null) TryChangeToDefaultScreen(_m3, _m3StateController);
+            }
 
             if (timsMainMonitor != null)
             {
@@ -82,8 +88,9 @@ namespace JREMonitors.E233
                 }
             }
 
-            var isSafetyLampVisibleExternally = tidMonitor?.ActiveScreenId == ScreenIds.Tid ||
-                                                tidMonitor?.ActiveScreenId == ScreenIds.TidChangeToTIMSWarning;
+            var isSafetyLampVisibleExternally = tidMonitor != null && (tidMonitor.ActiveScreenId == ScreenIds.Tid
+                                                                       || tidMonitor.ActiveScreenId ==
+                                                                       ScreenIds.TidChangeToTIMSWarning);
             if (tidMonitorStateController != null)
             {
                 tidMonitorStateController.IsSafetyLampsVisibleExternally = false;
@@ -95,6 +102,17 @@ namespace JREMonitors.E233
 
                 if (_m3StateController != null && _m3StateController != tidMonitorStateController)
                     _m3StateController.IsSafetyLampsVisibleExternally = isSafetyLampVisibleExternally;
+            }
+            else
+            {
+                if (_m1StateController != null)
+                    _m1StateController.IsSafetyLampsVisibleExternally = false;
+
+                if (_m2StateController != null)
+                    _m2StateController.IsSafetyLampsVisibleExternally = false;
+
+                if (_m3StateController != null)
+                    _m3StateController.IsSafetyLampsVisibleExternally = false;
             }
         }
 
@@ -148,23 +166,37 @@ namespace JREMonitors.E233
         public void RemoveMonitor(Monitor monitor)
         {
             if (monitor == null) return;
+            E233MonitorStateController removedController;
             if (monitor.Id == MonitorIds.Monitor1)
             {
+                removedController = _m1StateController;
                 _m1 = null;
                 _m1StateController = null;
             }
             else if (monitor.Id == MonitorIds.Monitor2)
             {
+                removedController = _m2StateController;
                 _m2 = null;
                 _m2StateController = null;
             }
             else if (monitor.Id == MonitorIds.Monitor3)
             {
+                removedController = _m3StateController;
                 _m3 = null;
                 _m3StateController = null;
             }
+            else
+            {
+                return;
+            }
 
+            var removedWasMain = removedController != null &&
+                                 removedController.MonitorType == E233MonitorType.TIMSMain;
             RebuildStateControllerAssignments();
+            if (!removedWasMain) return;
+            GetMonitorByType(E233MonitorType.TIMSMain, out var newMain, out _);
+            if (newMain != null && newMain.ActiveScreenId == ScreenIds.S00AA)
+                newMain.ChangeScreen(ScreenIds.X00AA);
         }
 
         private void GetMonitorByType(E233MonitorType type, out Monitor monitor,

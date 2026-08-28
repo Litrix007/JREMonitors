@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Numerics;
@@ -11,7 +11,6 @@ namespace JREMonitors.Core.Shadows
     {
         private readonly List<ID2D1Effect> _blurEffects = new List<ID2D1Effect>();
         private readonly ID2D1DeviceContext _dc;
-        private readonly List<ID2D1Effect> _maskTransformEffects = new List<ID2D1Effect>();
         private readonly List<IInnerShadowEffectNode> _nodes = new List<IInnerShadowEffectNode>();
 
         public InnerShadowEffectChain(ID2D1DeviceContext dc)
@@ -35,16 +34,8 @@ namespace JREMonitors.Core.Shadows
                     blur.Dispose();
                 }
 
-            foreach (var trans in _maskTransformEffects)
-                if (trans != null)
-                {
-                    trans.SetInput(0, null, true);
-                    trans.Dispose();
-                }
-
             _nodes.Clear();
             _blurEffects.Clear();
-            _maskTransformEffects.Clear();
         }
 
         public void AddOffsetShadows(IReadOnlyList<OffsetInnerShadow> shadows)
@@ -55,7 +46,6 @@ namespace JREMonitors.Core.Shadows
             {
                 var blurEffect = new ID2D1Effect(_dc.CreateEffect(EffectGuids.GaussianBlur));
                 _blurEffects.Add(blurEffect);
-                _maskTransformEffects.Add(null);
                 var effect = new OffsetInnerShadowEffect(_dc);
                 effect.UpdateConstants(s);
                 _nodes.Add(effect);
@@ -66,8 +56,6 @@ namespace JREMonitors.Core.Shadows
         {
             var blurEffect = new ID2D1Effect(_dc.CreateEffect(EffectGuids.GaussianBlur));
             _blurEffects.Add(blurEffect);
-            var transformEffect = new ID2D1Effect(_dc.CreateEffect(EffectGuids.AffineTransform2D));
-            _maskTransformEffects.Add(transformEffect);
             var effect = new ImageInnerShadowEffect(_dc);
             if (shadow.HasValue) effect.Update(shadow.Value);
 
@@ -75,8 +63,7 @@ namespace JREMonitors.Core.Shadows
             return effect;
         }
 
-        public void ApplyAndDraw(ID2D1Image baseGeometry, float worldScale, float totalScale,
-            Matrix3x2 currentTransform)
+        public void ApplyAndDraw(ID2D1Image baseGeometry, float worldScale, float totalScale)
         {
             if (_nodes.Count == 0)
             {
@@ -91,7 +78,6 @@ namespace JREMonitors.Core.Shadows
                 if (!node.IsEnabled) continue;
                 var blurEffect = _blurEffects[i];
                 var blur = node.Blur;
-                var transformEffect = _maskTransformEffects[i];
 
                 blurEffect.SetValue((int)GaussianBlurProperties.StandardDeviation, blur * worldScale);
                 node.SetScale(worldScale, totalScale);
@@ -99,27 +85,26 @@ namespace JREMonitors.Core.Shadows
                     node.SetAccumulatedInput(baseGeometry);
                 else
                     node.SetAccumulatedInputEffect(prevNodeEffect);
-
                 node.SetBaseGeometry(baseGeometry);
-                node.SetBlurredMaskInputEffect(blurEffect);
-
                 switch (node)
                 {
                     case OffsetInnerShadowEffect _:
                         blurEffect.SetInput(0, baseGeometry, true);
+                        node.SetBlurredMaskInputEffect(blurEffect);
                         break;
 
                     case ImageInnerShadowEffect imageNode:
-                        if (transformEffect != null && imageNode.RawShadowMask != null)
+                        if (imageNode.RawShadowMask != null)
                         {
-                            transformEffect.SetValue((int)AffineTransform2DProperties.TransformMatrix,
-                                currentTransform);
-                            transformEffect.SetInput(0, imageNode.RawShadowMask, true);
-                            blurEffect.SetInputEffect(0, transformEffect);
-                        }
-                        else if (imageNode.RawShadowMask != null)
-                        {
-                            blurEffect.SetInput(0, imageNode.RawShadowMask, true);
+                            if (blur > 0)
+                            {
+                                blurEffect.SetInput(0, imageNode.RawShadowMask, true);
+                                node.SetBlurredMaskInputEffect(blurEffect);
+                            }
+                            else
+                            {
+                                node.SetBlurredMaskInput(imageNode.RawShadowMask);
+                            }
                         }
 
                         break;
@@ -135,7 +120,6 @@ namespace JREMonitors.Core.Shadows
 
             foreach (var node in _nodes) node.ClearInputs();
             foreach (var blur in _blurEffects) blur.SetInput(0, null, true);
-            foreach (var trans in _maskTransformEffects) trans?.SetInput(0, null, true);
         }
     }
 
@@ -196,7 +180,7 @@ namespace JREMonitors.Core.Shadows
                 var totalScale = dpiScale * worldScale;
                 var oldTransform = _dc.Transform;
                 _dc.Transform = Matrix3x2.Identity;
-                chain.ApplyAndDraw(commandList, worldScale, totalScale, oldTransform);
+                chain.ApplyAndDraw(commandList, worldScale, totalScale);
                 _dc.Transform = oldTransform;
             }
         }

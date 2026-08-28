@@ -30,7 +30,7 @@ namespace JREMonitors.E233.Needles
             Color4 color = default,
             bool enableTopLeftInnerShadow = false,
             byte bottomRightInnerShadowAlpha = 175,
-            float innerShadowBlur = 0
+            float innerShadowBlur = 1
         ) : base(context, x, y)
         {
             _height = height;
@@ -149,7 +149,8 @@ namespace JREMonitors.E233.Needles
 
         private void DrawContent()
         {
-            var innerShadowCommandList = _bottomRightInnerShadowRecorder.Record(RecordInnerShadowCommandList);
+            var innerShadowCommandList =
+                _bottomRightInnerShadowRecorder.RecordTransformed(RecordInnerShadowCommandList);
             var dropShadowCommandList = _dropShadowRecorder.Record(RecordDropShadowCommandList);
             _bottomRightShadowEffect.Update(innerShadowCommandList);
             Context.DropShadowProcessor.DrawDropShadows(_dropShadows, dropShadowCommandList);

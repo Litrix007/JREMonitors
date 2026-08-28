@@ -33,7 +33,9 @@ namespace JREMonitors.BveEx.Monitors
 
         protected override int ClampBufferFrameCount(int raw)
         {
-            return raw == 0 ? 3 : MathHelper.Clamp(raw, 3, 5);
+            // 0 = 未配置哨兵 → 默认 MaxFrameLatency + 2：D3D9Ex 侧稳态无背压停产需 capacity ≥ MaxFrameLatency + 2，
+            return MathHelper.Clamp(
+                raw == 0 ? ((DeviceEx)Direct3DProvider.Instance.Device).MaximumFrameLatency + 2 : raw, 3, 7);
         }
     }
 
@@ -62,8 +64,11 @@ namespace JREMonitors.BveEx.Monitors
         }
 
         /// <summary>
-        ///     D3D11 写槽背压：下一个写槽上一次提交的 fence 未完成（GPU 落后 ≥ BufferFrameCount 帧提交）时停产。
-        ///     该 D3D11 设备只渲染到纹理、无 Present 节流点，队列可无界增长——此检查是唯一的积压防线。
+        ///     写槽背压：下一个写槽的 D3D11 写侧 fence（该设备只渲染到纹理、无 Present 节流点，队列可无界增长）
+        ///     或 D3D9Ex 读侧 fence（读完成受游戏 MaxFrameLatency 制约，读查询最晚在 CPU 领先 MFL 帧后才完成）
+        ///     未完成时停产，画面保持上一完整帧。
+        ///     稳态无停产需 BufferFrameCount ≥ MaxFrameLatency + 2（MaxFrameLatency=1..5 ⇒ 3..7，
+        ///     clamp 上限 7 与游戏侧 MaxFrameLatency 可配置范围 1~5 对应）。
         /// </summary>
         protected override bool IsProductionBlocked()
         {
@@ -101,7 +106,7 @@ namespace JREMonitors.BveEx.Monitors
                 D3D9TextureRecreated = true;
             }
 
-            _sharedBuffer?.EnsureD3D9Textures(Direct3DProvider.Instance.Device);
+            _sharedBuffer?.EnsureD3D9ExTextures(Direct3DProvider.Instance.Device);
         }
 
         public override void Submit()
@@ -139,15 +144,16 @@ namespace JREMonitors.BveEx.Monitors
             var readSlot = _sharedBuffer?.TryAcquireDisplaySlot();
             _hasPendingAcquisition = _sharedBuffer?.HasNewerPending ?? false;
             if (readSlot == null) Debugger?.AddLine($"{Monitor.Id} skipped");
-
             if (readSlot == null && !ExtFormNeedsSync) return;
 
-            if (isCabEnabled && D3D9MergedTexture != null && readSlot?.ProjectedD3D9Texture != null)
-                using (var srcSurface = readSlot.ProjectedD3D9Texture.GetSurfaceLevel(0))
+            if (isCabEnabled && D3D9MergedTexture != null && readSlot?.ProjectedD3D9ExTexture != null)
+                using (var srcSurface = readSlot.ProjectedD3D9ExTexture.GetSurfaceLevel(0))
                 using (var dstSurface = D3D9MergedTexture.GetSurfaceLevel(0))
                 {
                     Direct3DProvider.Instance.Device.StretchRectangle(srcSurface, dstSurface,
                         TextureFilter.None);
+                    // 读取 fence 必须紧跟 StretchRect 之后 Issue：查询完成点 = GPU 通过该读取点
+                    _sharedBuffer?.MarkD3D9ExReadIssued(readSlot);
                     Debugger?.AddLine($"{Monitor.Id} sync");
                 }
 
@@ -170,18 +176,18 @@ namespace JREMonitors.BveEx.Monitors
         public override void DisposeD3D9Texture()
         {
             base.DisposeD3D9Texture();
-            _sharedBuffer?.DisposeD3D9TexturesOnly();
+            _sharedBuffer?.DisposeD3D9ExResourcesOnly();
         }
 
         /// <summary>
-        ///     热重载 BufferFrameCount：重建 D3D9ExSharedBuffer 与 D3D9 纹理，重置 Sync 状态机。
+        ///     热重载 BufferFrameCount：重建 D3D9ExSharedBuffer 与 D3D9Ex 侧纹理，重置 Sync 状态机。
         ///     CreateCabD3D11Texture 会 Dispose 旧 _sharedBuffer 并按新 BufferFrameCount 重建，
-        ///     状态机天然回到干净初值（新建 SharedSurfaceQueue display slot = -1）。
+        ///     状态机天然回到干净初值（新建 D3D9ExSharedBuffer：_writeIndex=0、全部槽位未提交）。
         /// </summary>
         public override void ReconfigureBufferFrameCount(int newBufferFrameCount)
         {
             BufferFrameCount = newBufferFrameCount;
-            // 释放旧 D3D9 纹理（CreateCabD3D11Texture 内部会重建 _sharedBuffer 并重绑 CabD3D11Texture）
+            // 释放旧 D3D9Ex 侧纹理（CreateCabD3D11Texture 内部会重建 _sharedBuffer 并重绑 CabD3D11Texture）
             DisposeD3D9Texture();
             D3D9MergedTexture?.Dispose();
             D3D9MergedTexture = null;

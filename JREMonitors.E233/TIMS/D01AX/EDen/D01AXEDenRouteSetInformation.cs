@@ -34,7 +34,6 @@ namespace JREMonitors.E233.TIMS.D01AX.EDen
         private readonly List<int> _sectionCoordsBuffer = new List<int>(10);
         private readonly List<StationBlockCoords> _stationBlockCoordsBuffer = new List<StationBlockCoords>(5);
 
-
         public D01AXEDenRouteSetInformation(RenderContext context) : base(context, y: 132)
         {
             ViewModel = new D01AXEDenRouteSetInformationViewModel();
@@ -111,6 +110,8 @@ namespace JREMonitors.E233.TIMS.D01AX.EDen
                 }
             });
         }
+
+        protected override bool SkipUpdateWhenHidden => false;
 
         public override RectangleF SelfRelativeDirtyBounds => new RectangleF(0, 0, 134, 228);
         public override float? RefreshSpeed => IsFirstUpdate ? RefreshSpeeds.Fast : (float?)null;

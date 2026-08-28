@@ -23,7 +23,8 @@ namespace JREMonitors.E233.TIMS.D01AX
             bool boldSeconds,
             IValueSignal<string> hoursAndMinutes,
             IValueSignal<string> seconds,
-            IValueSignal<string> customText = null
+            IValueSignal<string> customText = null,
+            float horizontalAlignment = 0
         ) : base(context, x, y)
         {
             var properties = new List<BitmapScaleDrawer.DrawerProperties>
@@ -43,12 +44,14 @@ namespace JREMonitors.E233.TIMS.D01AX
                         documentSource: CreateComputed(() => RichTextParser.Raw(customText.Value))), 1, 1,
                     color: MonitorColors.TIMSTitleGrey));
             _text = new BoundsDrawerWidget(context,
-                this.CreateTIMSTextDrawer(properties, arrangement: ContentArrangement.Near),
+                this.CreateTIMSTextDrawer(properties, arrangement: ContentArrangement.Near,
+                    horizontalAlignment: horizontalAlignment),
                 contentColor: MonitorColors.White);
             AddChild(_text);
         }
 
         public PropertySlot<Color4> Color => _text.ContentColor;
+        public PropertySlot<Color4> BackgroundColor => _text.BackgroundColor;
 
         public override RectangleF SelfRelativeDirtyBounds => RectangleF.Empty;
     }

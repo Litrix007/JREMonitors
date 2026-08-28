@@ -67,6 +67,7 @@
         <Compile Include="Services\Car\IDoorStateService.cs"/>
         <Compile Include="Services\Car\PassengerStateService.cs"/>
         <Compile Include="Services\JREDelayServices.cs"/>
+        <Compile Include="TIMSAirSection.cs"/>
         <Compile Include="TIMSSignalSection.cs"/>
     </ItemGroup>
     <ItemGroup>
@@ -74,6 +75,12 @@
             <Project>{21d66418-9b03-4233-8afa-a6d1052dd37f}</Project>
             <Name>JREMonitors.Core</Name>
         </ProjectReference>
+    </ItemGroup>
+    <ItemGroup>
+        <None Include="App.config"/>
+    </ItemGroup>
+    <ItemGroup>
+      <PackageReference Include="Microsoft.Bcl.HashCode" Version="1.1.0" />
     </ItemGroup>
     <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets"/>
     <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

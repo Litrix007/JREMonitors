@@ -101,6 +101,10 @@ interface VehicleConfig {
         /**
          * 声音输出。键为声音名称，值为声音文件路径。目前仅 E233 支持，支持的键如下：
          * - `buttonClick`：按钮点击音效。
+         * - `arrivalHint`：进站提示音效。
+         * - `passHint`：通过提示音效。
+         * - `airSectionHint`：分相区间提示音效。
+         * - `radioChannelChange`：无线频道变更音效。
          */
         sound?: Record<string, string>;
     };
@@ -267,7 +271,8 @@ interface DisplayConfig {
     /**
      * 帧缓冲区大小。设为 0 时使用默认值。
      * - D3D9 模式：默认 2，最小 1，最大 3；画面恒定延迟 `N-1` 帧；
-     * - D3D9Ex 模式：默认 3，最小 3，最大 5；常规稳态延迟 1 帧，视 GPU 负载在 `[0, N-2]` 帧间自适应。若积压超过 `N-2` 帧将保持上一画面并触发背压停产。
+     * - D3D9Ex 模式：默认 MaxFrameLatency+2，最小 3，最大 7；常规稳态延迟 1 帧，视 GPU 负载在 `[0, N-2]` 帧间自适应。
+     * - 推荐设置为 `N >= MaxFrameLatency+2`，不足时会导致监视器内容帧率下降。
      */
     bufferFrameCount?: number;
 
@@ -369,12 +374,14 @@ type TIMSDisplayMode = "mDen" | "eDen";
  * 路线节点（多态）。`type` 决定具体节点形态。
  * - `"station"`：车站
  * - `"slowSection"`：徐行区间
+ * - `"airSection"`：分相区间
  * - `"mileageCorrection"`：里程矫正点
  * - `"signalSystemChange"`：信号系统切换点
  */
 type TIMSRouteNode =
     TIMSStationConfig
     | TIMSSlowSectionConfig
+    | TIMSAirSectionConfig
     | TIMSMileageCorrectionPointConfig
     | TIMSSignalSystemChangePointConfig;
 
@@ -484,6 +491,21 @@ interface TIMSSlowSectionConfig {
 
     /** 徐行区间限速。 */
     speedLimit: number;
+}
+
+/** 分相区间节点。 */
+interface TIMSAirSectionConfig {
+    /** 节点判别符。 */
+    type: "airSection";
+
+    /** 分相区间相对于游戏地图的起始位置。 */
+    startLocation: number;
+
+    /** 分相区间相对于游戏地图的结束位置，不得小于 `startLocation`。 */
+    endLocation: number;
+
+    /** 进入提示距区间起点的偏移量：车辆位置到达 `startLocation - hintOffset` 时播放分相区间提示音（`airSectionHint`）。 */
+    hintOffset: number;
 }
 
 /** 里程矫正点节点。 */

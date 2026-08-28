@@ -5,6 +5,8 @@ using JREMonitors.Core.Constants;
 using JREMonitors.Core.Debugger;
 using JREMonitors.Core.Providers;
 using JREMonitors.Core.State;
+using JREMonitors.E233.Constants;
+using JREMonitors.JRE;
 using JREMonitors.JRE.Providers;
 using JREMonitors.JRE.Services.Car;
 
@@ -13,33 +15,45 @@ namespace JREMonitors.E233.TIMS.ICCard
     public abstract class TIMSICCardService<TSignal> : ITickUpdatable
         where TSignal : struct, Enum
     {
+        private const double SlowSectionCarLength = 20;
+
         /// <summary>
-        ///     每节车厢长度（米），用于计算车尾位置
+        ///     已触发过提示的分相区间，防止倒车/目标回退时重复触发
         /// </summary>
-        private const double SlowSectionCarLengthMeters = 20.0;
+        private readonly HashSet<TIMSAirSection> _airSectionHinted = new HashSet<TIMSAirSection>();
+
+        /// <summary>
+        ///     已触发过进站提示的车站，防止倒车/目标回退时重复触发
+        /// </summary>
+        private readonly HashSet<TIMSStation<TSignal>> _arrivalHintedStations = new HashSet<TIMSStation<TSignal>>();
 
         private readonly CarStateService _carStateService;
         private readonly IDoorStateService _doorStateService;
         private readonly PassengerStateService _passengerStateService;
-        private readonly ISignalController<TSignal> _signalController;
 
-        // 徐行区间每帧计算用到的可复用缓冲，避免每帧分配
+        /// <summary>
+        ///     已触发过通过提示的车站，防止倒车/目标回退时重复触发
+        /// </summary>
+        private readonly HashSet<TIMSStation<TSignal>> _passHintedStations = new HashSet<TIMSStation<TSignal>>();
+
+        private readonly ISignalController<TSignal> _signalController;
         private readonly List<int> _slowSectionOrdered = new List<int>();
 
-        private readonly List<(double Location, double MileageBase, double Sign, bool IsCorrection)>
-            _slowSectionReferences = new List<(double Location, double MileageBase, double Sign, bool IsCorrection)>();
+        private readonly List<(double location, double mileageBase, double sign, bool isCorrection)>
+            _slowSectionReferences = new List<(double location, double mileageBase, double sign, bool isCorrection)>();
 
         private readonly List<double> _slowSectionSplits = new List<double>();
 
         private readonly List<(double start, double end, int speedLimit)> _slowSectionSub =
             new List<(double start, double end, int speedLimit)>();
 
+        private readonly ISoundProvider _soundProvider;
+
         private readonly ITimeProvider _timeProvider;
         private readonly TIMSService _timsService;
         private readonly IVehicleStateProvider _vehicleStateProvider;
         protected readonly IDebugger Debugger;
         protected readonly IReadOnlyDictionary<string, TIMSFormationSpec> FormationSpecs;
-
         private (TIMSSlowSection?, TIMSSlowSection?) _currentSlowSections;
 
         private string _dutyNumber;
@@ -50,12 +64,23 @@ namespace JREMonitors.E233.TIMS.ICCard
         /// 列车在当前车站物理范围内是否开过门
         private bool _hasOpenedDoorAtCurrentStation;
 
+        /// <summary>
+        ///     上一次评估时的无线频道，用于检测 CurrentRadioChannel 变更
+        /// </summary>
+        private string _lastRadioChannel;
+
         private int _prevDoorLeg = -1;
         private int _prevDoorStation = -1;
         private string _prevFormation;
         private bool _prevInserted;
         private bool _signalSystemSwitchedForCurrentStation;
         private double _signalSystemTimer;
+
+        /// <summary>
+        ///     由 ForceInstant 置位：跳变后的首次提示评估只记录状态、不播放音频
+        /// </summary>
+        private bool _suppressHintSounds;
+
         private double _switchTimer;
         private bool _trainTypeSwitchedForCurrentStation;
         private double _trainTypeTimer;
@@ -80,6 +105,7 @@ namespace JREMonitors.E233.TIMS.ICCard
             FormationSpecs = formationSpecs;
             Debugger = dataHub.GetOrNull<IDebugger>();
             _timeProvider = dataHub.Get<ITimeProvider>();
+            _soundProvider = dataHub.GetOrNull<ISoundProvider>();
             _vehicleStateProvider = dataHub.Get<IVehicleStateProvider>();
             _signalController = dataHub.Get<ISignalController<TSignal>>();
             _passengerStateService = dataHub.Get<PassengerStateService>();
@@ -130,14 +156,29 @@ namespace JREMonitors.E233.TIMS.ICCard
         public TimeSpan? CurrentStationSwitchTime { get; private set; }
 
         /// <summary>
-        ///     获取下一个即将停靠的物理车站信息（自动跳过期间所有的通过站，若无后续停靠站则为 null）
+        ///     获取下一个即将停靠的物理车站信息（自动跳过期间所有的通过站）
         /// </summary>
         public TIMSStation<TSignal> NextStopStation { get; private set; }
 
         /// <summary>
-        ///     获取进站提示被触发时的时间戳（如果尚未进入下一站提示区间则为 null）
+        ///     获取下一个即将通过的物理车站信息
+        /// </summary>
+        public TIMSStation<TSignal> NextPassStation { get; private set; }
+
+        /// <summary>
+        ///     获取进站提示被触发时的时间戳
         /// </summary>
         public TimeSpan? ArrivalHintTriggeredTime { get; private set; }
+
+        /// <summary>
+        ///     获取通过提示被触发时的时间戳
+        /// </summary>
+        public TimeSpan? PassHintTriggeredTime { get; private set; }
+
+        /// <summary>
+        ///     获取分相区间提示被触发时的时间戳
+        /// </summary>
+        public TimeSpan? AirSectionHintTriggeredTime { get; private set; }
 
         /// <summary>
         ///     IC卡是否插入
@@ -338,15 +379,22 @@ namespace JREMonitors.E233.TIMS.ICCard
         public virtual void Update(TimeSpan elapsed)
         {
             var prevStationIdx = CurrentStationIndexIgnoreInserted;
+
+            // ForceInstant 跳变后的首次评估只记录状态、不播放音频（在入口统一消费，覆盖所有分支）
+            var suppressHintSounds = _suppressHintSounds;
+            _suppressHintSounds = false;
+
             UpdateDoorOpenHistory();
             FindRawCandidate(out var rawLeg, out var rawStn, false);
             if (rawLeg == -1)
             {
                 SetIndices(-1, -1);
+                EvaluateRadioChannelChange(suppressHintSounds);
                 UpdateCurrentMileage();
                 UpdateCurrentSlowSections();
                 SyncPassSetting();
                 Sync(false);
+                Debug();
                 return;
             }
 
@@ -439,11 +487,14 @@ namespace JREMonitors.E233.TIMS.ICCard
                 }
             }
 
-            EvaluateArrivalHintTrigger();
+            EvaluateRadioChannelChange(suppressHintSounds);
+            EvaluateHintTrigger(suppressHintSounds);
+            EvaluateAirSectionHint(suppressHintSounds);
             UpdateCurrentMileage();
             UpdateCurrentSlowSections();
             SyncPassSetting();
             Sync(false);
+            Debug();
             return;
 
             void SyncPassSetting()
@@ -460,6 +511,11 @@ namespace JREMonitors.E233.TIMS.ICCard
                     _prevInserted = Inserted;
                     _timsService.CompleteSetting();
                 }
+            }
+
+            void Debug()
+            {
+                Debugger?.AddLine($"tims currentMileage: {CurrentMileage}");
             }
         }
 
@@ -491,9 +547,16 @@ namespace JREMonitors.E233.TIMS.ICCard
             CurrentStationIndexIgnoreInserted = -1;
             CurrentStationSwitchTime = null;
             ArrivalHintTriggeredTime = null;
+            PassHintTriggeredTime = null;
             NextStopStation = null;
+            NextPassStation = null;
             CurrentMileage = CurrentLocation;
             _currentSlowSections = (null, null);
+            _lastRadioChannel = null;
+            AirSectionHintTriggeredTime = null;
+            _arrivalHintedStations.Clear();
+            _passHintedStations.Clear();
+            _airSectionHinted.Clear();
         }
 
         public bool IsStartingStation(int legIdx, int stationIdx)
@@ -530,22 +593,28 @@ namespace JREMonitors.E233.TIMS.ICCard
                 CurrentLegIndexIgnoreInserted = legIndex;
                 CurrentStationIndexIgnoreInserted = stationIndex;
                 ArrivalHintTriggeredTime = null;
-                NextStopStation = GetNextStopStation();
+                PassHintTriggeredTime = null;
+                GetNextStations(out var nextStopStation, out var nextPassStation);
+                NextStopStation = nextStopStation;
+                NextPassStation = nextPassStation;
             }
         }
 
-        private TIMSStation<TSignal> GetNextStopStation()
+        private void GetNextStations(out TIMSStation<TSignal> nextStopStation,
+            out TIMSStation<TSignal> nextPassStation)
         {
-            if (CurrentLegIndexIgnoreInserted < 0 || CurrentStationIndexIgnoreInserted < 0) return null;
+            nextStopStation = null;
+            nextPassStation = null;
+            if (CurrentLegIndexIgnoreInserted < 0 || CurrentStationIndexIgnoreInserted < 0) return;
             var currentLeg = CurrentLegIgnoreInserted;
-            if (currentLeg == null) return null;
+            if (currentLeg == null) return;
             for (var i = CurrentStationIndexIgnoreInserted + 1; i < currentLeg.Stations.Count; i++)
             {
                 var station = currentLeg.Stations[i];
-                if (station.StopType == TIMSStopType.Stop) return station;
+                if (station.StopType == TIMSStopType.Stop && nextStopStation == null)
+                    nextStopStation = station;
+                else if (station.StopType == TIMSStopType.Pass && nextPassStation == null) nextPassStation = station;
             }
-
-            return null;
         }
 
         private TIMSStation<TSignal> GetPreviousStation()
@@ -573,12 +642,15 @@ namespace JREMonitors.E233.TIMS.ICCard
 
                 TIMSSignalSystemChangePoint<TSignal> bestCp = null;
                 double maxLoc = -1;
-                foreach (var cp in changePoints)
+                for (var i = 0; i < changePoints.Count; i++)
+                {
+                    var cp = changePoints[i];
                     if (cp.StartLocation <= currentLocation && cp.StartLocation > maxLoc)
                     {
                         maxLoc = cp.StartLocation;
                         bestCp = cp;
                     }
+                }
 
                 if (bestCp != null) return bestCp;
             }
@@ -586,8 +658,62 @@ namespace JREMonitors.E233.TIMS.ICCard
             return null;
         }
 
+        // ForceInstant 跳变后，把列车已经过的站/分相区间预标记为已提示：
+        // 错过的提示不补播，倒车回退到已过目标时也不触发；
+        // 正处于提示窗口内的目标由静音帧（_suppressHintSounds）记录
+        private void MarkPassedHintsAsTriggered()
+        {
+            _arrivalHintedStations.Clear();
+            _passHintedStations.Clear();
+            _airSectionHinted.Clear();
+            // 清残留时间戳：其非空会短路新目标的评估，导致跳变后的新站/区间永不播放
+            ArrivalHintTriggeredTime = null;
+            PassHintTriggeredTime = null;
+            AirSectionHintTriggeredTime = null;
+            if (!Inserted) return;
+
+            var location = CurrentLocation;
+            var tail = location - GetTrainLength();
+
+            for (var i = 0; i < Legs.Count; i++)
+            {
+                var leg = Legs[i];
+                for (var j = 0; j < leg.Stations.Count; j++)
+                {
+                    var station = leg.Stations[j];
+                    // 车头已到/过的站视为已错过（与触发条件 distance > 0 互补）
+                    if (station.MinLocation > location || station.ArrivalHintOffset <= 0) continue;
+                    if (station.StopType == TIMSStopType.Stop)
+                        _arrivalHintedStations.Add(station);
+                    else if (station.StopType == TIMSStopType.Pass)
+                        _passHintedStations.Add(station);
+                }
+
+                var airSections = leg.AirSections;
+                if (airSections == null) continue;
+                for (var j = 0; j < airSections.Count; j++)
+                {
+                    var section = airSections[j];
+                    // 车尾已完全通过的区间视为已错过（与 Evaluate 的跳过条件一致）
+                    if (tail > section.EndLocation)
+                        _airSectionHinted.Add(section);
+                }
+            }
+        }
+
         protected void ForceInstant(bool isHotReload = false)
         {
+            // 车站跳变：作废指向跳变目标前方的开门历史（如先停靠 S 开过门、再跳回其前方的通过站）。
+            // 残留时列车再次越过 S 的 MinLocation，陈旧门历史重新激活为 door 候选——未开门即切站。
+            // 指向后方的开门历史保留：那是正常行驶可达状态（停靠出发后、尚未越过下一 MinStop 站）。
+            // 热重载无需处理：ResetRuntimeState 已清零，且随后会按目标站重建。
+            if (!isHotReload && _prevDoorLeg != -1 &&
+                Legs[_prevDoorLeg].Stations[_prevDoorStation].MinLocation > CurrentLocation)
+            {
+                _prevDoorLeg = -1;
+                _prevDoorStation = -1;
+            }
+
             UpdateDoorOpenHistory();
 
             int rawLeg;
@@ -607,6 +733,10 @@ namespace JREMonitors.E233.TIMS.ICCard
 
             var targetLeg = rawLeg;
             var targetStn = rawStn;
+
+            // 已过目标预标记 + 首次评估静音（跳变后可能正处提示窗口内）
+            MarkPassedHintsAsTriggered();
+            _suppressHintSounds = true;
 
             if (rawLeg > 0 && rawStn == 0)
             {
@@ -867,7 +997,7 @@ namespace JREMonitors.E233.TIMS.ICCard
                 {
                     _carStateService.Initialize(formationSpec.CarCount);
                     _doorStateService.Initialize(formationSpec.CarCount, formationSpec.DoorCountPerCar);
-                    _passengerStateService.Initialize(formationSpec.UnitCarCounts);
+                    _passengerStateService.Initialize(formationSpec.CarPassengerConfigs);
                     _timsService.Initialize(formationSpec);
                     OnFormationChanged(formation, formationSpec, isHotReload);
                 }
@@ -880,18 +1010,89 @@ namespace JREMonitors.E233.TIMS.ICCard
         {
         }
 
-        private void EvaluateArrivalHintTrigger()
+        // 无线频道变更检测：CurrentRadioChannel 变化且当前站有效时播放提示音；
+        // 首帧/ForceInstant 跳变/无有效当前站时只静默同步基线
+        private void EvaluateRadioChannelChange(bool suppressSounds)
+        {
+            var channel = CurrentRadioChannel;
+            if (_lastRadioChannel == channel) return;
+
+            var changed = _lastRadioChannel != null && Inserted && CurrentStationIndexIgnoreInserted >= 0;
+            _lastRadioChannel = channel;
+            if (!changed || suppressSounds) return;
+
+            _soundProvider.PlaySound(SoundIds.RadioChannelChange, 1);
+        }
+
+        private void EvaluateHintTrigger(bool suppressSounds)
         {
             if (!Inserted) return;
 
             var nextStopStation = NextStopStation;
-
-            if (nextStopStation != null && nextStopStation.ArrivalHintOffset > 0 && ArrivalHintTriggeredTime == null)
+            var nextPassStation = NextPassStation;
+            if (nextStopStation != null && nextStopStation.ArrivalHintOffset > 0 && ArrivalHintTriggeredTime == null
+                && !_arrivalHintedStations.Contains(nextStopStation))
             {
                 var distance = nextStopStation.MinLocation - CurrentLocation;
                 if (distance > 0 && distance <= nextStopStation.ArrivalHintOffset)
+                {
+                    _arrivalHintedStations.Add(nextStopStation);
                     ArrivalHintTriggeredTime = _timeProvider.CurrentTime;
+                    if (!suppressSounds)
+                        _soundProvider.PlaySound(SoundIds.ArrivalHint, 1);
+                }
             }
+
+            if (nextPassStation != null && nextPassStation.ArrivalHintOffset > 0 && PassHintTriggeredTime == null
+                && !_passHintedStations.Contains(nextPassStation))
+            {
+                var distance = nextPassStation.MinLocation - CurrentLocation;
+                if (distance > 0 && distance <= nextPassStation.ArrivalHintOffset)
+                {
+                    _passHintedStations.Add(nextPassStation);
+                    PassHintTriggeredTime = _timeProvider.CurrentTime;
+                    if (!suppressSounds)
+                        _soundProvider.PlaySound(SoundIds.PassHint, 1);
+                }
+            }
+        }
+
+        private double GetTrainLength()
+        {
+            return FormationSpecs.TryGetValue(CurrentFormation, out var formationSpec)
+                ? formationSpec.CarCount * SlowSectionCarLength
+                : 0;
+        }
+
+        private void EvaluateAirSectionHint(bool suppressSounds)
+        {
+            if (!Inserted) return;
+
+            var airSections = CurrentLegIgnoreInserted?.AirSections;
+            if (airSections == null || airSections.Count == 0) return;
+
+            var location = CurrentLocation;
+            var tail = location - GetTrainLength();
+
+            // 下一个分相区间 = 车尾尚未通过其 EndLocation 的第一个区间（区间已按 StartLocation 升序）
+            TIMSAirSection? next = null;
+            for (var i = 0; i < airSections.Count; i++)
+            {
+                var section = airSections[i];
+                if (tail > section.EndLocation) continue;
+                next = section;
+                break;
+            }
+
+            if (next == null) return;
+            if (_airSectionHinted.Contains(next.Value)) return;
+
+            if (location < next.Value.StartLocation - next.Value.HintOffset) return;
+
+            _airSectionHinted.Add(next.Value);
+            AirSectionHintTriggeredTime = _timeProvider.CurrentTime;
+            if (!suppressSounds)
+                _soundProvider.PlaySound(SoundIds.AirSectionHint, 1);
         }
 
         private TIMSMileageCorrectionPoint GetMostRecentCorrectionPoint(double currentLocation)
@@ -904,12 +1105,15 @@ namespace JREMonitors.E233.TIMS.ICCard
 
                 TIMSMileageCorrectionPoint bestCp = null;
                 double maxLoc = -1;
-                foreach (var cp in correctionPoints)
+                for (var i = 0; i < correctionPoints.Count; i++)
+                {
+                    var cp = correctionPoints[i];
                     if (cp.Location <= currentLocation && cp.Location > maxLoc)
                     {
                         maxLoc = cp.Location;
                         bestCp = cp;
                     }
+                }
 
                 if (bestCp != null) return bestCp;
             }
@@ -986,9 +1190,7 @@ namespace JREMonitors.E233.TIMS.ICCard
 
             var currentLeg = Legs[CurrentLegIndexIgnoreInserted];
             if (currentLeg.SlowSectionLocations == null || currentLeg.SlowSectionLocations.Count == 0) return;
-            double trainLength = 0;
-            if (FormationSpecs.TryGetValue(CurrentFormation, out var formationSpec))
-                trainLength = formationSpec.CarCount * SlowSectionCarLengthMeters;
+            var trainLength = GetTrainLength();
             var head = CurrentLocation;
             var tail = head - trainLength;
             // 前后顺序只按 location 判定：填充序号后原地排序
@@ -1016,20 +1218,27 @@ namespace JREMonitors.E233.TIMS.ICCard
             _slowSectionReferences.Clear();
             for (var l = 0; l <= CurrentLegIndexIgnoreInserted; l++)
             {
-                foreach (var cp in Legs[l].MileageCorrectionPoints)
+                for (var i = 0; i < Legs[l].MileageCorrectionPoints.Count; i++)
+                {
+                    var cp = Legs[l].MileageCorrectionPoints[i];
                     _slowSectionReferences.Add((cp.Location, cp.RemappedMileage,
                         cp.MileageDirection == TIMSMileageDirection.Increment ? 1.0 : -1.0, true));
-                foreach (var station in Legs[l].Stations)
+                }
+
+                for (var i = 0; i < Legs[l].Stations.Count; i++)
+                {
+                    var station = Legs[l].Stations[i];
                     if (station.Mileage.HasValue)
                         _slowSectionReferences.Add((station.MinLocation, station.Mileage.Value,
                             station.MileageDirection == TIMSMileageDirection.Increment ? 1.0 : -1.0, false));
+                }
             }
 
             for (var i = 1; i < _slowSectionReferences.Count; i++)
             {
                 var key = _slowSectionReferences[i];
                 var j = i - 1;
-                while (j >= 0 && _slowSectionReferences[j].Location > key.Location)
+                while (j >= 0 && _slowSectionReferences[j].location > key.location)
                 {
                     _slowSectionReferences[j + 1] = _slowSectionReferences[j];
                     j--;
@@ -1040,16 +1249,17 @@ namespace JREMonitors.E233.TIMS.ICCard
 
             // 把各徐行区间在断里程参考点处切成子区间，展平为按 location 升序的子区间序列
             _slowSectionSub.Clear();
-            foreach (var si in _slowSectionOrdered)
+            for (var j = 0; j < _slowSectionOrdered.Count; j++)
             {
+                var si = _slowSectionOrdered[j];
                 var sec = currentLeg.SlowSectionLocations[si];
                 _slowSectionSplits.Clear();
                 _slowSectionSplits.Add(sec.startLocation);
                 for (var i = 0; i < _slowSectionReferences.Count; i++)
                 {
                     var r = _slowSectionReferences[i];
-                    if (r.Location > sec.startLocation && r.Location < sec.endLocation)
-                        _slowSectionSplits.Add(r.Location);
+                    if (r.location > sec.startLocation && r.location < sec.endLocation)
+                        _slowSectionSplits.Add(r.location);
                 }
 
                 _slowSectionSplits.Add(sec.endLocation);
@@ -1090,12 +1300,12 @@ namespace JREMonitors.E233.TIMS.ICCard
             var anchor = GetReferenceAt(sub.start, _slowSectionReferences);
 
             var mLo = anchor.HasValue
-                ? anchor.Value.MileageBase + anchor.Value.Sign * (sub.start - anchor.Value.Location)
+                ? anchor.Value.mileageBase + anchor.Value.sign * (sub.start - anchor.Value.location)
                 : sub.start;
             var mFar = anchor.HasValue
-                ? anchor.Value.MileageBase + anchor.Value.Sign * (sub.end - anchor.Value.Location)
+                ? anchor.Value.mileageBase + anchor.Value.sign * (sub.end - anchor.Value.location)
                 : sub.end;
-            var farSign = anchor?.Sign ?? 1.0;
+            var farSign = anchor?.sign ?? 1.0;
             mFar += farSign * trainLength;
 
             return new TIMSSlowSection((int)Math.Round(Math.Min(mLo, mFar)),
@@ -1103,28 +1313,29 @@ namespace JREMonitors.E233.TIMS.ICCard
         }
 
         // 指定位置所在参考系：最近的（Location <= 位置）带里程站/校正点；同位置时校正点优先
-        private static (double Location, double MileageBase, double Sign)? GetReferenceAt(double location,
-            List<(double Location, double MileageBase, double Sign, bool IsCorrection)> references)
+        private static (double location, double mileageBase, double sign)? GetReferenceAt(double location,
+            List<(double location, double mileageBase, double sign, bool isCorrection)> references)
         {
-            (double Location, double MileageBase, double Sign, bool IsCorrection)? best = null;
-            foreach (var r in references)
+            (double location, double mileageBase, double sign, bool isCorrection)? best = null;
+            for (var i = 0; i < references.Count; i++)
             {
-                if (r.Location > location) break;
+                var r = references[i];
+                if (r.location > location) break;
                 if (!best.HasValue)
                 {
                     best = r;
                     continue;
                 }
 
-                if (r.Location > best.Value.Location)
+                if (r.location > best.Value.location)
                     best = r;
-                else if (Math.Abs(r.Location - best.Value.Location) < Epsilons.DoubleEpsilon
-                         && r.IsCorrection && !best.Value.IsCorrection)
+                else if (Math.Abs(r.location - best.Value.location) < Epsilons.DoubleEpsilon
+                         && r.isCorrection && !best.Value.isCorrection)
                     best = r;
             }
 
             if (!best.HasValue) return null;
-            return (best.Value.Location, best.Value.MileageBase, best.Value.Sign);
+            return (best.Value.location, best.Value.mileageBase, best.Value.sign);
         }
     }
 }

@@ -176,9 +176,9 @@ namespace JREMonitors.E233.MeterScreen.Foreground
             var vehicleStateLampGroupWhenSafetyLampsHidden = new VehicleStateLampGroup(Context,
                 new RawRectF(
                     608,
-                    10,
+                    11,
                     1010,
-                    129
+                    120
                 ),
                 10,
                 44,
@@ -187,7 +187,7 @@ namespace JREMonitors.E233.MeterScreen.Foreground
                 false,
                 90,
                 LayoutLength.Flex(),
-                LayoutLength.Absolute(155),
+                LayoutLength.Absolute(153),
                 4
             );
             return new LampPanel(Context, 1023, 432, 185,

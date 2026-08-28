@@ -251,74 +251,74 @@ namespace JREMonitors.E233.TIMS
                 }
             }
         }
-    }
 
-    public readonly struct CarGeometryKey : IEquatable<CarGeometryKey>
-    {
-        public readonly TIMSCarType CarType;
-        public readonly float Width;
-        public readonly bool IsCarReverseArrangement;
-
-        public CarGeometryKey(TIMSCarType carType, float width, bool isCarReverseArrangement)
+        private readonly struct CarGeometryKey : IEquatable<CarGeometryKey>
         {
-            CarType = carType;
-            Width = width;
-            IsCarReverseArrangement = isCarReverseArrangement;
+            public readonly TIMSCarType CarType;
+            public readonly float Width;
+            public readonly bool IsCarReverseArrangement;
+
+            public CarGeometryKey(TIMSCarType carType, float width, bool isCarReverseArrangement)
+            {
+                CarType = carType;
+                Width = width;
+                IsCarReverseArrangement = isCarReverseArrangement;
+            }
+
+            public bool Equals(CarGeometryKey other)
+            {
+                return CarType == other.CarType &&
+                       Math.Abs(Width - other.Width) < Epsilons.FloatEpsilon &&
+                       IsCarReverseArrangement == other.IsCarReverseArrangement;
+            }
+
+            public override bool Equals(object obj)
+            {
+                return obj is CarGeometryKey other && Equals(other);
+            }
+
+            public override int GetHashCode()
+            {
+                return HashCode.Combine(CarType, Width, IsCarReverseArrangement);
+            }
         }
 
-        public bool Equals(CarGeometryKey other)
+        private readonly struct CarBakerKey : IEquatable<CarBakerKey>
         {
-            return CarType == other.CarType &&
-                   Math.Abs(Width - other.Width) < Epsilons.FloatEpsilon &&
-                   IsCarReverseArrangement == other.IsCarReverseArrangement;
-        }
+            private readonly TIMSCarType _carType;
+            private readonly TIMSCarPantoGraphType _pantoGraphType;
+            private readonly Color4? _backgroundColor;
+            private readonly Color4 _strokeColor;
+            private readonly float _width;
 
-        public override bool Equals(object obj)
-        {
-            return obj is CarGeometryKey other && Equals(other);
-        }
+            public CarBakerKey(TIMSCarType carType, TIMSCarPantoGraphType pantoGraphType, Color4? backgroundColor,
+                Color4 strokeColor, float width)
+            {
+                _carType = carType;
+                _pantoGraphType = pantoGraphType;
+                _backgroundColor = backgroundColor;
+                _strokeColor = strokeColor;
+                _width = width;
+            }
 
-        public override int GetHashCode()
-        {
-            return HashCode.Combine(CarType, Width, IsCarReverseArrangement);
-        }
-    }
+            public bool Equals(CarBakerKey other)
+            {
+                return _carType == other._carType &&
+                       _pantoGraphType == other._pantoGraphType &&
+                       Nullable.Equals(_backgroundColor, other._backgroundColor) &&
+                       _strokeColor.Equals(other._strokeColor) &&
+                       Math.Abs(_width - other._width) < Epsilons.FloatEpsilon;
+            }
 
-    public readonly struct CarBakerKey : IEquatable<CarBakerKey>
-    {
-        private readonly TIMSCarType _carType;
-        private readonly TIMSCarPantoGraphType _pantoGraphType;
-        private readonly Color4? _backgroundColor;
-        private readonly Color4 _strokeColor;
-        private readonly float _width;
+            public override bool Equals(object obj)
+            {
+                return obj is CarBakerKey other && Equals(other);
+            }
 
-        public CarBakerKey(TIMSCarType carType, TIMSCarPantoGraphType pantoGraphType, Color4? backgroundColor,
-            Color4 strokeColor, float width)
-        {
-            _carType = carType;
-            _pantoGraphType = pantoGraphType;
-            _backgroundColor = backgroundColor;
-            _strokeColor = strokeColor;
-            _width = width;
-        }
-
-        public bool Equals(CarBakerKey other)
-        {
-            return _carType == other._carType &&
-                   _pantoGraphType == other._pantoGraphType &&
-                   Nullable.Equals(_backgroundColor, other._backgroundColor) &&
-                   _strokeColor.Equals(other._strokeColor) &&
-                   Math.Abs(_width - other._width) < Epsilons.FloatEpsilon;
-        }
-
-        public override bool Equals(object obj)
-        {
-            return obj is CarBakerKey other && Equals(other);
-        }
-
-        public override int GetHashCode()
-        {
-            return HashCode.Combine(_carType, _pantoGraphType, _backgroundColor, _strokeColor, _width);
+            public override int GetHashCode()
+            {
+                return HashCode.Combine(_carType, _pantoGraphType, _backgroundColor, _strokeColor, _width);
+            }
         }
     }
 

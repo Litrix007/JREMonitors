@@ -36,6 +36,11 @@ namespace JREMonitors.BveEx.Configs.Vehicle
         public float? CompressThresholdNight { get; set; }
 
         /// <summary>
+        ///     环境光上限。
+        /// </summary>
+        public float? AmbientMax { get; set; }
+
+        /// <summary>
         ///     LCD物理对比度。此值在各车型中已配置默认值。
         /// </summary>
         public float? PanelContrastRatio { get; set; }

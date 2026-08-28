@@ -33,7 +33,8 @@ namespace JREMonitors.BveEx.Builders.Base
                 config.LeakColor ?? E233Config.LightingDefaults.LeakColor,
                 config.GlassReflectanceLight,
                 config.GlassReflectanceDark,
-                config.GlareColor
+                config.GlareColor,
+                config.AmbientMax ?? 1f
             );
         }
 

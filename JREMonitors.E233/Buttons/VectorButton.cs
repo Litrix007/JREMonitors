@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
@@ -360,7 +360,8 @@ namespace JREMonitors.E233.Buttons
             if (shadowSetting.HasValue)
             {
                 effect.IsEnabled = true;
-                effect.Update(shadowSetting.Value.Image, recorder.Record(() => recordAction(shadowSetting.Value)));
+                effect.Update(shadowSetting.Value.Image,
+                    recorder.RecordTransformed(() => recordAction(shadowSetting.Value)));
             }
             else
             {

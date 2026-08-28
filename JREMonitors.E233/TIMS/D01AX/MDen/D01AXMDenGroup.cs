@@ -140,7 +140,7 @@ namespace JREMonitors.E233.TIMS.D01AX.MDen
 
                 if (currentStation.DepartureTime.HasValue)
                     lastSeenTime = currentStation.DepartureTime;
-                else if (currentStation.ArrivalTime.HasValue)
+                else if (currentStation.StopType != TIMSStopType.Pass && currentStation.ArrivalTime.HasValue)
                     lastSeenTime = currentStation.ArrivalTime;
             }
 
@@ -199,8 +199,7 @@ namespace JREMonitors.E233.TIMS.D01AX.MDen
 
             var arrivalIndicator = GetArrivalIndicatorText(currentStation);
             rowVM.ArrivalIndicator.Value = arrivalIndicator;
-            rowVM.ShowPassArrow.Value = currentStation.StopType == TIMSStopType.Pass;
-
+            rowVM.ShowArrivalPassArrow.Value = currentStation.StopType == TIMSStopType.Pass;
             if (currentStation.StopType != TIMSStopType.Pass && string.IsNullOrEmpty(arrivalIndicator))
             {
                 rowVM.ArrivalHoursAndMinutes.Value =
@@ -210,12 +209,17 @@ namespace JREMonitors.E233.TIMS.D01AX.MDen
 
             var departureIndicator = GetDepartureIndicatorText(currentStation);
             rowVM.DepartureIndicator.Value = departureIndicator;
-
-            if (currentStation.StopType != TIMSStopType.Pass && string.IsNullOrEmpty(departureIndicator))
+            rowVM.ShowDeparturePassArrow.Value = false;
+            if (string.IsNullOrEmpty(departureIndicator))
             {
+                var departureComparisonTime =
+                    (currentStation.StopType != TIMSStopType.Pass ? currentStation.ArrivalTime : null) ??
+                    lastSeenTime;
                 rowVM.DepartureHoursAndMinutes.Value =
-                    TIMSHelper.GetHoursAndMinutes(lastSeenTime, currentStation.DepartureTime);
+                    TIMSHelper.GetHoursAndMinutes(departureComparisonTime, currentStation.DepartureTime);
                 rowVM.DepartureSeconds.Value = TIMSHelper.GetSeconds(currentStation.DepartureTime, true, true);
+                if (currentStation.StopType == TIMSStopType.Pass && !currentStation.DepartureTime.HasValue)
+                    rowVM.ShowDeparturePassArrow.Value = true;
             }
 
             if (!string.IsNullOrWhiteSpace(currentStation.TrackName))
@@ -243,7 +247,8 @@ namespace JREMonitors.E233.TIMS.D01AX.MDen
             row.DurationMinutes.Value = "";
             row.DurationSeconds.Value = "";
             row.ArrivalIndicator.Value = "";
-            row.ShowPassArrow.Value = false;
+            row.ShowArrivalPassArrow.Value = false;
+            row.ShowDeparturePassArrow.Value = false;
             row.ArrivalHoursAndMinutes.Value = "";
             row.ArrivalSeconds.Value = "";
             row.DepartureIndicator.Value = "";
