@@ -100,22 +100,22 @@ namespace JREMonitors.SandBox
             var mockPassengerStateService = new MockPassengerStateService();
             _tickUpdateManager.Register(mockPassengerStateService);
             _dataHub.Put(mockPassengerStateService);
-            var formationSpecs = TIMSFormationSpecs.FormationSpecs1000;
+            var formationSpecs = TIMSFormationSpecs.FormationSpecs5000;
             _mockTIMSICCardService = new MockTIMSICCardService(_dataHub, formationSpecs);
             _tickUpdateManager.Register(_mockTIMSICCardService,
                 _mockTIMSICCardService.BeforeDeps.OfType<ITickUpdatable>());
             _dataHub.Put(_mockTIMSICCardService);
             _context = new MonitorContext(_debugForm);
-            var size1 = new Size(1920, 1440);
+            var size1 = new Size(1024, 768);
             var size2 = new Size(800, 600);
             var size3 = new Size(800, 600);
             _monitor1 = new Monitor(MonitorIds.Monitor1, _dataHub, _context,
-                context => new Screen[] { new S00AAScreen(context), new MeterScreen1000(context) }, ScreenIds.S00AA,
+                context => new Screen[] { new S00AAScreen(context), new MeterScreen5000(context) }, ScreenIds.S00AA,
                 () => false);
             _monitor2 = new Monitor(MonitorIds.Monitor2, _dataHub, _context,
-                context => E233Screens.CreateE233Screens1000(context, "SandBox"), ScreenIds.S00AB);
+                context => E233Screens.CreateE233Screens5000(context, "SandBox"), ScreenIds.S00AB);
             _monitor3 = new Monitor(MonitorIds.Monitor3, _dataHub, _context,
-                context => E233Screens.CreateE233Screens1000(context, "SandBox", new[] { new TidScreen1000(context) }),
+                context => E233Screens.CreateE233Screens5000(context, "SandBox", new[] { new TidScreen5000(context) }),
                 ScreenIds.Tid);
             _monitor1.LocalDataHub.Put(new E233MonitorStateController());
             _monitor2.LocalDataHub.Put(new E233MonitorStateController());

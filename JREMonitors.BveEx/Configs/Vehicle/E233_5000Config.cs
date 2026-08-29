@@ -15,7 +15,10 @@ namespace JREMonitors.BveEx.Configs.Vehicle
         public override string VehicleName => "E233-5000";
 
         public override HashSet<string> AllowedInputs =>
-            base.AllowedInputs.Union(DirectInputIds.AtsPLampIds).Union(DirectInputIds.AtsSLampIds)
+            base.AllowedInputs
+                .Union(DirectInputIds.AtsPLampIds)
+                .Union(DirectInputIds.AtsSLampIds)
+                .Union(new[] { DirectInputIds.HoldSpeed })
                 .ToHashSet();
 
         public override HashSet<string> AllowedBuiltinInputPresets =>

@@ -213,6 +213,39 @@ namespace JREMonitors.E233.TIMS
         public static readonly IReadOnlyDictionary<string, TIMSFormationSpec> FormationSpecs5000 =
             new Dictionary<string, TIMSFormationSpec>
             {
+                ["4"] = new TIMSFormationSpec(new[]
+                {
+                    new TIMSCarSpec(1, TIMSCarType.FirstCar, TIMSCarPantoGraphType.None, 4, false, true, false),
+                    new TIMSCarSpec(2, TIMSCarType.MotorCar, TIMSCarPantoGraphType.None, 4, true, false, false),
+                    new TIMSCarSpec(3, TIMSCarType.MotorCar, TIMSCarPantoGraphType.WithYellowRect, 4, false, false,
+                        false),
+                    new TIMSCarSpec(4, TIMSCarType.LastCar, TIMSCarPantoGraphType.None, 4, false, true, false),
+                }),
+                ["6"] = new TIMSFormationSpec(new[]
+                {
+                    new TIMSCarSpec(1, TIMSCarType.FirstCar, TIMSCarPantoGraphType.None, 4, false, true, false),
+                    new TIMSCarSpec(2, TIMSCarType.MotorCar, TIMSCarPantoGraphType.None, 4, false, false, false),
+                    new TIMSCarSpec(3, TIMSCarType.MotorCar, TIMSCarPantoGraphType.Has, 4, false, false, false),
+                    new TIMSCarSpec(4, TIMSCarType.MotorCar, TIMSCarPantoGraphType.None, 4, true, false, false),
+                    new TIMSCarSpec(5, TIMSCarType.MotorCar, TIMSCarPantoGraphType.WithYellowRect, 4, false, false,
+                        false),
+                    new TIMSCarSpec(6, TIMSCarType.LastCar, TIMSCarPantoGraphType.None, 4, false, true, false),
+                }),
+                ["6+4"] = new TIMSFormationSpec(new[]
+                {
+                    new TIMSCarSpec(1, TIMSCarType.FirstCar, TIMSCarPantoGraphType.None, 4, false, true, false),
+                    new TIMSCarSpec(2, TIMSCarType.MotorCar, TIMSCarPantoGraphType.None, 4, false, false, false),
+                    new TIMSCarSpec(3, TIMSCarType.MotorCar, TIMSCarPantoGraphType.Has, 4, false, false, false),
+                    new TIMSCarSpec(4, TIMSCarType.MotorCar, TIMSCarPantoGraphType.None, 4, true, false, false),
+                    new TIMSCarSpec(5, TIMSCarType.MotorCar, TIMSCarPantoGraphType.WithYellowRect, 4, false, false,
+                        false),
+                    new TIMSCarSpec(6, TIMSCarType.LastCar, TIMSCarPantoGraphType.None, 4, false, true, false),
+                    new TIMSCarSpec(7, TIMSCarType.FirstCar, TIMSCarPantoGraphType.None, 4, false, true, false),
+                    new TIMSCarSpec(8, TIMSCarType.MotorCar, TIMSCarPantoGraphType.None, 4, true, false, false),
+                    new TIMSCarSpec(9, TIMSCarType.MotorCar, TIMSCarPantoGraphType.WithYellowRect, 4, false, false,
+                        false),
+                    new TIMSCarSpec(10, TIMSCarType.LastCar, TIMSCarPantoGraphType.None, 4, false, true, false)
+                }),
                 ["10"] = new TIMSFormationSpec(new[]
                 {
                     new TIMSCarSpec(1, TIMSCarType.FirstCar, TIMSCarPantoGraphType.None, 4, false, true, false),

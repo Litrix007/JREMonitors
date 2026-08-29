@@ -16,8 +16,8 @@ namespace JREMonitors.E233.MeterScreen.Foreground
 
         public MeterForegroundRoot5000(RenderContext context) : base(
             context,
-            MeterBackgroundRootBase.CommonRootPropertiesWithoutSafetyAndHldLamps,
-            MeterBackgroundRootBase.CommonRootPropertiesWithoutSafetyAndHldLamps
+            MeterBackgroundRootBase.CommonRootPropertiesWithoutSafetyLamps,
+            MeterBackgroundRootBase.CommonRootPropertiesWithoutSafetyLamps
         )
         {
             _normalSpeedGaugeGaugeNeedle = new NormalSpeedGaugeNeedle(context);

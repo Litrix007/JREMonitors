@@ -7,9 +7,9 @@ namespace JREMonitors.E233.MeterScreen.Background
     {
         public MeterBackgroundRoot5000(RenderContext context) : base(
             context,
-            CommonRootPropertiesWithoutSafetyAndHldLamps,
+            CommonRootPropertiesWithoutSafetyLamps,
             true,
-            CommonRootPropertiesWithoutSafetyAndHldLamps,
+            CommonRootPropertiesWithoutSafetyLamps,
             true
         )
         {

@@ -161,7 +161,7 @@ namespace JREMonitors.E233
                 new TIMSVehicleSpec(vehicleName,
                     TIMSFormationSpecs.FormationSpecs5000,
                     false,
-                    false,
+                    true,
                     null,
                     new D01AXSpec(false,
                         false,
