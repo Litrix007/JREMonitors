@@ -16,6 +16,7 @@ namespace JREMonitors.E233.MeterScreen.Foreground.Base
 {
     public class MrForeground : MrBackground
     {
+        private const bool FixRedAreaToNormalRange = true;
         private const float DividerStrokeWidth = BcBackground.DividerStrokeWidth;
         private const int MinEllipticalMr = 700;
         private const int MinNormalMr = 780;
@@ -52,11 +53,20 @@ namespace JREMonitors.E233.MeterScreen.Foreground.Base
             _truncateRedArea =
                 CreatePropertySlot(DirtyType.Visual, source: CreateComputed(() => _clampedMr >= MinEllipticalMr));
             _redAreaTop = CreatePropertySlot(DirtyType.Visual,
-                source: CreateComputed(() => _truncateRedArea
-                    ? (300f - (MaxNormalMr - 700)) / 300 * Height
-                    : (1000 - _clampedMr) / 1000 * Height));
+                source: CreateComputed(() =>
+                    _truncateRedArea
+                        ? (300f - (MaxNormalMr - 700f)) / 300f * Height
+                        : FixRedAreaToNormalRange
+                            ? (1000f - MaxNormalMr) / 1000f * Height
+                            : (1000 - _clampedMr) / 1000 * Height));
+
             _redAreaBottom = CreatePropertySlot(DirtyType.Visual,
-                source: CreateComputed(() => _truncateRedArea ? (300f - (MinNormalMr - 700)) / 300 * Height : Height));
+                source: CreateComputed(() =>
+                    _truncateRedArea
+                        ? (300f - (MinNormalMr - 700f)) / 300f * Height
+                        : FixRedAreaToNormalRange
+                            ? (1000f - MinNormalMr) / 1000f * Height
+                            : Height));
             WatchEffect(EffectPhase.State, () =>
             {
                 var truncate = _truncateRedArea.Value;

@@ -51,7 +51,6 @@ namespace JREMonitors.BveEx
         private DebugForm _debugForm;
         private bool _disposed;
         private HarmonyPatch _drawPatch;
-        private readonly bool _enableHotReload;
         private JumpStationManager _jumpStationManager = new JumpStationManager();
         private string _loadFailedMessage;
         private MonitorContext _monitorContext;
@@ -138,8 +137,8 @@ namespace JREMonitors.BveEx
             BveHacker.PreviewScenarioCreated += OnPreviewScenarioCreated;
             if (configRead)
             {
-                _enableHotReload = _vehicleConfig.EnableHotReload;
-                if (_enableHotReload && _configWatcher == null)
+                var enableHotReload = _vehicleConfig.EnableHotReload;
+                if (enableHotReload && _configWatcher == null)
                     _configWatcher = new ConfigFileWatcher(GetWatchPaths(_initialConfigReadPaths),
                         () => _pendingConfigReload = true);
                 if (loadError != null)
@@ -293,9 +292,9 @@ namespace JREMonitors.BveEx
         private void ShowLoadFailedMessage()
         {
             if (_loadFailedMessage == null) return;
+            _assistantTextWrapper.Text = _loadFailedMessage;
             _assistantTextWrapper.SyncScale();
             _assistantTextWrapper.Attach();
-            _assistantTextWrapper.Text = _loadFailedMessage;
         }
 
         public override void Tick(TimeSpan elapsed)
@@ -324,6 +323,9 @@ namespace JREMonitors.BveEx
         [Conditional("DEBUG")]
         private void DebugMessages(TimeSpan elapsed)
         {
+            _debugForm?.AddLine($"InertiaRatio: {_scenario.Vehicle.Dynamics.InertiaRatio.Value:F4}");
+            _debugForm?.AddLine($"TotalMass: {_scenario.Vehicle.Dynamics.TotalMass:F0} kg");
+            _debugForm?.AddLine($"PassengerLoad: {_scenario.Vehicle.Passenger.Load.Value:F0} kg");
             _debugForm?.AddLine(
                 $"power: {_scenario.Vehicle.Instruments.AtsPlugin.AtsHandles.PowerNotch}; brake： {_scenario.Vehicle.Instruments.AtsPlugin.AtsHandles.BrakeNotch}");
             _debugForm?.AddLine(

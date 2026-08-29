@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using JREMonitors.BveEx.Utils;
+using JREMonitors.Core.Utils;
 using JREMonitors.E233.TIMS;
 using JREMonitors.E233.TIMS.ICCard;
 using JREMonitors.JRE.Constants;
@@ -19,10 +20,12 @@ namespace JREMonitors.BveEx.Configs.Vehicle
         public static readonly Dictionary<string, Func<JsonNode, string, JsonNode>> JRENodeConverters =
             new Dictionary<string, Func<JsonNode, string, JsonNode>>
             {
-                ["performanceCurves.*"] = ConfigPath.NodeConverter
+                ["performanceCurves.*"] = ConfigPath.NodeConverter,
+                ["vehicleParameters.*"] = ConfigPath.NodeConverter
             };
 
         private Dictionary<string, ConfigPath> _performanceCurves = new Dictionary<string, ConfigPath>();
+        private Dictionary<string, ConfigPath> _vehicleParameters = new Dictionary<string, ConfigPath>();
 
         public override HashSet<string> AllowedInputs => base.AllowedInputs
             .Union(new[] { DirectInputIds.ConstantSpeed, DirectInputIds.DeviceVoltage }).ToHashSet();
@@ -47,6 +50,19 @@ namespace JREMonitors.BveEx.Configs.Vehicle
         {
             get => _performanceCurves;
             set => _performanceCurves = value ?? new Dictionary<string, ConfigPath>();
+        }
+
+        /// <summary>
+        /// 各编组使用的车辆参数路径。
+        /// </summary>
+        /// <remarks>
+        /// <para>当某编组未配置或解析失败时，将尝试回退至车辆文件中定义的的参数路径。</para>
+        /// <para>不会更新<c>[OneLeverCab]</c>、<c>[Cab]</c>、<c>[ViewPoint]</c>。</para>
+        /// </remarks>
+        public Dictionary<string, ConfigPath> VehicleParameters
+        {
+            get => _vehicleParameters;
+            set => _vehicleParameters = value ?? new Dictionary<string, ConfigPath>();
         }
 
         public abstract TIMSDisplayMode DefaultDisplayMode { get; }
@@ -81,9 +97,20 @@ namespace JREMonitors.BveEx.Configs.Vehicle
             {
                 if (!FormationSpecs.ContainsKey(pair.Key))
                     throw new JsonException(
-                        $"(In performanceCurves) Invalid formation '{pair.Key}' for {VehicleName}.");
+                        $"(In {nameof(PerformanceCurves).ToCamelCase()}) Invalid formation '{pair.Key}' for {VehicleName}.");
                 var path = pair.Value.GetAbsolutePath();
-                if (path == null) throw new JsonException($"PerformanceCurves path '{pair.Value.Value}' is not found.");
+                if (path == null)
+                    throw new JsonException($"{nameof(PerformanceCurves)} path '{pair.Value.Value}' is not found.");
+            }
+
+            foreach (var pair in VehicleParameters)
+            {
+                if (!FormationSpecs.ContainsKey(pair.Key))
+                    throw new JsonException(
+                        $"(In {nameof(VehicleParameters).ToCamelCase()}) Invalid formation '{pair.Key}' for {VehicleName}.");
+                var path = pair.Value.GetAbsolutePath();
+                if (path == null)
+                    throw new JsonException($"{nameof(VehicleParameters)} path '{pair.Value.Value}' is not found.");
             }
         }
 

@@ -122,13 +122,14 @@
         <Compile Include="Utils\AtsPluginHelper.cs"/>
         <Compile Include="Utils\ConfigFileWatcher.cs"/>
         <Compile Include="Utils\ConfigLoader.cs"/>
-        <Compile Include="Utils\DoorRepairer.cs"/>
+        <Compile Include="Utils\CarCountHelper.cs" />
         <Compile Include="Utils\NodeConverterResolver.cs"/>
         <Compile Include="Utils\PerformanceData.cs"/>
         <Compile Include="Utils\ProjectionHelper.cs"/>
         <Compile Include="Utils\NeedlePhysicsHelper.cs"/>
         <Compile Include="Utils\SignalHelper.cs"/>
         <Compile Include="Utils\BveListHelper.cs"/>
+        <Compile Include="Utils\VehicleParametersLoader.cs" />
     </ItemGroup>
     <ItemGroup>
         <ProjectReference Include="..\JREMonitors.Core\JREMonitors.Core.csproj">

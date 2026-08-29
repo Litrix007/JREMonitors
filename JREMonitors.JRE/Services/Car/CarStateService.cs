@@ -119,10 +119,6 @@ namespace JREMonitors.JRE.Services.Car
                     _channels1[i].PowerNotch = _vehicleStateProvider.PowerNotch;
                     _channels1[i].BrakeNotch = _vehicleStateProvider.BrakeNotch;
                     _channels1[i].TascBrakeNotch = _vehicleStateProvider.TascBrakeNotch;
-
-                    _channels2[i].PowerNotch = _vehicleStateProvider.PowerNotch;
-                    _channels2[i].BrakeNotch = _vehicleStateProvider.BrakeNotch;
-                    _channels2[i].TascBrakeNotch = _vehicleStateProvider.TascBrakeNotch;
                 }
 
                 _carStates[i].UpdateFrom(_channels1[i], _channels2[i]);
@@ -272,6 +268,10 @@ namespace JREMonitors.JRE.Services.Car
         private void Debug()
         {
             if (_debugger == null) return;
+            _debugger.AddLine(
+                $"car state brake1: {string.Join(",", _carStates.Select(d => $"{d.BrakeNotch}"))}");
+            _debugger.AddLine(
+                $"car state brake2: {string.Join(",", _carStates.Select(d => $"{d.BrakeNotch2}"))}");
             _debugger.AddLine(
                 $"car state m-bcp1: {string.Join(",", _carStates.Select(d => $"{d.MotorCarBcPressure:F0}"))}");
             _debugger.AddLine(

@@ -995,11 +995,11 @@ namespace JREMonitors.E233.TIMS.ICCard
             if (formation != _prevFormation)
                 if (FormationSpecs.TryGetValue(formation, out var formationSpec))
                 {
+                    OnFormationChanged(formation, formationSpec, isHotReload);
                     _carStateService.Initialize(formationSpec.CarCount);
                     _doorStateService.Initialize(formationSpec.CarCount, formationSpec.DoorCountPerCar);
                     _passengerStateService.Initialize(formationSpec.CarPassengerConfigs);
                     _timsService.Initialize(formationSpec);
-                    OnFormationChanged(formation, formationSpec, isHotReload);
                 }
 
             _signalController.SetActiveSignalSystem(ActiveSignalSystem);

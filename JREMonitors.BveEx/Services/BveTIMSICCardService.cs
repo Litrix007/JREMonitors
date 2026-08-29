@@ -22,6 +22,7 @@ namespace JREMonitors.BveEx.Services
         private readonly AssistantTextWrapper _assistantTextWrapper;
         private readonly IBveHacker _bveHacker;
         private readonly PerformanceData _initialPerformanceData;
+        private readonly string _initialVehicleParametersPath;
         private readonly Scenario _scenario;
         private readonly string _vehicleName;
         private string _currentIcCardPath;
@@ -30,6 +31,7 @@ namespace JREMonitors.BveEx.Services
         private bool _jumping;
         private bool _pendingIcCardReload;
         private Dictionary<string, string> _performanceCurvePaths;
+        private Dictionary<string, string> _vehicleParametersMap;
         private bool _shouldForceInstant;
 
         public BveTIMSICCardService(
@@ -50,8 +52,32 @@ namespace JREMonitors.BveEx.Services
             _bveHacker = dataHub.Get<IBveHacker>();
             _scenario = dataHub.Get<Scenario>();
             _initialPerformanceData = new PerformanceData(_scenario.Vehicle.Instruments.Electricity.Performance);
+
+            var loadingProgressForm = _bveHacker.LoadingProgressForm;
+            var prevErrorCount = loadingProgressForm.ErrorCount;
+            var prevAborted = loadingProgressForm.IsAborted;
+            var prevItemCount = loadingProgressForm.ErrorListView.Items.Count;
+            var vehicleFile = VehicleFile.FromFile(loadingProgressForm,
+                _bveHacker.ScenarioInfo.VehicleFiles.SelectedFile.Path);
+            var hasNewErrors = loadingProgressForm.ErrorCount > prevErrorCount;
+            _initialVehicleParametersPath = !hasNewErrors && vehicleFile?.ParametersPath != null
+                ? vehicleFile.ParametersPath
+                : null;
+
+            if (hasNewErrors)
+            {
+                while (loadingProgressForm.ErrorListView.Items.Count > prevItemCount)
+                {
+                    loadingProgressForm.ErrorListView.Items.RemoveAt(loadingProgressForm.ErrorListView.Items.Count - 1);
+                }
+
+                loadingProgressForm.ErrorCount = prevErrorCount;
+                loadingProgressForm.IsAborted = prevAborted;
+            }
+
             _allowedSignalSystems = vehicleConfig.AllowedSignalSystems;
-            _performanceCurvePaths = GetPerformanceCurvePaths(vehicleConfig.PerformanceCurves);
+            _performanceCurvePaths = GetAbsolutePaths(vehicleConfig.PerformanceCurves);
+            _vehicleParametersMap = GetAbsolutePaths(vehicleConfig.VehicleParameters);
             _vehicleName = vehicleConfig.VehicleName;
             _assistantTextWrapper = dataHub.GetOrNull<AssistantTextWrapper>();
             Inserted = false;
@@ -73,9 +99,19 @@ namespace JREMonitors.BveEx.Services
         {
             _icCardWatcher?.Dispose();
             _icCardWatcher = null;
-            // 可能为空
             var performance = _scenario.Vehicle?.Instruments?.Electricity?.Performance;
             _initialPerformanceData.RestoreTo(performance);
+            if (!string.IsNullOrEmpty(_initialVehicleParametersPath) && _scenario.Vehicle != null)
+            {
+                try
+                {
+                    VehicleParametersLoader.LoadAndApply(_scenario.Vehicle, _initialVehicleParametersPath);
+                }
+                catch (Exception)
+                {
+                    // ignored
+                }
+            }
         }
 
         public void OnJumpStation()
@@ -83,17 +119,17 @@ namespace JREMonitors.BveEx.Services
             _jumping = true;
         }
 
-        private static Dictionary<string, string> GetPerformanceCurvePaths(
-            Dictionary<string, ConfigPath> performanceCurves)
+        private static Dictionary<string, string> GetAbsolutePaths(Dictionary<string, ConfigPath> paths)
         {
-            return performanceCurves.Select(p => (p.Key, p.Value.GetAbsolutePath()))
+            return paths.Select(p => (p.Key, p.Value.GetAbsolutePath()))
                 .ToDictionary(x => x.Key, x => x.Item2);
         }
 
         public void Reconfigure(JREVehicleConfig<TSignal> vehicleConfig, string newIcCardPath)
         {
             _currentIcCardPath = newIcCardPath;
-            _performanceCurvePaths = GetPerformanceCurvePaths(vehicleConfig.PerformanceCurves);
+            _performanceCurvePaths = GetAbsolutePaths(vehicleConfig.PerformanceCurves);
+            _vehicleParametersMap = GetAbsolutePaths(vehicleConfig.VehicleParameters);
             DefaultDisplayMode = vehicleConfig.DefaultDisplayMode;
             DefaultFormation = vehicleConfig.DefaultFormation;
             DefaultSignalSystem = vehicleConfig.DefaultSignalSystem;
@@ -219,6 +255,24 @@ namespace JREMonitors.BveEx.Services
             Debugger?.AddLineLasting($"Vehicle performance curve load failed: {performanceCurvePath}");
         }
 
+        private void NotifyVehicleParametersLoadFailed(string vehicleParametersPath, Exception e)
+        {
+            if (_assistantTextWrapper == null) return;
+            _assistantTextWrapper.Text =
+                $"[JREMonitors] Vehicle parameters '{vehicleParametersPath}' load failed: {e}";
+            _assistantTextWrapper.Alert(Color.Red);
+            Debugger?.AddLineLasting($"Vehicle parameters '{vehicleParametersPath}' load failed: {e}");
+        }
+
+        private void NotifyVehicleParametersRestoreFailed(string vehicleParametersPath, Exception e)
+        {
+            if (_assistantTextWrapper == null) return;
+            _assistantTextWrapper.Text =
+                $"[JREMonitors] Vehicle parameters '{vehicleParametersPath}' restore failed: {e}";
+            _assistantTextWrapper.Alert(Color.Red);
+            Debugger?.AddLineLasting($"Vehicle parameters '{vehicleParametersPath}' restore failed: {e}");
+        }
+
         protected override void OnFormationChanged(string formation, TIMSFormationSpec formationSpec, bool isHotReload)
         {
             var motorCarCount = 0;
@@ -232,8 +286,71 @@ namespace JREMonitors.BveEx.Services
                     trailerCarCount++;
             }
 
-            _scenario.Vehicle.Dynamics.MotorCar.Count = motorCarCount;
-            _scenario.Vehicle.Dynamics.TrailerCar.Count = trailerCarCount;
+            var canRestore = !string.IsNullOrEmpty(_initialVehicleParametersPath);
+            try
+            {
+                if (_vehicleParametersMap.TryGetValue(formation, out var vehicleParameterPath) &&
+                    vehicleParameterPath != null)
+                {
+                    try
+                    {
+                        VehicleParametersLoader.LoadAndApply(_scenario.Vehicle, vehicleParameterPath);
+                        Debugger?.AddLineLasting($"Vehicle parameters '{vehicleParameterPath}' loaded");
+                    }
+                    catch (Exception e)
+                    {
+                        if (isHotReload)
+                            throw new TIMSReloadException(
+                                $"Vehicle parameters '{vehicleParameterPath}' load failed: {e}");
+
+                        if (canRestore)
+                        {
+                            try
+                            {
+                                VehicleParametersLoader.LoadAndApply(_scenario.Vehicle, _initialVehicleParametersPath);
+                            }
+                            catch (Exception)
+                            {
+                                // 忽略恢复失败
+                            }
+                        }
+
+                        NotifyVehicleParametersLoadFailed(vehicleParameterPath, e);
+                        return;
+                    }
+                }
+                else if (canRestore)
+                {
+                    try
+                    {
+                        VehicleParametersLoader.LoadAndApply(_scenario.Vehicle, _initialVehicleParametersPath);
+                        Debugger?.AddLineLasting($"Vehicle parameters '{_initialVehicleParametersPath}' restored");
+                    }
+                    catch (Exception e)
+                    {
+                        if (isHotReload)
+                            throw new TIMSReloadException(
+                                $"Vehicle parameters '{_initialVehicleParametersPath}' load failed: {e}");
+                        NotifyVehicleParametersRestoreFailed(_initialVehicleParametersPath, e);
+                        return;
+                    }
+                }
+            }
+            finally
+            {
+                var dynamics = _scenario.Vehicle.Dynamics;
+                dynamics.MotorCar.Count = motorCarCount;
+                dynamics.TrailerCar.Count = trailerCarCount;
+                dynamics.Setup();
+                CarCountHelper.SetCarCount(_scenario.Vehicle, formationSpec.CarCount);
+                var totalCount = motorCarCount + trailerCarCount;
+                if (totalCount > 0)
+                {
+                    var airSupplement = _scenario.Vehicle.Instruments.BrakeSystem.AirSupplement;
+                    airSupplement.MotorCarRatio = (double)motorCarCount / totalCount;
+                }
+            }
+
             if (_performanceCurvePaths.TryGetValue(formation, out var performanceCurvePath) &&
                 performanceCurvePath != null)
             {
@@ -245,7 +362,7 @@ namespace JREMonitors.BveEx.Services
                 }
                 else
                 {
-                    Debugger?.AddLineLasting($"Vehicle performance curve {performanceCurvePath} loaded");
+                    Debugger?.AddLineLasting($"Vehicle performance curve '{performanceCurvePath}' loaded");
                 }
             }
             else

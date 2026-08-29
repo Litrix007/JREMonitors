@@ -9,7 +9,6 @@ using JREMonitors.Core.Providers;
 using JREMonitors.Core.State;
 using JREMonitors.JRE.Services.Car;
 using DoorState = JREMonitors.JRE.Services.Car.DoorState;
-using BveDoorState = BveTypes.ClassWrappers.DoorState;
 
 namespace JREMonitors.BveEx.Services.Car
 {
@@ -42,11 +41,7 @@ namespace JREMonitors.BveEx.Services.Car
             var vehicle = _scenario.Vehicle;
             var leftSideDoors = vehicle.Doors.GetSide(DoorSide.Left);
             var rightSideDoors = vehicle.Doors.GetSide(DoorSide.Right);
-            DoorRepairer.CleanUpOldDoors(vehicle);
-            // HACK 不能用vehicle.Doors.SetCarLength，会导致车门永远无法关闭
-            SetCarDoorLength(leftSideDoors, carCount);
-            SetCarDoorLength(rightSideDoors, carCount);
-            DoorRepairer.RepairDoorSounds(vehicle);
+            CarCountHelper.SetCarCount(vehicle, carCount);
             _doorCountPerCarCache = doorCountPerCar.ToArray();
             _cars = new CarDoorController[carCount];
             _leftStatesCache = new DoorState[carCount][];
@@ -101,12 +96,6 @@ namespace JREMonitors.BveEx.Services.Car
                 _cars[i].Update(elapsed, _leftStatesCache[i], _rightStatesCache[i], forceInstant);
 
             DebugDoors();
-        }
-
-        private static void SetCarDoorLength(SideDoorSet doorSet, int length)
-        {
-            doorSet.SetCarLength(length);
-            doorSet.SetState(doorSet.IsOpen ? BveDoorState.Open : BveDoorState.Close);
         }
 
         private void DebugDoors()
