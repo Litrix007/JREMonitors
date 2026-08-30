@@ -62,7 +62,6 @@
         <Compile Include="Providers\IVehicleStateProvider.cs"/>
         <Compile Include="Providers\DelayedSpeedProvider.cs"/>
         <Compile Include="Providers\ISignalProvider.cs"/>
-        <Compile Include="Providers\E233SignalSystem.cs"/>
         <Compile Include="Services\Car\CarStateService.cs"/>
         <Compile Include="Services\Car\IDoorStateService.cs"/>
         <Compile Include="Services\Car\PassengerStateService.cs"/>
@@ -80,7 +79,7 @@
         <None Include="App.config"/>
     </ItemGroup>
     <ItemGroup>
-      <PackageReference Include="Microsoft.Bcl.HashCode" Version="1.1.0" />
+        <PackageReference Include="Microsoft.Bcl.HashCode" Version="1.1.0"/>
     </ItemGroup>
     <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets"/>
     <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

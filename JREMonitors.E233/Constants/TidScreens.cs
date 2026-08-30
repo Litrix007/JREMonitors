@@ -6,8 +6,8 @@ namespace JREMonitors.E233.Constants
     public static class TidScreens
     {
         public const float LampOnBorderRadius = 6;
-        public const float WideRowWidth = 610;
-        public const float WideRowHeight = 165;
+        public const float WideLampWidth = 90;
+        public const float WideLampHeight = 165;
         public const float WideLampSpacing = 15;
         public const float WideRowSpacing = 28;
         public const float WideLampFontSize = 26;

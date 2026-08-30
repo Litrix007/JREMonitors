@@ -4,6 +4,7 @@ using JREMonitors.Core.Reactive;
 using JREMonitors.Core.Services;
 using JREMonitors.Core.State;
 using JREMonitors.Core.Widgets;
+using JREMonitors.E233.Constants;
 using JREMonitors.JRE.Constants;
 using JREMonitors.JRE.Providers;
 

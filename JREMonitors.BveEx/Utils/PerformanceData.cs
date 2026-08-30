@@ -11,6 +11,16 @@ namespace JREMonitors.BveEx.Utils
         private static readonly FieldInfo BeIndexCacheField =
             typeof(be).GetField("a", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
 
+        private static readonly FieldInfo FwFieldA =
+            typeof(fw).GetField("a", BindingFlags.Instance | BindingFlags.NonPublic);
+
+        private static readonly FieldInfo FwFieldC =
+            typeof(fw).GetField("c", BindingFlags.Instance | BindingFlags.NonPublic);
+
+        private static readonly FieldInfo FwFieldD =
+            typeof(fw).GetField("d", BindingFlags.Instance | BindingFlags.NonPublic);
+
+
         public PerformanceData(VehiclePerformance performance)
         {
             if (performance == null) throw new ArgumentNullException(nameof(performance));
@@ -28,9 +38,8 @@ namespace JREMonitors.BveEx.Utils
             if (performance == null) return false;
 
             var backup = new PerformanceData(performance);
-            bveHacker.LoadingProgressForm.ErrorListView.Clear();
+            bveHacker.LoadingProgressForm.ErrorListView.Items.Clear();
             bveHacker.LoadingProgressForm.ErrorCount = 0;
-
             try
             {
                 ClearPerformance(performance);
@@ -75,38 +84,25 @@ namespace JREMonitors.BveEx.Utils
         {
             if (stepSet?.Src == null) return;
             var rawFw = stepSet.Src;
-
-            var fwType = rawFw.GetType();
-            var fieldA = fwType.GetField("a", BindingFlags.Instance | BindingFlags.NonPublic);
-            var fieldC = fwType.GetField("c", BindingFlags.Instance | BindingFlags.NonPublic);
-            var fieldD = fwType.GetField("d", BindingFlags.Instance | BindingFlags.NonPublic);
-
-            fieldA?.SetValue(rawFw, null);
-            fieldC?.SetValue(rawFw, null);
-            fieldD?.SetValue(rawFw, 0);
+            FwFieldA?.SetValue(rawFw, null);
+            FwFieldC?.SetValue(rawFw, null);
+            FwFieldD?.SetValue(rawFw, 0);
         }
 
         private static void EnsureStepSetValid(VehicleStepSet stepSet)
         {
             if (stepSet?.Src == null) return;
             var rawFw = stepSet.Src;
-
-            var fwType = rawFw.GetType();
-            var fieldA = fwType.GetField("a", BindingFlags.Instance | BindingFlags.NonPublic);
-            var fieldC = fwType.GetField("c", BindingFlags.Instance | BindingFlags.NonPublic);
-            var fieldD = fwType.GetField("d", BindingFlags.Instance | BindingFlags.NonPublic);
-
-            if (!(fieldA?.GetValue(rawFw) is Array akArray) || akArray.Length == 0) return;
-
-            var currentIdx = (int)(fieldD?.GetValue(rawFw) ?? 0);
+            if (!(FwFieldA?.GetValue(rawFw) is Array akArray) || akArray.Length == 0) return;
+            var currentIdx = (int)(FwFieldD?.GetValue(rawFw) ?? 0);
             if (currentIdx < 0 || currentIdx >= akArray.Length)
             {
                 currentIdx = 0;
-                fieldD?.SetValue(rawFw, 0);
+                FwFieldD?.SetValue(rawFw, 0);
             }
 
             var currentAk = akArray.GetValue(currentIdx);
-            fieldC?.SetValue(rawFw, currentAk);
+            FwFieldC?.SetValue(rawFw, currentAk);
             for (var i = 0; i < akArray.Length; i++)
             {
                 if (!(akArray.GetValue(i) is ak akItem)) continue;
@@ -170,16 +166,11 @@ namespace JREMonitors.BveEx.Utils
         {
             if (stepSet?.Src == null || sourceList == null) return;
             var rawFw = stepSet.Src;
-
-            var fwType = rawFw.GetType();
-            var fieldA = fwType.GetField("a", BindingFlags.Instance | BindingFlags.NonPublic);
-
-            if (!(fieldA?.GetValue(rawFw) is Array akArray) || akArray.Length != sourceList.Count)
+            if (!(FwFieldA?.GetValue(rawFw) is Array akArray) || akArray.Length != sourceList.Count)
             {
                 var newArray = new ak[sourceList.Count];
                 for (var idx = 0; idx < sourceList.Count; idx++) newArray[idx] = new ak();
-
-                fieldA?.SetValue(rawFw, newArray);
+                FwFieldA?.SetValue(rawFw, newArray);
             }
 
             for (var i = 0; i < stepSet.StepCount && i < sourceList.Count; i++)

@@ -2,8 +2,8 @@
 using JREMonitors.Core.Reactive;
 using JREMonitors.Core.State;
 using JREMonitors.Core.Widgets;
+using JREMonitors.E233.Constants;
 using JREMonitors.E233.TIMS.ICCard;
-using JREMonitors.JRE.Providers;
 
 namespace JREMonitors.E233.TIMS
 {

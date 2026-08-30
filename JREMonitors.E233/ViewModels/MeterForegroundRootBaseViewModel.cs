@@ -19,7 +19,7 @@ namespace JREMonitors.E233.ViewModels
         private TickTracker _brakeTickTracker;
         private DelayedSpeedProvider _delayedSpeedProvider;
         private double _lowBcPressureTime;
-        private E233MonitorStateController _monitorStateController;
+        private E233MonitorStates _monitorStates;
         private TickTracker _normalTickTracker;
         private IPanelDataProvider _panelDataProvider;
         private IVehicleStateProvider _vehicleStateProvider;
@@ -45,13 +45,13 @@ namespace JREMonitors.E233.ViewModels
             _brakeTickTracker = new TickTracker(delayService.GetDelayProvider(DelayTypes.Brake));
             _normalTickTracker = new TickTracker(delayService.GetDelayProvider(DelayTypes.Normal));
             _delayedSpeedProvider = dataHub.Get<DelayedSpeedProvider>();
-            _monitorStateController = dataHub.GetOrNull<E233MonitorStateController>();
+            _monitorStates = dataHub.GetOrNull<E233MonitorStates>();
         }
 
         protected override void OnUpdate(TimeSpan elapsed)
         {
-            IsSafetyLampsVisibleExternally.Value = _monitorStateController?.IsSafetyLampsVisibleExternally ?? false;
-            IsSafetyLampVisible.Value = _monitorStateController?.IsSafetyLampVisibleOnMeterScreen ?? true;
+            IsSafetyLampsVisibleExternally.Value = _monitorStates?.IsSafetyLampsVisibleExternally ?? false;
+            IsSafetyLampVisible.Value = _monitorStates?.IsSafetyLampVisibleOnMeterScreen ?? true;
             if (_normalTickTracker.TrackAndSync())
             {
                 DeviceVoltage.Value = _panelDataProvider.GetRawValue(JRE.Constants.DirectInputIds.DeviceVoltage);
@@ -91,7 +91,7 @@ namespace JREMonitors.E233.ViewModels
 
         public void ToggleLocalSafetyLampVisibility()
         {
-            _monitorStateController?.ToggleLocalSafetyLampVisibility();
+            _monitorStates?.ToggleLocalSafetyLampVisibility();
         }
     }
 }

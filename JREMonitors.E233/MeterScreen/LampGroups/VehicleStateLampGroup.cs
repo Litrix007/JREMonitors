@@ -1,4 +1,4 @@
-﻿using System.Drawing;
+using System.Drawing;
 using JREMonitors.Core.Contexts;
 using JREMonitors.Core.Layouts;
 using JREMonitors.Core.Layouts.Text;
@@ -140,7 +140,7 @@ namespace JREMonitors.E233.MeterScreen.LampGroups
                 {
                     _accLamp, _threePhaseLamp, _emergencyShuntLamp, _snowBrakeLamp, _directAirBackupBrakeLamp,
                     _constantSpeedLamp, _springBrakeLamp
-                }, widgetVerticalAlign: 0.5f);
+                }, widgetVerticalAlign: 0.5f, positionSnapToPixels: true);
             AddChild(row);
         }
 

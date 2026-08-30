@@ -11,7 +11,7 @@ namespace JREMonitors.E233.TidScreen.Foreground
     {
         protected readonly InfoButtonGroup InfoButtonGroup;
 
-        public TidForegroundRootBase(RenderContext context, bool addHomeButton = true) : base(context)
+        protected TidForegroundRootBase(RenderContext context, bool addHomeButton = true) : base(context)
         {
             InfoButtonGroup = new InfoButtonGroup(context, 10, new Vector2(1024, 768), addHomeButton);
             InfoButtonGroup.HomeButton.OnClick += OnHomeButtonClick;

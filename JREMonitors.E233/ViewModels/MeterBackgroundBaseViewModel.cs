@@ -8,16 +8,16 @@ namespace JREMonitors.E233.ViewModels
     public class MeterBackgroundBaseViewModel : ViewModel
     {
         public readonly Signal<bool> IsSafetyLampVisible = new Signal<bool>();
-        private E233MonitorStateController _monitorStateController;
+        private E233MonitorStates _monitorStates;
 
         protected override void OnInitialize(DataHub dataHub)
         {
-            _monitorStateController = dataHub.GetOrNull<E233MonitorStateController>();
+            _monitorStates = dataHub.GetOrNull<E233MonitorStates>();
         }
 
         protected override void OnUpdate(TimeSpan elapsed)
         {
-            IsSafetyLampVisible.Value = _monitorStateController?.IsSafetyLampVisibleOnMeterScreen ?? true;
+            IsSafetyLampVisible.Value = _monitorStates?.IsSafetyLampVisibleOnMeterScreen ?? true;
         }
     }
 }

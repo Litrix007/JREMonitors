@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Drawing;
 using JREMonitors.Core.Contexts;
 using JREMonitors.Core.Layouts;
@@ -207,7 +207,7 @@ namespace JREMonitors.E233.MeterScreen.LampGroups
             var grid = new RowGrid(context, bounds, rowSpacing, colSpacing, new ICollection<Widget>[]
             {
                 row1Children, row2Children
-            });
+            }, positionSnapToPixels: true);
             _lampAdjacencyManager.AddFromRowGrid(grid, rowSpacing, colSpacing);
             AddChild(grid);
         }

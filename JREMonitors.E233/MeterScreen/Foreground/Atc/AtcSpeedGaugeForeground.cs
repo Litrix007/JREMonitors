@@ -26,8 +26,8 @@ namespace JREMonitors.E233.MeterScreen.Foreground.Atc
             var y = 563 + speedOffsetY;
             _atcPatternApproachLamp = new Lamp(context,
                 new TextLayout(context,
-                    context.FontManager.GetOrCreateFormat(Fonts.YuGothicUiFamily, 18, fontWeight: FontWeight.Bold),
-                    "パターン接近"), 755 - 104f / 2, 285, LayoutLength.Absolute(104), LayoutLength.Absolute(24),
+                    context.FontManager.GetOrCreateFormat(Fonts.FotSeuratProFamily, 16, fontWeight: FontWeight.Bold),
+                    "パターン接近"), 755 - 108f / 2, 285, LayoutLength.Absolute(108), LayoutLength.Absolute(26),
                 offBackgroundType: LampBackgroundType.Recessed, onBackgroundColor: MonitorColors.Yellow);
             _atcPatternApproachLamp.IsVisible.Bind(ViewModel.ShowAtcParts);
             AddChild(_atcPatternApproachLamp);
@@ -36,7 +36,7 @@ namespace JREMonitors.E233.MeterScreen.Foreground.Atc
             AddChild(_atcPatternGauge);
             _atcShuntLamp = new Lamp(context,
                 new TextLayout(context,
-                    context.FontManager.GetOrCreateFormat(Fonts.YuGothicUiFamily, 20, fontWeight: FontWeight.Bold),
+                    context.FontManager.GetOrCreateFormat(Fonts.FotSeuratProFamily, 20, fontWeight: FontWeight.Bold),
                     "入換"),
                 578, 717, LayoutLength.Absolute(60), LayoutLength.Absolute(40),
                 offBackgroundType: LampBackgroundType.Recessed, onBackgroundColor: MonitorColors.Yellow);

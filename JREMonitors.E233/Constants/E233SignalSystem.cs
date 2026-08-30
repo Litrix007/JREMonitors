@@ -1,8 +1,8 @@
-﻿namespace JREMonitors.JRE.Providers
+﻿namespace JREMonitors.E233.Constants
 {
     public enum E233SignalSystem
     {
-        AtsP,
+        Ats,
         Datc,
         Atc6
     }

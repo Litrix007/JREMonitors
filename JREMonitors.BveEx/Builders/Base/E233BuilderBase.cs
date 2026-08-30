@@ -10,7 +10,7 @@ using JREMonitors.Core.Providers;
 using JREMonitors.E233;
 using JREMonitors.E233.Constants;
 using JREMonitors.E233.TIMS;
-using JREMonitors.JRE.Providers;
+using DirectInputIds = JREMonitors.E233.Constants.DirectInputIds;
 
 namespace JREMonitors.BveEx.Builders.Base
 {
@@ -19,7 +19,7 @@ namespace JREMonitors.BveEx.Builders.Base
     {
         protected static LightingProperties ResolveLighting(LightingConfig config)
         {
-            if (config == null || !config.Enabled)
+            if (!config.Enabled)
                 return LightingProperties.Disabled;
 
             return new LightingProperties(
@@ -42,7 +42,7 @@ namespace JREMonitors.BveEx.Builders.Base
             Dictionary<string, Monitor> monitors, TConfig vehicleConfig)
         {
             base.PopulateMonitorLocalDataHub(context, monitors, vehicleConfig);
-            foreach (var monitor in monitors.Values) monitor.LocalDataHub.Put(new E233MonitorStateController());
+            foreach (var monitor in monitors.Values) monitor.LocalDataHub.Put(new E233MonitorStates());
             var interlockMediator = new E233MonitorInterlockMediator(monitors);
             context.TickUpdateManager.Register(interlockMediator);
             context.RootDataHub.Put(interlockMediator);
@@ -55,7 +55,7 @@ namespace JREMonitors.BveEx.Builders.Base
             var mediator = context.RootDataHub.GetOrNull<E233MonitorInterlockMediator>();
             foreach (var monitor in monitors)
             {
-                monitor.LocalDataHub.Put(new E233MonitorStateController());
+                monitor.LocalDataHub.Put(new E233MonitorStates());
                 mediator?.AddMonitor(monitor);
             }
         }

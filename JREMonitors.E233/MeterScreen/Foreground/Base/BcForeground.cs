@@ -58,7 +58,7 @@ namespace JREMonitors.E233.MeterScreen.Foreground.Base
         public PropertySlot<bool> Highlight200Kpa { get; }
 
         public override float? RefreshSpeed =>
-            IsFirstUpdate ? RefreshSpeeds.Slow : (float?)null;
+            IsFirstUpdate ? RefreshSpeeds.Fast : (float?)null;
 
         private static RectangleF TrapezoidBounds => new RectangleF(0, 0, BcBackground.LongWidth, BcBackground.Height);
 

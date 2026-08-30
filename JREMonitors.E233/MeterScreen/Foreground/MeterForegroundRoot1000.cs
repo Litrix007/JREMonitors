@@ -60,7 +60,7 @@ namespace JREMonitors.E233.MeterScreen.Foreground
                 new MeterNormalAtcLampGroup.InchingActivatedLampProperties(false, 0, "インチング制御中", 14),
                 true
             );
-            var tascLampGroup = new MeterTascLampGroup(context, new RectangleF(488, 190, 318, 72),
+            var tascLampGroup = new MeterTascLampGroup(context, new RectangleF(483, 190, 323, 72),
                 _lampAdjacencyManager, 9, 4, false, true);
             AddLampPanelWhenSafetyLampsVisible(new LampPanel(context, 1023, 545, 275,
                 children: new Widget[]

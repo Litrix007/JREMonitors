@@ -10,31 +10,31 @@ namespace JREMonitors.E233
     public class E233MonitorInterlockMediator : ITickUpdatable
     {
         private Monitor _m1;
-        private E233MonitorStateController _m1StateController;
+        private E233MonitorStates _m1States;
         private Monitor _m2;
-        private E233MonitorStateController _m2StateController;
+        private E233MonitorStates _m2States;
         private Monitor _m3;
-        private E233MonitorStateController _m3StateController;
+        private E233MonitorStates _m3States;
 
         public E233MonitorInterlockMediator(Dictionary<string, Monitor> monitors)
         {
             monitors.TryGetValue(MonitorIds.Monitor1, out _m1);
             monitors.TryGetValue(MonitorIds.Monitor2, out _m2);
             monitors.TryGetValue(MonitorIds.Monitor3, out _m3);
-            RebuildStateControllerAssignments();
+            RebuildStateAssignments();
         }
 
         public void Update(TimeSpan elapsed)
         {
-            if (_m1StateController != null && _m1StateController.ConsumeChangeToTIMSMain())
-                MoveTIMSMain(_m1StateController, _m2StateController, _m3StateController);
-            else if (_m2StateController != null && _m2StateController.ConsumeChangeToTIMSMain())
-                MoveTIMSMain(_m2StateController, _m1StateController, _m3StateController);
-            else if (_m3StateController != null && _m3StateController.ConsumeChangeToTIMSMain())
-                MoveTIMSMain(_m3StateController, _m1StateController, _m2StateController);
+            if (_m1States != null && _m1States.ConsumeChangeToTIMSMain())
+                MoveTIMSMain(_m1States, _m2States, _m3States);
+            else if (_m2States != null && _m2States.ConsumeChangeToTIMSMain())
+                MoveTIMSMain(_m2States, _m1States, _m3States);
+            else if (_m3States != null && _m3States.ConsumeChangeToTIMSMain())
+                MoveTIMSMain(_m3States, _m1States, _m2States);
 
-            GetMonitorByType(E233MonitorType.TIMSMain, out var timsMainMonitor, out var timsMainMonitorStateController);
-            GetMonitorByType(E233MonitorType.Tid, out var tidMonitor, out var tidMonitorStateController);
+            GetMonitorByType(E233MonitorType.TIMSMain, out var timsMainMonitor, out var timsMainMonitorStates);
+            GetMonitorByType(E233MonitorType.Tid, out var tidMonitor, out var tidMonitorStates);
             if (timsMainMonitor != null)
             {
                 var timsScr = timsMainMonitor.ActiveScreenId;
@@ -50,28 +50,28 @@ namespace JREMonitors.E233
                 {
                     if (timsMainMonitor.ActiveScreenId == ScreenIds.X00AA)
                         _m1.ChangeScreen(ScreenIds.S00AA);
-                    else if (_m1StateController != null) TryChangeToDefaultScreen(_m1, _m1StateController);
+                    else if (_m1States != null) TryChangeToDefaultScreen(_m1, _m1States);
                 }
 
                 if (_m2 != null && _m2 != timsMainMonitor)
                 {
                     if (timsMainMonitor.ActiveScreenId == ScreenIds.X00AA)
                         _m2.ChangeScreen(ScreenIds.S00AA);
-                    else if (_m2StateController != null) TryChangeToDefaultScreen(_m2, _m2StateController);
+                    else if (_m2States != null) TryChangeToDefaultScreen(_m2, _m2States);
                 }
 
                 if (_m3 != null && _m3 != timsMainMonitor)
                 {
                     if (timsMainMonitor.ActiveScreenId == ScreenIds.X00AA)
                         _m3.ChangeScreen(ScreenIds.S00AA);
-                    else if (_m3StateController != null) TryChangeToDefaultScreen(_m3, _m3StateController);
+                    else if (_m3States != null) TryChangeToDefaultScreen(_m3, _m3States);
                 }
             }
             else
             {
-                if (_m1 != null && _m1StateController != null) TryChangeToDefaultScreen(_m1, _m1StateController);
-                if (_m2 != null && _m2StateController != null) TryChangeToDefaultScreen(_m2, _m2StateController);
-                if (_m3 != null && _m3StateController != null) TryChangeToDefaultScreen(_m3, _m3StateController);
+                if (_m1 != null && _m1States != null) TryChangeToDefaultScreen(_m1, _m1States);
+                if (_m2 != null && _m2States != null) TryChangeToDefaultScreen(_m2, _m2States);
+                if (_m3 != null && _m3States != null) TryChangeToDefaultScreen(_m3, _m3States);
             }
 
             if (timsMainMonitor != null)
@@ -79,77 +79,77 @@ namespace JREMonitors.E233
                 if (tidMonitor == null)
                 {
                     tidMonitor = timsMainMonitor;
-                    tidMonitorStateController = timsMainMonitorStateController;
-                    timsMainMonitorStateController.HasOtherMonitorToShowSafetyLamps = false;
+                    tidMonitorStates = timsMainMonitorStates;
+                    timsMainMonitorStates.HasOtherMonitorToShowSafetyLamps = false;
                 }
                 else
                 {
-                    timsMainMonitorStateController.HasOtherMonitorToShowSafetyLamps = true;
+                    timsMainMonitorStates.HasOtherMonitorToShowSafetyLamps = true;
                 }
             }
 
             var isSafetyLampVisibleExternally = tidMonitor != null && (tidMonitor.ActiveScreenId == ScreenIds.Tid
                                                                        || tidMonitor.ActiveScreenId ==
                                                                        ScreenIds.TidChangeToTIMSWarning);
-            if (tidMonitorStateController != null)
+            if (tidMonitorStates != null)
             {
-                tidMonitorStateController.IsSafetyLampsVisibleExternally = false;
-                if (_m1StateController != null && _m1StateController != tidMonitorStateController)
-                    _m1StateController.IsSafetyLampsVisibleExternally = isSafetyLampVisibleExternally;
+                tidMonitorStates.IsSafetyLampsVisibleExternally = false;
+                if (_m1States != null && _m1States != tidMonitorStates)
+                    _m1States.IsSafetyLampsVisibleExternally = isSafetyLampVisibleExternally;
 
-                if (_m2StateController != null && _m2StateController != tidMonitorStateController)
-                    _m2StateController.IsSafetyLampsVisibleExternally = isSafetyLampVisibleExternally;
+                if (_m2States != null && _m2States != tidMonitorStates)
+                    _m2States.IsSafetyLampsVisibleExternally = isSafetyLampVisibleExternally;
 
-                if (_m3StateController != null && _m3StateController != tidMonitorStateController)
-                    _m3StateController.IsSafetyLampsVisibleExternally = isSafetyLampVisibleExternally;
+                if (_m3States != null && _m3States != tidMonitorStates)
+                    _m3States.IsSafetyLampsVisibleExternally = isSafetyLampVisibleExternally;
             }
             else
             {
-                if (_m1StateController != null)
-                    _m1StateController.IsSafetyLampsVisibleExternally = false;
+                if (_m1States != null)
+                    _m1States.IsSafetyLampsVisibleExternally = false;
 
-                if (_m2StateController != null)
-                    _m2StateController.IsSafetyLampsVisibleExternally = false;
+                if (_m2States != null)
+                    _m2States.IsSafetyLampsVisibleExternally = false;
 
-                if (_m3StateController != null)
-                    _m3StateController.IsSafetyLampsVisibleExternally = false;
+                if (_m3States != null)
+                    _m3States.IsSafetyLampsVisibleExternally = false;
             }
         }
 
-        private void RebuildStateControllerAssignments()
+        private void RebuildStateAssignments()
         {
-            _m1StateController = _m1?.LocalDataHub?.GetOrNull<E233MonitorStateController>();
-            _m2StateController = _m2?.LocalDataHub?.GetOrNull<E233MonitorStateController>();
-            _m3StateController = _m3?.LocalDataHub?.GetOrNull<E233MonitorStateController>();
-            if (_m1StateController != null)
-                _m1StateController.MonitorType = E233MonitorType.Meter;
-            var m2IsMain = _m2StateController != null &&
-                           _m2StateController.MonitorType == E233MonitorType.TIMSMain;
-            var m3IsMain = _m3StateController != null &&
-                           _m3StateController.MonitorType == E233MonitorType.TIMSMain;
+            _m1States = _m1?.LocalDataHub?.GetOrNull<E233MonitorStates>();
+            _m2States = _m2?.LocalDataHub?.GetOrNull<E233MonitorStates>();
+            _m3States = _m3?.LocalDataHub?.GetOrNull<E233MonitorStates>();
+            if (_m1States != null)
+                _m1States.MonitorType = E233MonitorType.Meter;
+            var m2IsMain = _m2States != null &&
+                           _m2States.MonitorType == E233MonitorType.TIMSMain;
+            var m3IsMain = _m3States != null &&
+                           _m3States.MonitorType == E233MonitorType.TIMSMain;
 
             if (m2IsMain && m3IsMain)
             {
-                _m3StateController.MonitorType = E233MonitorType.Tid;
+                _m3States.MonitorType = E233MonitorType.Tid;
             }
             else if (m2IsMain)
             {
-                if (_m3StateController != null) _m3StateController.MonitorType = E233MonitorType.Tid;
+                if (_m3States != null) _m3States.MonitorType = E233MonitorType.Tid;
             }
             else if (m3IsMain)
             {
-                if (_m2StateController != null) _m2StateController.MonitorType = E233MonitorType.Tid;
+                if (_m2States != null) _m2States.MonitorType = E233MonitorType.Tid;
             }
             else
             {
-                if (_m2StateController != null)
+                if (_m2States != null)
                 {
-                    _m2StateController.MonitorType = E233MonitorType.TIMSMain;
-                    if (_m3StateController != null) _m3StateController.MonitorType = E233MonitorType.Tid;
+                    _m2States.MonitorType = E233MonitorType.TIMSMain;
+                    if (_m3States != null) _m3States.MonitorType = E233MonitorType.Tid;
                 }
-                else if (_m3StateController != null)
+                else if (_m3States != null)
                 {
-                    _m3StateController.MonitorType = E233MonitorType.TIMSMain;
+                    _m3States.MonitorType = E233MonitorType.TIMSMain;
                 }
             }
         }
@@ -160,30 +160,30 @@ namespace JREMonitors.E233
             if (monitor.Id == MonitorIds.Monitor1) _m1 = monitor;
             else if (monitor.Id == MonitorIds.Monitor2) _m2 = monitor;
             else if (monitor.Id == MonitorIds.Monitor3) _m3 = monitor;
-            RebuildStateControllerAssignments();
+            RebuildStateAssignments();
         }
 
         public void RemoveMonitor(Monitor monitor)
         {
             if (monitor == null) return;
-            E233MonitorStateController removedController;
+            E233MonitorStates removedController;
             if (monitor.Id == MonitorIds.Monitor1)
             {
-                removedController = _m1StateController;
+                removedController = _m1States;
                 _m1 = null;
-                _m1StateController = null;
+                _m1States = null;
             }
             else if (monitor.Id == MonitorIds.Monitor2)
             {
-                removedController = _m2StateController;
+                removedController = _m2States;
                 _m2 = null;
-                _m2StateController = null;
+                _m2States = null;
             }
             else if (monitor.Id == MonitorIds.Monitor3)
             {
-                removedController = _m3StateController;
+                removedController = _m3States;
                 _m3 = null;
-                _m3StateController = null;
+                _m3States = null;
             }
             else
             {
@@ -192,7 +192,7 @@ namespace JREMonitors.E233
 
             var removedWasMain = removedController != null &&
                                  removedController.MonitorType == E233MonitorType.TIMSMain;
-            RebuildStateControllerAssignments();
+            RebuildStateAssignments();
             if (!removedWasMain) return;
             GetMonitorByType(E233MonitorType.TIMSMain, out var newMain, out _);
             if (newMain != null && newMain.ActiveScreenId == ScreenIds.S00AA)
@@ -200,35 +200,35 @@ namespace JREMonitors.E233
         }
 
         private void GetMonitorByType(E233MonitorType type, out Monitor monitor,
-            out E233MonitorStateController monitorStateController)
+            out E233MonitorStates monitorStates)
         {
-            if (_m1StateController?.MonitorType == type)
+            if (_m1States?.MonitorType == type)
             {
                 monitor = _m1;
-                monitorStateController = _m1StateController;
+                monitorStates = _m1States;
                 return;
             }
 
-            if (_m2StateController?.MonitorType == type)
+            if (_m2States?.MonitorType == type)
             {
                 monitor = _m2;
-                monitorStateController = _m2StateController;
+                monitorStates = _m2States;
                 return;
             }
 
-            if (_m3StateController?.MonitorType == type)
+            if (_m3States?.MonitorType == type)
             {
                 monitor = _m3;
-                monitorStateController = _m3StateController;
+                monitorStates = _m3States;
                 return;
             }
 
             monitor = null;
-            monitorStateController = null;
+            monitorStates = null;
         }
 
-        private void MoveTIMSMain(E233MonitorStateController controllerChangingToMain,
-            E233MonitorStateController c1, E233MonitorStateController c2)
+        private void MoveTIMSMain(E233MonitorStates controllerChangingToMain,
+            E233MonitorStates c1, E233MonitorStates c2)
         {
             var oldType = controllerChangingToMain.MonitorType;
             if (c1 != null && c1.MonitorType == E233MonitorType.TIMSMain)
@@ -237,12 +237,12 @@ namespace JREMonitors.E233
             controllerChangingToMain.MonitorType = E233MonitorType.TIMSMain;
         }
 
-        private static void TryChangeToDefaultScreen(Monitor monitor, E233MonitorStateController monitorStateController)
+        private static void TryChangeToDefaultScreen(Monitor monitor, E233MonitorStates monitorStates)
         {
             var scr = monitor.ActiveScreenId;
             if (scr != ScreenIds.S00AA && scr != ScreenIds.X00AA) return;
-            if (monitorStateController.MonitorType == E233MonitorType.Meter) monitor.ChangeScreen(ScreenIds.Meter);
-            else if (monitorStateController.MonitorType == E233MonitorType.Tid) monitor.ChangeScreen(ScreenIds.Tid);
+            if (monitorStates.MonitorType == E233MonitorType.Meter) monitor.ChangeScreen(ScreenIds.Meter);
+            else if (monitorStates.MonitorType == E233MonitorType.Tid) monitor.ChangeScreen(ScreenIds.Tid);
         }
     }
 }

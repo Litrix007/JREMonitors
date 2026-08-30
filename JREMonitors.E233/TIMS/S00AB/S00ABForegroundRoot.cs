@@ -141,7 +141,7 @@ namespace JREMonitors.E233.TIMS.S00AB
 
     public class S00ABForegroundRootViewModel : ViewModel
     {
-        private E233MonitorStateController _monitorStateController;
+        private E233MonitorStates _monitorStates;
 
         public S00ABForegroundRootViewModel()
         {
@@ -156,18 +156,18 @@ namespace JREMonitors.E233.TIMS.S00AB
 
         protected override void OnInitialize(DataHub dataHub)
         {
-            _monitorStateController = dataHub.Get<E233MonitorStateController>();
+            _monitorStates = dataHub.Get<E233MonitorStates>();
         }
 
         protected override void OnUpdate(TimeSpan elapsed)
         {
-            MonitorType.Value = _monitorStateController.MonitorType;
-            HasOtherMonitorToShowSafetyLamps.Value = _monitorStateController.HasOtherMonitorToShowSafetyLamps;
+            MonitorType.Value = _monitorStates.MonitorType;
+            HasOtherMonitorToShowSafetyLamps.Value = _monitorStates.HasOtherMonitorToShowSafetyLamps;
         }
 
         public void ChangeToTIMSMain()
         {
-            _monitorStateController.RequestChangeToTIMSMain();
+            _monitorStates.RequestChangeToTIMSMain();
         }
     }
 }

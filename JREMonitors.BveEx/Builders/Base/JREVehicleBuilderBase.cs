@@ -6,9 +6,11 @@ using JREMonitors.BveEx.Providers;
 using JREMonitors.BveEx.Services.Car;
 using JREMonitors.BveEx.Utils;
 using JREMonitors.Core.Services;
+using JREMonitors.E233.Constants;
 using JREMonitors.JRE.Constants;
 using JREMonitors.JRE.Providers;
 using JREMonitors.JRE.Services;
+using DirectInputIds = JREMonitors.JRE.Constants.DirectInputIds;
 
 namespace JREMonitors.BveEx.Builders.Base
 {

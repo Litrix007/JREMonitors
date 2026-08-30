@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using JREMonitors.Core.Contexts;
 using JREMonitors.Core.Layouts;
 using JREMonitors.Core.Layouts.Text;

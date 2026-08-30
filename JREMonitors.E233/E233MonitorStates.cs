@@ -7,7 +7,7 @@
         Tid
     }
 
-    public class E233MonitorStateController
+    public class E233MonitorStates
     {
         private bool _shouldChangeToTIMSMain;
         private bool _userOverrideHide = true;

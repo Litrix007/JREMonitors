@@ -8,7 +8,6 @@ using JREMonitors.E233.Constants;
 using JREMonitors.E233.TIMS.D01AX.EDen;
 using JREMonitors.E233.TIMS.D01AX.MDen;
 using JREMonitors.E233.TIMS.ICCard;
-using JREMonitors.JRE.Providers;
 using Vortice;
 
 namespace JREMonitors.E233.TIMS.D01AX

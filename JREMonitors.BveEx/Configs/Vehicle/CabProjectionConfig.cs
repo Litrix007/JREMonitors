@@ -7,6 +7,8 @@ namespace JREMonitors.BveEx.Configs.Vehicle
 {
     public class CabProjectionConfig
     {
+        private LightingConfig _lighting = new LightingConfig();
+
         /// <summary>
         ///     是否将监视器画面投影到游戏驾驶室内，默认为<c>true</c>。
         /// </summary>
@@ -67,7 +69,11 @@ namespace JREMonitors.BveEx.Configs.Vehicle
         /// <summary>
         ///     动态光照配置。
         /// </summary>
-        public LightingConfig Lighting { get; set; }
+        public LightingConfig Lighting
+        {
+            get => _lighting;
+            set => _lighting = value ?? new LightingConfig();
+        }
 
         public void Validate()
         {

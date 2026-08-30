@@ -10,7 +10,6 @@ using JREMonitors.BveEx.Utils;
 using JREMonitors.Core.Utils;
 using JREMonitors.E233.Constants;
 using JREMonitors.JRE.Constants;
-using JREMonitors.JRE.Providers;
 using Vortice.Mathematics;
 using DirectInputIds = JREMonitors.E233.Constants.DirectInputIds;
 

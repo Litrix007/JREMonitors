@@ -12,7 +12,6 @@ using JREMonitors.Core.Widgets;
 using JREMonitors.E233.Constants;
 using JREMonitors.E233.TIMS.ICCard;
 using JREMonitors.JRE.Constants;
-using JREMonitors.JRE.Providers;
 using Vortice.Mathematics;
 
 namespace JREMonitors.E233.TIMS.D01AX.MDen

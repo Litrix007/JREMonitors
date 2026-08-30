@@ -38,7 +38,7 @@ namespace JREMonitors.E233.MeterScreen.Foreground.Atc
             }
         }
 
-        public override float? RefreshSpeed => RefreshSpeeds.Slow;
+        public override float? RefreshSpeed => RefreshSpeeds.Fast;
 
         protected override void OnStaticWarmUp(float totalScale)
         {

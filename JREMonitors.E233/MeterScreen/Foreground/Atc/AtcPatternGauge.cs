@@ -64,7 +64,7 @@ namespace JREMonitors.E233.MeterScreen.Foreground.Atc
         public override RectangleF SelfRelativeDirtyBounds { get; } =
             GeometryHelper.GetArcBounds(Radius - StrokeWidth / 2, Radius + StrokeWidth / 2, -216, 216);
 
-        public override float? RefreshSpeed => RefreshSpeeds.Slow;
+        public override float? RefreshSpeed => RefreshSpeeds.Fast;
 
         protected override void OnStaticWarmUp(float totalScale)
         {

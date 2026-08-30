@@ -108,7 +108,7 @@ namespace JREMonitors.E233.MeterScreen.Foreground.Base
 
         private float ScaleCount => _truncateRedArea.Value ? 3 : 5;
 
-        public override float? RefreshSpeed => IsFirstUpdate ? RefreshSpeeds.Slow : (float?)null;
+        public override float? RefreshSpeed => IsFirstUpdate ? RefreshSpeeds.Fast : (float?)null;
 
         protected override void OnCustomDraw()
         {

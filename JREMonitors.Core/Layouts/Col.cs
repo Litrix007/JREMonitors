@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using JREMonitors.Core.Constants;
 using JREMonitors.Core.Contexts;
 using JREMonitors.Core.Reactive;
 using JREMonitors.Core.Widgets;
@@ -248,6 +249,7 @@ namespace JREMonitors.Core.Layouts
             }
 
             var flexUnitHeight = FallbackFlexUnitHeight.Value;
+            var flexExtraPixels = 0;
 
             if (ExplicitAvailableHeight.Value > 0 && totalFlexWeight > 0)
             {
@@ -256,7 +258,17 @@ namespace JREMonitors.Core.Layouts
                 flexUnitHeight = remainingSpace > 0 ? remainingSpace / totalFlexWeight : 0;
             }
 
+            if (_positionSnapToPixels && flexUnitHeight > 0)
+            {
+                var integerUnit = (float)Math.Floor(flexUnitHeight);
+                flexExtraPixels = Math.Abs(integerUnit - flexUnitHeight) < Epsilons.FloatEpsilon
+                    ? 0
+                    : (int)Math.Round(flexUnitHeight * totalFlexWeight - integerUnit * totalFlexWeight);
+                flexUnitHeight = integerUnit;
+            }
+
             var currentY = contentStartY;
+            var flexCellIndex = 0;
             for (var i = 0; i < Children.Count; i++)
             {
                 var widget = Children[i];
@@ -264,11 +276,20 @@ namespace JREMonitors.Core.Layouts
 
                 var isContributing = ShouldIncludeInMajorDimensionSize(widget, layoutable);
 
+                var flexCellExtra = 0f;
+                if (isContributing && layoutable.PreferredHeight.FlexValue > 0)
+                {
+                    if (flexCellIndex < flexExtraPixels) flexCellExtra = 1f;
+                    flexCellIndex++;
+                }
+
                 var finalWidth = layoutable.PreferredWidth.AbsoluteValue +
                                  layoutable.PreferredWidth.FlexValue * FallbackFlexUnitWidth.Value;
+                if (_positionSnapToPixels)
+                    finalWidth = (float)Math.Round(finalWidth, MidpointRounding.AwayFromZero);
                 var finalHeight = layoutable.PreferredHeight.AbsoluteValue +
                                   layoutable.PreferredHeight.FlexValue *
-                                  (isContributing ? flexUnitHeight : FallbackFlexUnitHeight.Value);
+                                  (isContributing ? flexUnitHeight : FallbackFlexUnitHeight.Value) + flexCellExtra;
 
                 var currentX = contentStartX +
                                (maxWidth - finalWidth - layoutable.MarginWidth) * _widgetHorizontalAlignment;

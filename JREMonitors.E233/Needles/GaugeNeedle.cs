@@ -55,7 +55,7 @@ namespace JREMonitors.E233.Needles
         public PropertySlot<float> TrangleWidthRatio { get; }
 
         public override RectangleF SelfRelativeDirtyBounds => GetAabbForDegree(Degree);
-        public override float? RefreshSpeed => IsFirstUpdate ? RefreshSpeeds.Slow : (float?)null;
+        public override float? RefreshSpeed => IsFirstUpdate ? RefreshSpeeds.Fast : (float?)null;
 
         protected override void OnStaticWarmUp(float totalScale)
         {

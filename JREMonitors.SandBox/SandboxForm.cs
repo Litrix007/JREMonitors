@@ -40,7 +40,7 @@ namespace JREMonitors.SandBox
         private readonly Monitor _monitor1;
         private readonly Monitor _monitor2;
         private readonly Monitor _monitor3;
-        private readonly E233MonitorStateController _monitorStateController;
+        private readonly E233MonitorStates _monitorStates;
         private readonly SandboxMonitorManager _sandboxManager;
         private readonly TickUpdateManager _tickUpdateManager;
         private readonly SystemTimeProvider _timeProvider;
@@ -58,7 +58,6 @@ namespace JREMonitors.SandBox
                 { DirectInputIds.VehicleDoorAllClosed, 1 },
                 { DirectInputIds.TascFailure, 1 },
                 { LogicalInputIds.AtcServiceBrake, 1 },
-                { LogicalInputIds.AtcShunt, 1 },
                 { LogicalInputIds.AtcPower, 1 },
                 { LogicalInputIds.AtcSpeedLimit, 99 },
                 { LogicalInputIds.AtcTurnOff, 0 },
@@ -83,12 +82,12 @@ namespace JREMonitors.SandBox
             _dataHub.Put(_delayedSpeedProvider);
             var mockSignalProvider = new MockSignalProvider<E233SignalSystem>();
             _dataHub.Put(mockSignalProvider);
-            _monitorStateController = new E233MonitorStateController
+            _monitorStates = new E233MonitorStates
             {
                 MonitorType = E233MonitorType.TIMSMain,
                 IsSafetyLampsVisibleExternally = false
             };
-            _dataHub.Put(_monitorStateController);
+            _dataHub.Put(_monitorStates);
             var carStateService = new CarStateService(_dataHub);
             _tickUpdateManager.Register(carStateService);
             _dataHub.Put(carStateService);
@@ -100,7 +99,7 @@ namespace JREMonitors.SandBox
             var mockPassengerStateService = new MockPassengerStateService();
             _tickUpdateManager.Register(mockPassengerStateService);
             _dataHub.Put(mockPassengerStateService);
-            var formationSpecs = TIMSFormationSpecs.FormationSpecs5000;
+            var formationSpecs = TIMSFormationSpecs.FormationSpecs1000;
             _mockTIMSICCardService = new MockTIMSICCardService(_dataHub, formationSpecs);
             _tickUpdateManager.Register(_mockTIMSICCardService,
                 _mockTIMSICCardService.BeforeDeps.OfType<ITickUpdatable>());
@@ -108,23 +107,23 @@ namespace JREMonitors.SandBox
             _context = new MonitorContext(_debugForm);
             var size1 = new Size(1024, 768);
             var size2 = new Size(800, 600);
-            var size3 = new Size(800, 600);
+            var size3 = new Size(1024, 768);
             _monitor1 = new Monitor(MonitorIds.Monitor1, _dataHub, _context,
-                context => new Screen[] { new S00AAScreen(context), new MeterScreen5000(context) }, ScreenIds.S00AA,
+                context => new Screen[] { new S00AAScreen(context), new MeterScreen1000(context) }, ScreenIds.S00AA,
                 () => false);
             _monitor2 = new Monitor(MonitorIds.Monitor2, _dataHub, _context,
-                context => E233Screens.CreateE233Screens5000(context, "SandBox"), ScreenIds.S00AB);
+                context => E233Screens.CreateE233Screens1000(context, "SandBox", new[] { new TidScreen1000(context) }),
+                ScreenIds.S00AB);
             _monitor3 = new Monitor(MonitorIds.Monitor3, _dataHub, _context,
-                context => E233Screens.CreateE233Screens5000(context, "SandBox", new[] { new TidScreen5000(context) }),
+                context => E233Screens.CreateE233Screens1000(context, "SandBox", new[] { new TidScreen1000(context) }),
                 ScreenIds.Tid);
-            _monitor1.LocalDataHub.Put(new E233MonitorStateController());
-            _monitor2.LocalDataHub.Put(new E233MonitorStateController());
-            _monitor3.LocalDataHub.Put(new E233MonitorStateController());
+            _monitor1.LocalDataHub.Put(new E233MonitorStates());
+            _monitor2.LocalDataHub.Put(new E233MonitorStates());
+            _monitor3.LocalDataHub.Put(new E233MonitorStates());
             var monitorDict = new Dictionary<string, Monitor>
             {
                 [MonitorIds.Monitor1] = _monitor1,
-                [MonitorIds.Monitor2] = _monitor2,
-                [MonitorIds.Monitor3] = _monitor3
+                [MonitorIds.Monitor2] = _monitor2
             };
             var mediator = new E233MonitorInterlockMediator(monitorDict);
             _tickUpdateManager.Register(mediator);

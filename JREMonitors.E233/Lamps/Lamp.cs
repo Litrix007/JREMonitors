@@ -186,7 +186,7 @@ namespace JREMonitors.E233.Lamps
         public PropertySlot<bool> On { get; }
 
         protected override IList<RectangleF> LocalClickBoundsList => new[] { BaseBounds };
-        public override float? RefreshSpeed => RefreshSpeeds.Slow;
+        public override float? RefreshSpeed => RefreshSpeeds.Fast;
         public bool KeepOffWhenFirstRender { get; set; }
 
         private RectangleF BaseBounds => new RectangleF(0, 0, BaseWidth, BaseHeight);

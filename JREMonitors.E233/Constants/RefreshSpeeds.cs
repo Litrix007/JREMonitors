@@ -2,7 +2,6 @@
 {
     public static class RefreshSpeeds
     {
-        public const float Slow = 0.15f;
         public const float Fast = 0.05f;
     }
 }

@@ -66,18 +66,18 @@ namespace JREMonitors.E233.TIMS
 
     public class TIMSCommonForegroundRootViewModel : ViewModel
     {
-        private E233MonitorStateController _monitorStateController;
+        private E233MonitorStates _monitorStates;
         public Signal<E233MonitorType> MonitorType { get; } = new Signal<E233MonitorType>();
 
         protected override void OnInitialize(DataHub dataHub)
         {
-            _monitorStateController = dataHub.Get<E233MonitorStateController>();
+            _monitorStates = dataHub.Get<E233MonitorStates>();
         }
 
 
         protected override void OnUpdate(TimeSpan elapsed)
         {
-            MonitorType.Value = _monitorStateController.MonitorType;
+            MonitorType.Value = _monitorStates.MonitorType;
         }
     }
 }

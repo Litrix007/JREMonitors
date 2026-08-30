@@ -40,7 +40,8 @@ namespace JREMonitors.E233.Lamps
             float extraHeight = 0,
             IEnumerable<Widget> children = null,
             float borderRadius = 8,
-            bool clickable = true
+            bool clickable = true,
+            bool keepLampOffWhenFirstRender = false
         ) : base(context, x)
         {
             ViewModel = new LampPanelViewModel(clickable);
@@ -55,7 +56,7 @@ namespace JREMonitors.E233.Lamps
                 foreach (var child in children) AddChild(child, true);
                 foreach (var child in GetChildrenDeep())
                     if (child is Lamp lamp)
-                        lamp.KeepOffWhenFirstRender = true;
+                        lamp.KeepOffWhenFirstRender = false;
             }
 
             _baker = new Baker(context);
@@ -64,7 +65,7 @@ namespace JREMonitors.E233.Lamps
             RegisterResource(_geometry);
         }
 
-        public override float? RefreshSpeed => RefreshSpeeds.Slow;
+        public override float? RefreshSpeed => RefreshSpeeds.Fast;
 
         public float BaseWidth { get; }
         public float BaseHeight { get; }

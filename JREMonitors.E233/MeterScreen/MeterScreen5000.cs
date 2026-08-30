@@ -11,7 +11,7 @@ namespace JREMonitors.E233.MeterScreen
         public MeterScreen5000(RenderContext context) : base(
             ScreenIds.Meter,
             ScreenSizes.MeterScreenSize,
-            RefreshSpeeds.Slow,
+            RefreshSpeeds.Fast,
             true,
             MonitorColors.MeterScreenBackground,
             false

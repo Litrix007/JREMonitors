@@ -8,7 +8,6 @@ using JREMonitors.Core.Utils.Render;
 using JREMonitors.Core.Widgets;
 using JREMonitors.E233.Constants;
 using JREMonitors.E233.TIMS.ICCard;
-using JREMonitors.JRE.Providers;
 using JREMonitors.JRE.Services.Car;
 using Vortice;
 using Vortice.Mathematics;

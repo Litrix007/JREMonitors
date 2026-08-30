@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using JREMonitors.Core.Contexts;
@@ -139,7 +139,7 @@ namespace JREMonitors.E233.MeterScreen.LampGroups
             }
 
             var row = Row.FromBounds(context, new RawRectF(608, 6, 1016, 107), lampSpacing, lamps,
-                widgetVerticalAlign: 0.5f);
+                widgetVerticalAlign: 0.5f, positionSnapToPixels: true);
             AddChild(row);
         }
 

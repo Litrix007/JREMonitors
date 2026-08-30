@@ -12,7 +12,7 @@ namespace JREMonitors.E233.MeterScreen
             base(
                 ScreenIds.Meter,
                 ScreenSizes.MeterScreenSize,
-                RefreshSpeeds.Slow,
+                RefreshSpeeds.Fast,
                 true,
                 MonitorColors.MeterScreenBackground,
                 false
