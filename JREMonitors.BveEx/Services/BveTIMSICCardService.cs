@@ -285,69 +285,54 @@ namespace JREMonitors.BveEx.Services
                 else
                     trailerCarCount++;
             }
-
             var canRestore = !string.IsNullOrEmpty(_initialVehicleParametersPath);
-            try
+            if (_vehicleParametersMap.TryGetValue(formation, out var vehicleParameterPath) &&
+                vehicleParameterPath != null)
             {
-                if (_vehicleParametersMap.TryGetValue(formation, out var vehicleParameterPath) &&
-                    vehicleParameterPath != null)
+                try
                 {
-                    try
-                    {
-                        VehicleParametersLoader.LoadAndApply(_scenario.Vehicle, vehicleParameterPath);
-                        Debugger?.AddLineLasting($"Vehicle parameters '{vehicleParameterPath}' loaded");
-                    }
-                    catch (Exception e)
-                    {
-                        if (isHotReload)
-                            throw new TIMSReloadException(
-                                $"Vehicle parameters '{vehicleParameterPath}' load failed: {e}");
-
-                        if (canRestore)
-                        {
-                            try
-                            {
-                                VehicleParametersLoader.LoadAndApply(_scenario.Vehicle, _initialVehicleParametersPath);
-                            }
-                            catch (Exception)
-                            {
-                                // 忽略恢复失败
-                            }
-                        }
-
-                        NotifyVehicleParametersLoadFailed(vehicleParameterPath, e);
-                        return;
-                    }
+                    VehicleParametersLoader.LoadAndApply(_scenario.Vehicle, vehicleParameterPath, motorCarCount,
+                        trailerCarCount);
+                    Debugger?.AddLineLasting($"Vehicle parameters '{vehicleParameterPath}' loaded");
                 }
-                else if (canRestore)
+                catch (Exception e)
                 {
-                    try
+                    if (isHotReload)
+                        throw new TIMSReloadException(
+                            $"Vehicle parameters '{vehicleParameterPath}' load failed: {e}");
+
+                    if (canRestore)
                     {
-                        VehicleParametersLoader.LoadAndApply(_scenario.Vehicle, _initialVehicleParametersPath);
-                        Debugger?.AddLineLasting($"Vehicle parameters '{_initialVehicleParametersPath}' restored");
+                        try
+                        {
+                            VehicleParametersLoader.LoadAndApply(_scenario.Vehicle, _initialVehicleParametersPath,
+                                motorCarCount, trailerCarCount);
+                        }
+                        catch (Exception)
+                        {
+                            // 忽略恢复失败
+                        }
                     }
-                    catch (Exception e)
-                    {
-                        if (isHotReload)
-                            throw new TIMSReloadException(
-                                $"Vehicle parameters '{_initialVehicleParametersPath}' load failed: {e}");
-                        NotifyVehicleParametersRestoreFailed(_initialVehicleParametersPath, e);
-                        return;
-                    }
+
+                    NotifyVehicleParametersLoadFailed(vehicleParameterPath, e);
+                    return;
                 }
             }
-            finally
+            else if (canRestore)
             {
-                var dynamics = _scenario.Vehicle.Dynamics;
-                dynamics.MotorCar.Count = motorCarCount;
-                dynamics.TrailerCar.Count = trailerCarCount;
-                dynamics.Setup();
-                CarCountHelper.SetCarCount(_scenario.Vehicle, formationSpec.CarCount);
-                var totalCount = motorCarCount + trailerCarCount;
-                if (totalCount > 0)
+                try
                 {
-                    var airSupplement = _scenario.Vehicle.Instruments.BrakeSystem.AirSupplement;
-                    airSupplement.MotorCarRatio = (double)motorCarCount / totalCount;
+                    VehicleParametersLoader.LoadAndApply(_scenario.Vehicle, _initialVehicleParametersPath,
+                        motorCarCount, trailerCarCount);
+                    Debugger?.AddLineLasting($"Vehicle parameters '{_initialVehicleParametersPath}' restored");
+                }
+                catch (Exception e)
+                {
+                    if (isHotReload)
+                        throw new TIMSReloadException(
+                            $"Vehicle parameters '{_initialVehicleParametersPath}' load failed: {e}");
+                    NotifyVehicleParametersRestoreFailed(_initialVehicleParametersPath, e);
+                    return;
                 }
             }
 

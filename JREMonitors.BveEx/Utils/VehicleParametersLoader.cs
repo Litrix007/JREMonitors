@@ -23,10 +23,10 @@ namespace JREMonitors.BveEx.Utils
             "bvets vehicle parameters 2.01"
         };
 
-        public static void LoadAndApply(Vehicle vehicle, string parameterFilePath)
+        public static void LoadAndApply(Vehicle vehicle, string parameterFilePath, int? motorCarCount = null,
+            int? trailerCarCount = null)
         {
             if (vehicle == null || !(vehicle.Src is f vehicleSrc)) return;
-
             if (!File.Exists(parameterFilePath))
                 throw new FileNotFoundException($"Parameter file not found: {parameterFilePath}");
 
@@ -686,6 +686,17 @@ namespace JREMonitors.BveEx.Utils
                 action(vehicleSrc);
             }
 
+            var dynamics = vehicle.Dynamics;
+            if (motorCarCount.HasValue)
+            {
+                dynamics.MotorCar.Count = motorCarCount.Value;
+            }
+
+            if (trailerCarCount.HasValue)
+            {
+                dynamics.TrailerCar.Count = trailerCarCount.Value;
+            }
+
             var newUpperPressure = vehicleSrc.f().b().e().d();
             mrTank.ak(Math.Min(currentMrPressure, newUpperPressure));
             var totalCarCount = (int)(vehicleSrc.g().j().f() + vehicleSrc.g().d().f());
@@ -693,6 +704,7 @@ namespace JREMonitors.BveEx.Utils
             if (totalCarCount > 0)
             {
                 var motorRatio = vehicleSrc.g().j().f() / totalCarCount;
+                // airSupplement
                 vehicleSrc.f().b().g().c(motorRatio);
                 var baseVol = 1.0 / Math.Max(baseVolumeRatio, 0.0001);
                 var azTrailer = vehicleSrc.f().b().m().d();
@@ -706,8 +718,11 @@ namespace JREMonitors.BveEx.Utils
             vehicleSrc.f().b().a().n();
             // 更新载重
             var passenger = vehicle.Passenger;
-            passenger.Load.Value = passenger.Count * passenger.BodyWeight;
-            vehicleSrc.g().f();
+            var passengerLoad = passenger.Load;
+            // 先写 0 再写实际值：强制触发载重事件链（bs.ak 同值会短路，导致 bd.y 等按辆数派生的量残留旧值）
+            passengerLoad.Value = 0;
+            passengerLoad.Value = passenger.Count * passenger.BodyWeight;
+            dynamics.Setup();
             if (vehicleSrc.f().a().k().c() < 0.0)
             {
                 vehicleSrc.f().a().k().b(vehicleSrc.f().a().k().b() + 25.0 / 18.0);

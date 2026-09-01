@@ -4,6 +4,7 @@ using System.Linq;
 using BveTypes.ClassWrappers;
 using JREMonitors.BveEx.Providers;
 using JREMonitors.BveEx.Utils;
+using JREMonitors.Core.Constants;
 using JREMonitors.Core.Debugger;
 using JREMonitors.Core.Providers;
 using JREMonitors.Core.State;
@@ -19,7 +20,6 @@ namespace JREMonitors.BveEx.Services.Car
         private readonly Random _random = new Random();
         private readonly Scenario _scenario;
         private CarDoorController[] _cars;
-        private int[] _doorCountPerCarCache;
         private bool _firstUpdate = true;
         private bool _jumping;
         private DoorState[][] _leftStatesCache;
@@ -37,12 +37,15 @@ namespace JREMonitors.BveEx.Services.Car
 
         public void Initialize(int carCount, IReadOnlyList<int> doorCountPerCar)
         {
-            if (_cars != null && _cars.Length == carCount && AreDoorCountsEqual(doorCountPerCar)) return;
             var vehicle = _scenario.Vehicle;
             var leftSideDoors = vehicle.Doors.GetSide(DoorSide.Left);
             var rightSideDoors = vehicle.Doors.GetSide(DoorSide.Right);
-            CarCountHelper.SetCarCount(vehicle, carCount);
-            _doorCountPerCarCache = doorCountPerCar.ToArray();
+            if (Math.Abs(vehicle.Dynamics.MotorCar.Count + vehicle.Dynamics.TrailerCar.Count - carCount) >
+                Epsilons.DoubleEpsilon)
+            {
+                CarCountHelper.SetCarCount(vehicle, carCount);
+            }
+
             _cars = new CarDoorController[carCount];
             _leftStatesCache = new DoorState[carCount][];
             _rightStatesCache = new DoorState[carCount][];
@@ -112,17 +115,6 @@ namespace JREMonitors.BveEx.Services.Car
             _debugger?.AddLine(string.Join(",",
                 states.Select(statesPerCar =>
                     string.Join("", statesPerCar.Select(s => s == DoorState.Opened ? 1 : 0)))));
-        }
-
-        private bool AreDoorCountsEqual(IReadOnlyList<int> newCounts)
-        {
-            if (_doorCountPerCarCache == null || _doorCountPerCarCache.Length != newCounts.Count)
-                return false;
-            for (var i = 0; i < newCounts.Count; i++)
-                if (_doorCountPerCarCache[i] != newCounts[i])
-                    return false;
-
-            return true;
         }
     }
 }
