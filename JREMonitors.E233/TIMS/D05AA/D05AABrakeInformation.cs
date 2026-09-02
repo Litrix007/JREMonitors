@@ -300,8 +300,7 @@ namespace JREMonitors.E233.TIMS.D05AA
         {
             var atsStateViewModel = new AtsStateViewModel();
             AtsSn = atsStateViewModel.IsAtsSActivatedLit;
-            AtsP = CreateComputed(() =>
-                atsStateViewModel.IsAtsPServiceBrakeLit || atsStateViewModel.IsAtsPEmergencyBrakeLit);
+            AtsP = CreateComputed(() => atsStateViewModel.IsAtsPEmergencyBrakeLit.Value);
             AddSubViewModel(atsStateViewModel);
         }
 
@@ -329,8 +328,7 @@ namespace JREMonitors.E233.TIMS.D05AA
         public D05AABrakeInformation1000ViewModel(TIMSVehicleSpec spec) : base(spec)
         {
             var normalAtcViewModel = new NormalAtcViewModel();
-            Atc = CreateComputed(() =>
-                normalAtcViewModel.IsAtcServiceBrakeLit || normalAtcViewModel.IsAtcEmergencyBrakeLit);
+            Atc = CreateComputed(() => normalAtcViewModel.IsAtcEmergencyBrakeLit.Value);
             AddSubViewModel(normalAtcViewModel);
         }
 

@@ -98,11 +98,8 @@ namespace JREMonitors.E233.TIMS.D02AA
                 compressorTextList[j] = new BoundsDrawerWidget(context,
                     this.CreateTIMSTextDrawer(
                         CreateComputed(() =>
-                            RichTextParser.Raw(ViewModel.IsCompressorWorkingList[compressorIndices[j]]
-                                ? "作動"
-                                : isFinalCompressorList[j]
-                                    ? "休止"
-                                    : "停止")),
+                            RichTextParser.Raw(ViewModel.IsCompressorWorkingList[compressorIndices[j]] ? "動作" :
+                                isFinalCompressorList[j] ? "休止" : "停止")),
                         horizontalAlignment: 0.5f, verticalAlignment: 0.5f
                     ),
                     targetBounds: new RectangleF(-20, 0, 40, 20),

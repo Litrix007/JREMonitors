@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Numerics;
@@ -52,7 +52,7 @@ namespace JREMonitors.E233.TIMS.D05AB
                 new FooterItemConfig("ノッチ",
                     CreateComputed(() =>
                     {
-                        var onText = TIMSHelper.GetNotchText(ViewModel.Notch, ViewModel.TascBrake);
+                        var onText = TIMSHelper.GetNotchText(ViewModel.Notch, ViewModel.TascBrake, out _);
                         if (onText.Length > 2)
                             onText = onText.Substring(0, 2).ToFullWidth() + onText.Substring(2);
                         else
@@ -78,7 +78,8 @@ namespace JREMonitors.E233.TIMS.D05AB
                 rowHorizontalAlignment: 0.5f);
             AddChild(row);
             WatchEffect(() => _baker.Refresh(), ViewModel.FormationSpec, ViewModel.VehicleDirection, _totalWidth,
-                ViewModel.BcpList1, ViewModel.BcpList2, ViewModel.MotorForceFeedbackList, ViewModel.AirBrakeForceList);
+                ViewModel.BcpList1, ViewModel.BcpList2, ViewModel.MotorForceFeedbackList, ViewModel.AirBrakeForceList,
+                ViewModel.NotchList);
         }
 
         public override RectangleF SelfRelativeDirtyBounds => new RectangleF(0, 0, 800, 220);
@@ -224,11 +225,13 @@ namespace JREMonitors.E233.TIMS.D05AB
                 {
                     var motorForceFeedback = ViewModel.MotorForceFeedbackList[col];
                     var airBrakeForce = ViewModel.AirBrakeForceList[col];
+                    var notch = ViewModel.NotchList[col];
                     const float totalGroupWidth = 36f;
                     var startX = (float)Math.Floor(currentX + (carW - totalGroupWidth) / 2f) + 0.5f;
                     var bar1X = startX;
                     var bar2X = startX + 20f;
-                    DrawBarAndText(bar1X, motorForceFeedback + airBrakeForce, 100, MonitorColors.White);
+                    DrawBarAndText(bar1X, notch >= -8 ? motorForceFeedback + airBrakeForce : 0, 100,
+                        MonitorColors.White);
                     DrawBarAndText(bar2X, motorForceFeedback, 100, D01AXCarStateGroup.PoweringColor,
                         TableHeight + 8 + 20);
                 }
@@ -268,14 +271,16 @@ namespace JREMonitors.E233.TIMS.D05AB
 
     public class D05ABDataTableViewModel : D05ABViewModelBase
     {
+        private TickTracker _normalTickTracker;
         private TickTracker _brakeTickTracker;
         private IPanelDataProvider _panelDataProvider;
         private IVehicleStateProvider _vehicleStateProvider;
 
-        public D05ABDataTableViewModel(TIMSVehicleSpec spec) : base(spec, DelayTypes.Normal)
+        public D05ABDataTableViewModel(TIMSVehicleSpec spec) : base(spec)
         {
             BcpList1 = CreateReactiveArray<int>(TIMSFormationSpec.MaxCarCount);
             BcpList2 = CreateReactiveArray<int>(TIMSFormationSpec.MaxCarCount);
+            NotchList = CreateReactiveArray<int>(TIMSFormationSpec.MaxCarCount);
             MotorForceFeedbackList = CreateReactiveArray<int>(TIMSFormationSpec.MaxCarCount);
             AirBrakeForceList = CreateReactiveArray<int>(TIMSFormationSpec.MaxCarCount);
         }
@@ -286,6 +291,7 @@ namespace JREMonitors.E233.TIMS.D05AB
         public Signal<int> TascBrake { get; } = new Signal<int>();
         public ReactiveArray<int> BcpList1 { get; }
         public ReactiveArray<int> BcpList2 { get; }
+        public ReactiveArray<int> NotchList { get; }
         public ReactiveArray<int> AirBrakeForceList { get; }
         public ReactiveArray<int> MotorForceFeedbackList { get; }
 
@@ -295,48 +301,49 @@ namespace JREMonitors.E233.TIMS.D05AB
             _panelDataProvider = dataHub.Get<IPanelDataProvider>();
             _vehicleStateProvider = dataHub.Get<IVehicleStateProvider>();
             var delayService = dataHub.Get<DelayService>();
+            _normalTickTracker = new TickTracker(delayService.GetDelayProvider(DelayTypes.Normal));
+            TickTrackers.Add(_normalTickTracker);
             _brakeTickTracker = new TickTracker(delayService.GetDelayProvider(DelayTypes.Brake));
+            TickTrackers.Add(_brakeTickTracker);
         }
 
         protected override void OnUpdate(TimeSpan elapsed)
         {
             base.OnUpdate(elapsed);
-            if (_brakeTickTracker.TrackAndSync())
-            {
-                Notch.Value =
-                    TIMSHelper.GetNotchValue(_vehicleStateProvider.PowerNotch, _vehicleStateProvider.BrakeNotch);
-                TascBrake.Value = _vehicleStateProvider.TascBrakeNotch;
-                DirectAirBackupBrake.Value = _panelDataProvider.IsActive(DirectInputIds.DirectAirBackupBrake);
-                SnowBrake.Value = _panelDataProvider.IsActive(DirectInputIds.SnowBrake);
-            }
+            _normalTickTracker.Sync();
+            if (!_brakeTickTracker.TrackAndSync()) return;
+            Notch.Value =
+                TIMSHelper.GetNotchValue(_vehicleStateProvider.PowerNotch, _vehicleStateProvider.BrakeNotch);
+            TascBrake.Value = _vehicleStateProvider.TascBrakeNotch;
+            DirectAirBackupBrake.Value = _panelDataProvider.IsActive(DirectInputIds.DirectAirBackupBrake);
+            SnowBrake.Value = _panelDataProvider.IsActive(DirectInputIds.SnowBrake);
         }
 
         protected override void OnUpdateCarState(int col, ICarState carState)
         {
             if (FormationSpec.Value == null || col >= FormationSpec.Value.CarCount) return;
-
-            var carCount = FormationSpec.Value.CarCount;
-            var carIdx = Spec.GetCarIndex(carCount, col);
-            var isMotor = FormationSpec.Value[carIdx].CarType == TIMSCarType.MotorCar;
-            if (isMotor)
+            if (_normalTickTracker.ShouldTrigger)
             {
-                BcpList1[col] = TIMSHelper.GetImpreciseValue(carState.MotorCarBcPressure, 10);
-                BcpList2[col] = TIMSHelper.GetImpreciseValue(carState.MotorCarBcPressure2, 10);
-            }
-            else
-            {
-                BcpList1[col] = TIMSHelper.GetImpreciseValue(carState.TrailerCarBcPressure, 10);
-                BcpList2[col] = TIMSHelper.GetImpreciseValue(carState.TrailerCarBcPressure2, 10);
+                var carCount = FormationSpec.Value.CarCount;
+                var carIdx = Spec.GetCarIndex(carCount, col);
+                var isMotor = FormationSpec.Value[carIdx].CarType == TIMSCarType.MotorCar;
+                if (isMotor)
+                {
+                    BcpList1[col] = TIMSHelper.GetImpreciseValue(carState.MotorCarBcPressure, 10);
+                    BcpList2[col] = TIMSHelper.GetImpreciseValue(carState.MotorCarBcPressure2, 10);
+                }
+                else
+                {
+                    BcpList1[col] = TIMSHelper.GetImpreciseValue(carState.TrailerCarBcPressure, 10);
+                    BcpList2[col] = TIMSHelper.GetImpreciseValue(carState.TrailerCarBcPressure2, 10);
+                }
+
+                MotorForceFeedbackList[col] = TIMSHelper.GetImpreciseValue(Math.Max(0, -carState.MotorForceFeedback));
+                AirBrakeForceList[col] = TIMSHelper.GetImpreciseValue(carState.MotorAirBrakeForce);
             }
 
-            MotorForceFeedbackList[col] = TIMSHelper.GetImpreciseValue(Math.Max(0, -carState.MotorForceFeedback));
-            AirBrakeForceList[col] = TIMSHelper.GetImpreciseValue(carState.MotorAirBrakeForce);
-        }
-
-        protected override void OnReset()
-        {
-            base.OnReset();
-            _brakeTickTracker.Reset();
+            if (_brakeTickTracker.ShouldTrigger)
+                NotchList[col] = TIMSHelper.GetNotchValue(carState.PowerNotch, carState.BrakeNotch);
         }
     }
 

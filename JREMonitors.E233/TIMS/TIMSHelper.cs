@@ -93,8 +93,9 @@ namespace JREMonitors.E233.TIMS
             return rounded * precision;
         }
 
-        public static string GetNotchText(int notch, int tascBrake)
+        public static string GetNotchText(int notch, int tascBrake, out bool isEb)
         {
+            isEb = false;
             var tascBrakeText = string.Empty;
             var tascMainBrake = 0;
             if (tascBrake > 0)
@@ -117,7 +118,10 @@ namespace JREMonitors.E233.TIMS
 
             string handleBrakeText;
             if (notch < 0)
-                handleBrakeText = notch >= -8 ? "B" + -notch : "EB";
+            {
+                handleBrakeText = notch >= -8 ? "B" + -notch : "非常";
+                if (notch < -8) isEb = true;
+            }
             else if (notch > 0)
                 handleBrakeText = "P" + notch;
             else
@@ -135,23 +139,49 @@ namespace JREMonitors.E233.TIMS
             return tickCount % 2 == 0;
         }
 
-        public static string FormatTrainNumber(string input, char? numberpadChar, bool padType)
+        public static void FormatTrainNumber(
+            string input,
+            char? numberPadChar,
+            out string prefix,
+            out string number,
+            out string suffix,
+            int prefixPadCount = 2,
+            int suffixPadCount = 2
+        )
         {
-            if (string.IsNullOrEmpty(input)) return input;
+            if (string.IsNullOrEmpty(input))
+            {
+                prefix = "";
+                number = "";
+                suffix = "";
+                return;
+            }
 
             var match = Regex.Match(input, @"^(?<prefix>\D*)(?<number>\d+)(?<suffix>.*)$");
-            if (!match.Success) return input;
-            var prefix = match.Groups["prefix"].Value;
-            if (padType) prefix = prefix.PadLeft(2, ' ');
+            if (!match.Success)
+            {
+                prefix = "";
+                number = "";
+                suffix = "";
+                return;
+            }
 
+            prefix = match.Groups["prefix"].Value.PadLeft(prefixPadCount, ' ');
             var rawNumber = match.Groups["number"].Value;
-            var number = numberpadChar.HasValue ? rawNumber.PadLeft(4, numberpadChar.Value) : rawNumber;
-            var rawSuffix = match.Groups["suffix"].Value;
-            var finalSuffix = " ";
-            if (!string.IsNullOrEmpty(rawSuffix) && StringHelper.IsAsciiLetter(rawSuffix[0]))
-                finalSuffix = rawSuffix[0].ToString();
+            number = numberPadChar.HasValue ? rawNumber.PadLeft(4, numberPadChar.Value) : rawNumber;
+            suffix = match.Groups["suffix"].Value.PadRight(suffixPadCount, ' ');
+        }
 
-            return prefix + number + finalSuffix;
+        public static string FormatTrainNumber(
+            string input,
+            char? numberPadChar,
+            int prefixPadCount = 2,
+            int suffixPadCount = 2
+        )
+        {
+            FormatTrainNumber(input, numberPadChar, out var prefix, out var number, out var suffix, prefixPadCount,
+                suffixPadCount);
+            return prefix + number + suffix;
         }
     }
 }

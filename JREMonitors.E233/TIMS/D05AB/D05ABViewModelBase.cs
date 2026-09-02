@@ -1,6 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
 using JREMonitors.Core.Providers;
-using JREMonitors.Core.Services;
 using JREMonitors.Core.State;
 using JREMonitors.JRE.Services.Car;
 
@@ -8,27 +8,31 @@ namespace JREMonitors.E233.TIMS.D05AB
 {
     public abstract class D05ABViewModelBase : TIMSFormationViewModel
     {
-        private readonly string _carStateDelayType;
         private CarStateService _carStateService;
-        private TickTracker _tickTracker;
+        protected readonly List<TickTracker> TickTrackers = new List<TickTracker>();
 
-        protected D05ABViewModelBase(TIMSVehicleSpec spec, string carStateDelayType) : base(spec)
+        protected D05ABViewModelBase(TIMSVehicleSpec spec) : base(spec)
         {
-            _carStateDelayType = carStateDelayType;
         }
 
         protected override void OnInitialize(DataHub dataHub)
         {
             base.OnInitialize(dataHub);
             _carStateService = dataHub.Get<CarStateService>();
-            var delayService = dataHub.Get<DelayService>();
-            _tickTracker = new TickTracker(delayService.GetDelayProvider(_carStateDelayType));
         }
 
         protected override void OnUpdate(TimeSpan elapsed)
         {
             base.OnUpdate(elapsed);
-            if (!_tickTracker.TrackAndSync()) return;
+            if (IsVehicleDirectionChanged || IsFormationSpecChanged)
+            {
+                for (var i = 0; i < TickTrackers.Count; i++)
+                {
+                    var tickTracker = TickTrackers[i];
+                    tickTracker.Reset();
+                }
+            }
+
             if (FormationSpec.Value == null) return;
             var carCount = FormationSpec.Value.CarCount;
             var vehicleDirection = VehicleDirection.Value;
@@ -48,7 +52,11 @@ namespace JREMonitors.E233.TIMS.D05AB
         protected override void OnReset()
         {
             base.OnReset();
-            _tickTracker.Reset();
+            for (var i = 0; i < TickTrackers.Count; i++)
+            {
+                var tickTracker = TickTrackers[i];
+                tickTracker.Reset();
+            }
         }
     }
 }

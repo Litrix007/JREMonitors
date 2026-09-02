@@ -20,8 +20,6 @@ namespace JREMonitors.E233.TIMS
         protected override void OnUpdate(TimeSpan elapsed)
         {
             base.OnUpdate(elapsed);
-
-
             var formationSpec = Spec.GetFormationSpec(ICCardService.CurrentFormation);
             if (Signal<TIMSFormationSpec>.IsValueChanged(FormationSpec, formationSpec))
             {
