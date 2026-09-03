@@ -19,7 +19,7 @@ namespace JREMonitors.E233.TIMS.D01AX.EDen
 {
     public class D01AXEDenSlowSectionInfo : Widget<D01AXEDenSlowSectionInfoViewModel>
     {
-        private const float BaseWidth = 390;
+        private const float BaseWidth = 399;
         private const float Height = 52;
         private readonly float _width;
 
@@ -28,7 +28,7 @@ namespace JREMonitors.E233.TIMS.D01AX.EDen
         {
             ViewModel = new D01AXEDenSlowSectionInfoViewModel();
             IsVisible.Bind(ViewModel.IsVisible);
-            _width = BaseWidth + (spec.D01AXSpec.HideNextDutyBackgroundWhenEmpty ? 22 : 0);
+            _width = BaseWidth;
             var paddingRight = spec.D01AXSpec.HideNextDutyBackgroundWhenEmpty ? 0 : 30;
             X.Bind(CreateComputed(() =>
                 ViewModel.VehicleDirection.Value == TIMSVehicleDirection.Right

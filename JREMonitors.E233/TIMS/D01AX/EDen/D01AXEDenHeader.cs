@@ -1,5 +1,6 @@
 ﻿using System.Drawing;
 using JREMonitors.Core.Contexts;
+using JREMonitors.Core.Layouts;
 using JREMonitors.Core.Layouts.Text;
 using JREMonitors.Core.Reactive;
 using JREMonitors.Core.Widgets;
@@ -15,16 +16,18 @@ namespace JREMonitors.E233.TIMS.D01AX.EDen
             StandardOperatingSpeed = CreateRelayPropertySlot<string>();
             const float y = D01AXBaseInfoGroup.SecondRowY + 22;
             AddChild(new BoundsDrawerWidget(context,
-                this.CreateTIMSTextDrawer("行路番号"),
-                contentColor: MonitorColors.TIMSTitleGrey, x: 34, y: y));
-            var dutyNumberText = new BoundsDrawerWidget(scopedContext,
                 this.CreateTIMSTextDrawer(
-                    CreateComputed(() => RichTextParser.Raw(DutyNumber)),
-                    context: scopedContext
-                ),
-                contentColor: MonitorColors.White, x: 114, y: y);
-            dutyNumberText.IsVisible.Bind(CreateComputed(() => !string.IsNullOrEmpty(DutyNumber)));
-            AddChild(dutyNumberText);
+                    new[]
+                    {
+                        new BitmapScaleDrawer.DrawerProperties(this.CreateTIMSTextLayout("行路番号"), 1, 1),
+                        new BitmapScaleDrawer.DrawerProperties(
+                            this.CreateTIMSTextLayout(
+                                documentSource: CreateComputed(() => RichTextParser.Raw(DutyNumber)),
+                                context: scopedContext), 1, 1,
+                            color: MonitorColors.White)
+                    },
+                    context: scopedContext, spacing: 8),
+                contentColor: MonitorColors.TIMSTitleGrey, x: 34, y: y));
             AddChild(new BoundsDrawerWidget(context,
                 this.CreateTIMSTextDrawer("運転速度"),
                 contentColor: MonitorColors.TIMSTitleGrey, x: 524, y: y));

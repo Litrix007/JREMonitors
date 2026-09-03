@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Drawing;
 using JREMonitors.Core.Contexts;
+using JREMonitors.Core.Layouts;
 using JREMonitors.Core.Layouts.Text;
 using JREMonitors.Core.Reactive;
 using JREMonitors.Core.Utils;
@@ -21,19 +22,11 @@ namespace JREMonitors.E233.TIMS.D01AX
         public D01AXBaseInfoGroup(RenderContext context, ScopedRenderContext scopedContext) : base(context)
         {
             ViewModel = new D01AXBaseInfoGroupViewModel();
-            var firstRowTrainPassText = new BoundsDrawerWidget(context,
-                this.CreateTIMSTextDrawer("通"),
-                contentColor: "#6BACD5".ToColor4(),
-                x: 506,
-                y: FirstRowY
-            );
-            firstRowTrainPassText.IsVisible.Bind(ViewModel.PassSetting);
-            AddChild(firstRowTrainPassText);
             var firstRowTrainNumber = new BoundsDrawerWidget(scopedContext,
                 this.CreateTIMSTextDrawer(CreateComputed(() => RichTextParser.Raw(ViewModel.FirstRowTrainNumber)),
                     horizontalAlignment: 1, context: scopedContext),
                 contentColor: "#6BACD5".ToColor4(),
-                x: 615,
+                x: 640,
                 y: FirstRowY
             );
             AddChild(firstRowTrainNumber);
@@ -53,19 +46,19 @@ namespace JREMonitors.E233.TIMS.D01AX
                 contentColor: MonitorColors.TIMSScreenBackground);
             trainTypeSettingCompletedText.IsVisible.Bind(ViewModel.IsTrainTypeSettingCompletedVisible);
             AddChild(trainTypeSettingCompletedText);
-            var secondRowTrainNumberTitle = new BoundsDrawerWidget(context,
-                this.CreateTIMSTextDrawer("列車番号"),
-                contentColor: MonitorColors.TIMSTitleGrey, y: SecondRowY);
-            secondRowTrainNumberTitle.X.Bind(CreateComputed<float>(() =>
-                ViewModel.DisplayMode == TIMSDisplayMode.MDen ? 99 : 34));
-            AddChild(secondRowTrainNumberTitle);
-            var secondRowTrainNumber = new BoundsDrawerWidget(scopedContext,
+            var secondRowTrainNumber = new BoundsDrawerWidget(context,
                 this.CreateTIMSTextDrawer(
-                    CreateComputed(() => RichTextParser.Raw(ViewModel.SecondRowTrainNumber)),
-                    2, context: scopedContext, horizontalAlignment: 1),
-                contentColor: MonitorColors.TIMSTitleGreen, y: SecondRowY);
+                    new[]
+                    {
+                        new BitmapScaleDrawer.DrawerProperties(this.CreateTIMSTextLayout("列車番号"), 1, 1),
+                        new BitmapScaleDrawer.DrawerProperties(
+                            this.CreateTIMSTextLayout(documentSource: CreateComputed(() =>
+                                RichTextParser.Raw(ViewModel.SecondRowTrainNumber)), context: scopedContext), 2, 1,
+                            color: MonitorColors.TIMSTitleGreen),
+                    }, spacing: 8, context: scopedContext),
+                contentColor: MonitorColors.TIMSTitleGrey, y: SecondRowY);
             secondRowTrainNumber.X.Bind(CreateComputed<float>(() =>
-                ViewModel.DisplayMode == TIMSDisplayMode.MDen ? 430 : 325));
+                ViewModel.DisplayMode == TIMSDisplayMode.MDen ? 99 : 34));
             AddChild(secondRowTrainNumber);
             var radioChannel = new TIMSRadioChannelWidget(context, scopedContext, SecondRowY);
             radioChannel.RadioChannel.Bind(ViewModel.RadioChannel);
@@ -104,13 +97,22 @@ namespace JREMonitors.E233.TIMS.D01AX
         public D01AXBaseInfoGroupViewModel()
         {
             FirstRowTrainNumber = CreateComputed(() =>
-                string.IsNullOrEmpty(_firstRowTrainNumberRaw)
-                    ? string.Empty
-                    : TIMSHelper.FormatTrainNumber(_firstRowTrainNumberRaw, '0', false).ToFullWidth());
+                {
+                    if (string.IsNullOrEmpty(_firstRowTrainNumberRaw))
+                        return string.Empty;
+                    var number = TIMSHelper.FormatTrainNumber(_firstRowTrainNumberRaw, '0', prefixPadCount: 1);
+                    if (PassSetting)
+                    {
+                        number = "通" + number;
+                    }
+
+                    return number.ToFullWidth();
+                }
+            );
             SecondRowTrainNumber = CreateComputed(() =>
                 string.IsNullOrEmpty(_secondRowTrainNumberRaw)
                     ? string.Empty
-                    : TIMSHelper.FormatTrainNumber(_secondRowTrainNumberRaw, null, false).ToFullWidth());
+                    : TIMSHelper.FormatTrainNumber(_secondRowTrainNumberRaw, null).PadLeft(8).ToFullWidth());
         }
 
         public Signal<TIMSDisplayMode> DisplayMode { get; } = new Signal<TIMSDisplayMode>();

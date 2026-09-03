@@ -13,20 +13,18 @@ namespace JREMonitors.E233.TIMS.D01AX.EDen
 {
     public class D01AXEDenNextDutyInfo : Widget<D01AXEDenNextDutyInfoViewModel>
     {
-        private const float BaseWidth = 240;
+        private const float Width = 260;
         private readonly D01AXSpec _spec;
-        private readonly float _width;
 
         public D01AXEDenNextDutyInfo(RenderContext context, ScopedRenderContext scopedContext, TIMSVehicleSpec spec) :
             base(context, y: 310)
         {
             ViewModel = new D01AXEDenNextDutyInfoViewModel();
-            _width = spec.D01AXSpec.HideNextDutyBackgroundWhenEmpty ? BaseWidth + 8 : BaseWidth;
             var paddingRight = spec.D01AXSpec.HideNextDutyBackgroundWhenEmpty ? 0 : 30;
             X.Bind(CreateComputed(() =>
                 ViewModel.VehicleDirection.Value == TIMSVehicleDirection.Left
                     ? spec.D01AXSpec.MayShowRouteSetInformation ? 137 : 30
-                    : 800 - paddingRight - _width));
+                    : 800 - paddingRight - Width));
             _spec = spec.D01AXSpec;
             var title = new BoundsDrawerWidget(context,
                 this.CreateTIMSTextDrawer(
@@ -48,7 +46,7 @@ namespace JREMonitors.E233.TIMS.D01AX.EDen
             AddChild(trainNumberText);
             var arrivalText = new D01AXNormalTimeText(
                 scopedContext,
-                _width,
+                Width,
                 6,
                 1,
                 false,
@@ -61,7 +59,7 @@ namespace JREMonitors.E233.TIMS.D01AX.EDen
             AddChild(arrivalText);
             var departureText = new D01AXNormalTimeText(
                 scopedContext,
-                _width,
+                Width,
                 26,
                 1,
                 false,
@@ -74,7 +72,7 @@ namespace JREMonitors.E233.TIMS.D01AX.EDen
             AddChild(departureText);
         }
 
-        public override RectangleF SelfRelativeDirtyBounds => new RectangleF(0, 0, _width, 52);
+        public override RectangleF SelfRelativeDirtyBounds => new RectangleF(0, 0, Width, 52);
 
         private bool ShowBackground => !ViewModel.IsEmpty.Value || !_spec.HideNextDutyBackgroundWhenEmpty;
 
@@ -97,8 +95,8 @@ namespace JREMonitors.E233.TIMS.D01AX.EDen
         {
             TrainNumber = CreateComputed(() =>
                 string.IsNullOrEmpty(_rawTrainNumber)
-                    ? "\u3000\u3000\u3000\u3000\u3000\u3000\u3000"
-                    : TIMSHelper.FormatTrainNumber(_rawTrainNumber, ' ', true).ToFullWidth());
+                    ? new string('\u3000', 8)
+                    : TIMSHelper.FormatTrainNumber(_rawTrainNumber, ' ').ToFullWidth());
         }
 
         public Signal<bool> IsEmpty { get; } = new Signal<bool>();
