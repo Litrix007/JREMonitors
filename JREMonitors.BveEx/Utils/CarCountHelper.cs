@@ -41,12 +41,6 @@ namespace JREMonitors.BveEx.Utils
             var leftSideDoors = vehicle.Doors.GetSide(DoorSide.Left);
             var rightSideDoors = vehicle.Doors.GetSide(DoorSide.Right);
 
-            CleanUpOldDoors(vehicle);
-            // HACK 不能用 vehicle.Doors.SetCarLength，会导致车门永远无法关闭
-            SetSideCarCount(leftSideDoors, count);
-            SetSideCarCount(rightSideDoors, count);
-            RepairDoorSounds(vehicle);
-            EnsureFbDoorArraySize(vehicle);
             if (carLength <= 0 && vehicle.Dynamics.CarLength > 0)
             {
                 carLength = vehicle.Dynamics.CarLength;
@@ -55,6 +49,16 @@ namespace JREMonitors.BveEx.Utils
             if (carLength <= 0)
             {
                 carLength = 20.0;
+            }
+
+            if (leftSideDoors.CarDoors.Count != count || rightSideDoors.CarDoors.Count != count)
+            {
+                CleanUpOldDoors(vehicle);
+                // HACK 不能用 vehicle.Doors.SetCarLength，会导致车门永远无法关闭
+                SetSideCarCount(leftSideDoors, count);
+                SetSideCarCount(rightSideDoors, count);
+                RepairDoorSounds(vehicle);
+                EnsureFbDoorArraySize(vehicle);
             }
 
             UpdateFgLength(vehicle, count, carLength);
@@ -72,8 +76,18 @@ namespace JREMonitors.BveEx.Utils
 
         private static void SetSideCarCount(SideDoorSet doorSet, int length)
         {
+            var wasOpen = doorSet.IsOpen;
+            var wasClosing = doorSet.CarDoors.Any(d => d.IsOpen && d.State == DoorState.Close);
             doorSet.SetCarLength(length);
-            doorSet.SetState(doorSet.IsOpen ? DoorState.Open : DoorState.Close);
+            if (wasClosing)
+            {
+                doorSet.SetState(DoorState.Open);
+                doorSet.CloseDoors(0);
+            }
+            else if (wasOpen)
+            {
+                doorSet.SetState(DoorState.Open);
+            }
         }
 
         private static void CleanUpOldDoors(Vehicle vehicle)
@@ -138,18 +152,17 @@ namespace JREMonitors.BveEx.Utils
             if (bfInstance == null) return;
             var fbInstance = GetFbFromBf(bfInstance);
             if (fbInstance == null) return;
-
             var leftCount = vehicle.Doors.GetSide(DoorSide.Left).CarDoors.Count;
             var rightCount = vehicle.Doors.GetSide(DoorSide.Right).CarDoors.Count;
-
-            if (fbInstance.v != null && fbInstance.v.Length < leftCount)
+            // fb.v/w 在 fb 构造时按当时的车门数一次性定长；热重载改变车门数后必须重新分配为精确长度（双向）。
+            if (fbInstance.v == null || fbInstance.v.Length != leftCount)
             {
-                Array.Resize(ref fbInstance.v, leftCount);
+                fbInstance.v = new double[leftCount];
             }
 
-            if (fbInstance.w != null && fbInstance.w.Length < rightCount)
+            if (fbInstance.w == null || fbInstance.w.Length != rightCount)
             {
-                Array.Resize(ref fbInstance.w, rightCount);
+                fbInstance.w = new double[rightCount];
             }
         }
 

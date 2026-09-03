@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using BveTypes.ClassWrappers;
 using JREMonitors.BveEx.Providers;
@@ -20,6 +20,8 @@ namespace JREMonitors.BveEx.Services.Car
         private readonly SingleDoorState[] _rightDoors;
         private BveDoorState _prevLeftBveState;
         private BveDoorState _prevRightBveState;
+        private bool _latchLeftOpen;
+        private bool _latchRightOpen;
 
         public CarDoorController(DataHub dataHub, Random random, int carIndex, int doorCount, CarDoor bveLeftCarDoor,
             CarDoor bveRightCarDoor)
@@ -39,8 +41,8 @@ namespace JREMonitors.BveEx.Services.Car
                 _rightDoors[i] = new SingleDoorState();
             }
 
-            _prevLeftBveState = bveLeftCarDoor != null ? bveLeftCarDoor.State : BveDoorState.Close;
-            _prevRightBveState = bveRightCarDoor != null ? bveRightCarDoor.State : BveDoorState.Close;
+            _prevLeftBveState = ToSeededPrevState(bveLeftCarDoor);
+            _prevRightBveState = ToSeededPrevState(bveRightCarDoor);
 
             if (bveLeftCarDoor != null)
             {
@@ -70,11 +72,35 @@ namespace JREMonitors.BveEx.Services.Car
                                     (_bveLeftCarDoor.IsOpen || _bveLeftCarDoor.State == BveDoorState.Open);
                 var isRightOpening = _bveRightCarDoor != null &&
                                      (_bveRightCarDoor.IsOpen || _bveRightCarDoor.State == BveDoorState.Open);
+                if (isPanelActive)
+                {
+                    if (isLeftOpening && isRightOpening)
+                    {
+                        _latchLeftOpen = true;
+                        _latchRightOpen = true;
+                    }
+                    else if (isLeftOpening)
+                    {
+                        _latchLeftOpen = true;
+                        _latchRightOpen = false;
+                    }
+                    else if (isRightOpening)
+                    {
+                        _latchRightOpen = true;
+                        _latchLeftOpen = false;
+                    }
+                }
+                else
+                {
+                    _latchLeftOpen = false;
+                    _latchRightOpen = false;
+                }
+
                 if (!isLeftOpening && !isRightOpening && isPanelActive)
                 {
-                    if (_prevLeftBveState == BveDoorState.Open) isLeftOpening = true;
-                    else if (_prevRightBveState == BveDoorState.Open) isRightOpening = true;
-                    else isLeftOpening = true;
+                    if (_latchRightOpen) isRightOpening = true;
+                    if (_latchLeftOpen) isLeftOpening = true;
+                    if (!_latchLeftOpen && !_latchRightOpen) isLeftOpening = true;
                 }
 
                 var leftTargetState = isLeftOpening && isPanelActive ? DoorState.Opened : DoorState.Closed;
@@ -103,6 +129,14 @@ namespace JREMonitors.BveEx.Services.Car
 
             SimulateSide(elapsed, _bveLeftCarDoor, ref _prevLeftBveState, _leftDoors, outLeftStates, forceInstant);
             SimulateSide(elapsed, _bveRightCarDoor, ref _prevRightBveState, _rightDoors, outRightStates, forceInstant);
+        }
+
+        private static BveDoorState ToSeededPrevState(CarDoor door)
+        {
+            if (door == null) return BveDoorState.Close;
+            if (door.IsOpen && door.State == BveDoorState.Close && door.TimeLeftToCompleteClosing > 0)
+                return BveDoorState.Open;
+            return door.State;
         }
 
         private void SimulateSide(
