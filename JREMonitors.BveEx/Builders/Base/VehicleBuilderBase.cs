@@ -84,7 +84,7 @@ namespace JREMonitors.BveEx.Builders.Base
                 CreatePanelDataFallbacks(config, context, finalInputs));
             context.RootDataHub.Put(panelDataProvider);
             var soundFactory = context.RootDataHub.Get<ISoundFactory>();
-            context.RootDataHub.Put(new BveSoundProvider(LoadSounds(soundFactory, config)));
+            context.RootDataHub.Put(new BveSoundProvider(soundFactory, config.Outputs.Sound), true);
         }
 
         protected Dictionary<string, IReadOnlyList<int>> BuildFinalInputs(TVehicleConfig config)
@@ -109,23 +109,6 @@ namespace JREMonitors.BveEx.Builders.Base
             return finalInputs;
         }
 
-        protected Dictionary<string, Sound> LoadSounds(ISoundFactory soundFactory, TVehicleConfig config)
-        {
-            var sounds = new Dictionary<string, Sound>();
-            foreach (var pair in config.Outputs.Sound)
-                try
-                {
-                    var path = pair.Value.GetAbsolutePath();
-                    sounds[pair.Key] = soundFactory.LoadFrom(path, 1, Sound.SoundPosition.Cab);
-                }
-                catch (ArgumentException)
-                {
-                    throw new InvalidOperationException($"Sound path '{pair.Value.Value}' is invalid.");
-                }
-
-            return sounds;
-        }
-
         protected virtual void Reconfigure(VehicleBuildContext context, TVehicleConfig oldConfig,
             TVehicleConfig newConfig)
         {
@@ -134,8 +117,7 @@ namespace JREMonitors.BveEx.Builders.Base
             panelDataProvider.Reconfigure(finalInputs, CreatePanelDataFallbacks(newConfig, context, finalInputs));
             if (!Equals(oldConfig.Outputs.Sound, newConfig.Outputs.Sound))
             {
-                var soundFactory = context.RootDataHub.Get<ISoundFactory>();
-                context.RootDataHub.Get<BveSoundProvider>().Reconfigure(soundFactory, newConfig.Outputs.Sound);
+                context.RootDataHub.Get<BveSoundProvider>().Reconfigure(newConfig.Outputs.Sound);
             }
         }
 
