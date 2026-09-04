@@ -49,7 +49,6 @@ namespace JREMonitors.E233.TIMS.D01AX.EDen
                 scopedContext,
                 -18,
                 85,
-                1,
                 false,
                 states.ArrivalMinutes,
                 states.ArrivalSeconds
@@ -72,7 +71,6 @@ namespace JREMonitors.E233.TIMS.D01AX.EDen
                 scopedContext,
                 -18,
                 125,
-                1,
                 false,
                 states.DepartureMinutes,
                 states.DepartureSeconds

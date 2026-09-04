@@ -24,7 +24,6 @@ namespace JREMonitors.E233.TIMS.D01AX.EDen
                 scopedContext,
                 0,
                 85,
-                1,
                 false,
                 states.TopHoursAndMinutes,
                 states.TopSeconds
@@ -41,7 +40,6 @@ namespace JREMonitors.E233.TIMS.D01AX.EDen
                 scopedContext,
                 0,
                 125,
-                1,
                 false,
                 states.BottomHoursAndMinutes,
                 states.BottomSeconds,

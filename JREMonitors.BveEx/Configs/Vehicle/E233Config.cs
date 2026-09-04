@@ -101,5 +101,12 @@ namespace JREMonitors.BveEx.Configs.Vehicle
             if (!CanSetSupportsTasc && SupportsTasc.HasValue)
                 throw new JsonException($"supportsTasc is not supported for {VehicleName}");
         }
+
+        public override bool ShouldFullRebuild(VehicleConfig newConfig)
+        {
+            if (!(newConfig is E233Config e233Config)) return false;
+            return TIMS.TimeTableSecondsOffsetY != e233Config.TIMS.TimeTableSecondsOffsetY || !string.Equals(TIMS.TIMSFont18Family,
+                e233Config.TIMS.TIMSFont18Family, StringComparison.OrdinalIgnoreCase);
+        }
     }
 }

@@ -19,7 +19,6 @@ namespace JREMonitors.E233.TIMS.D01AX
             RenderContext context,
             float x,
             float y,
-            float secondOffsetY,
             bool boldSeconds,
             IValueSignal<string> hoursAndMinutes,
             IValueSignal<string> seconds,
@@ -35,7 +34,8 @@ namespace JREMonitors.E233.TIMS.D01AX
                 new BitmapScaleDrawer.DrawerProperties(
                     this.CreateTIMSTextLayout(documentSource: CreateComputed(() => RichTextParser.Raw(seconds.Value)),
                         format: context.FontManager.GetOrCreateFormat(Fonts.MsGothicFamily, 12,
-                            fontWeight: boldSeconds ? FontWeight.Bold : FontWeight.Normal)), 1, 1, secondOffsetY)
+                            fontWeight: boldSeconds ? FontWeight.Bold : FontWeight.Normal)), 1, 1,
+                    context.TIMS().TimeTableSecondsOffsetY)
             };
 
             if (customText != null)

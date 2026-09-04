@@ -5,6 +5,7 @@ using JREMonitors.BveEx.Configs.Vehicle;
 using JREMonitors.BveEx.Monitors;
 using JREMonitors.BveEx.Providers;
 using JREMonitors.BveEx.Services;
+using JREMonitors.Core.Contexts;
 using JREMonitors.Core.Monitors;
 using JREMonitors.Core.Providers;
 using JREMonitors.E233;
@@ -17,6 +18,12 @@ namespace JREMonitors.BveEx.Builders.Base
     public abstract class E233BuilderBase<TConfig> : JREVehicleBuilderBase<TConfig, E233SignalSystem>
         where TConfig : E233Config
     {
+        protected override void SeedMonitorContextProperties(MonitorContext context, TConfig config)
+        {
+            context.Properties[TIMSResources.TimeTableSecondsOffsetYConfigKey] = config.TIMS.TimeTableSecondsOffsetY;
+            context.Properties[TIMSResources.TIMSFont18FamilyKey] = config.TIMS.TIMSFont18Family;
+        }
+
         protected static LightingProperties ResolveLighting(LightingConfig config)
         {
             if (!config.Enabled)

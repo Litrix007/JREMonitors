@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Numerics;
 using JREMonitors.Core.Contexts;
@@ -16,9 +16,28 @@ namespace JREMonitors.E233.TIMS
 {
     public class TIMSResources
     {
+        public static readonly PropertyKey TIMSFont18FamilyKey = new PropertyKey("TIMSFontFamily");
+
+        public static readonly PropertyKey TimeTableSecondsOffsetYConfigKey =
+            new PropertyKey("TimeTableSecondsOffsetYConfig");
+
         public TIMSResources(RenderContext context)
         {
-            Format18 = context.FontManager.GetOrCreateFormat(Fonts.MsGothicFamily, 18);
+            if (context.Properties.TryGetValue(TimeTableSecondsOffsetYConfigKey, out var rawY) && rawY is int offsetY)
+            {
+                TimeTableSecondsOffsetY = offsetY;
+            }
+            else
+            {
+                TimeTableSecondsOffsetY = 1;
+                context.Properties[TimeTableSecondsOffsetYConfigKey] = 1;
+            }
+
+            var font18Family = context.Properties.TryGetValue(TIMSFont18FamilyKey, out var f) ? f as string : null;
+            var familyNames = string.IsNullOrWhiteSpace(font18Family)
+                ? Fonts.MsGothicFamily
+                : $"{font18Family}, {Fonts.MsGothicFamily}";
+            Format18 = context.FontManager.GetOrCreateFormat(familyNames, 18);
             TextButtonStyle = new TIMSButtonStyle(
                 Constants.Buttons.IdleBackgroundColor,
                 MonitorColors.White,
@@ -64,6 +83,7 @@ namespace JREMonitors.E233.TIMS
         public TIMSButtonStyle TextButtonStyle { get; }
         public TIMSButtonStyle HomeButtonStyle { get; }
         public TIMSButtonStyle FooterIconButtonStyle { get; }
+        public int TimeTableSecondsOffsetY { get; }
     }
 
     public static partial class TIMSExtensions

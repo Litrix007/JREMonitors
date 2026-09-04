@@ -140,6 +140,8 @@ namespace JREMonitors.BveEx.Configs.Vehicle
             }
         }
 
+        public virtual bool ShouldFullRebuild(VehicleConfig newConfig) => false;
+
         public string GetExternalDisplayName(string monitorId)
         {
             return $"JREMonitors {VehicleName} {monitorId}";

@@ -46,7 +46,7 @@ namespace JREMonitors.E233.TIMS.D01AX.MDen
                                 documentSource: CreateComputed(() => RichTextParser.Raw(seconds.Value)),
                                 format: scopedContext.FontManager.GetOrCreateFormat(Fonts.MsGothicFamily, 12,
                                     fontWeight: FontWeight.Bold)), 1, 1,
-                            1
+                            context.TIMS().TimeTableSecondsOffsetY
                         )
                     }, context: scopedContext, arrangement: ContentArrangement.Near),
                 contentColor: MonitorColors.White);

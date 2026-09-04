@@ -376,7 +376,8 @@ namespace JREMonitors.BveEx
                 return;
             }
 
-            var error = _monitorManager == null || newConfig.GetType() != _vehicleConfig?.GetType()
+            var error = _monitorManager == null || newConfig.GetType() != _vehicleConfig?.GetType() ||
+                        (_vehicleConfig?.ShouldFullRebuild(newConfig) ?? false)
                 ? FullRebuild(newConfig)
                 : ReconfigureSameVehicle(newConfig);
             if (error == null)

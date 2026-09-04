@@ -33,5 +33,8 @@ namespace JREMonitors.BveEx.Configs.Vehicle.TIMS
         /// </remarks>
         [JsonPropertyName("icCardPath")]
         public ConfigPath ICCardPath { get; set; }
+
+        [JsonPropertyName("timsFont18Family")] public string TIMSFont18Family { get; set; }
+        public int? TimeTableSecondsOffsetY { get; set; }
     }
 }

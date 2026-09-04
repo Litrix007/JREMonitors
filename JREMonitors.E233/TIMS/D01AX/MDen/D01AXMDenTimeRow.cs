@@ -17,7 +17,7 @@ namespace JREMonitors.E233.TIMS.D01AX.MDen
             ViewModel = states;
             IsVisible.Bind(states.IsVisible);
             var durationText = new D01AXNormalTimeText(
-                scopedContext, 15, 18, 0, false,
+                scopedContext, 15, 18, false,
                 ViewModel.DurationMinutes, ViewModel.DurationSeconds
             );
             durationText.Color.Bind(ViewModel.DurationColor);

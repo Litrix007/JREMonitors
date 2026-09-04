@@ -48,8 +48,16 @@ namespace JREMonitors.BveEx.Builders.Base
             VehicleConfig config, DataHub dataHub)
         {
             if (config is TVehicleConfig typedConfig)
+            {
+                SeedMonitorContextProperties(context, typedConfig);
                 return CreateMonitorProperties(context, typedConfig, dataHub);
+            }
+
             throw new ArgumentException(nameof(config));
+        }
+
+        protected virtual void SeedMonitorContextProperties(MonitorContext context, TVehicleConfig config)
+        {
         }
 
         void IVehicleBuilder.Reconfigure(VehicleBuildContext context, VehicleConfig oldConfig, VehicleConfig newConfig)
