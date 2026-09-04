@@ -15,8 +15,6 @@ namespace JREMonitors.E233.MeterScreen.Foreground
 {
     public class MeterForegroundRoot0 : MeterForegroundRootBase
     {
-        private readonly LampAdjacencyManager _lampAdjacencyManager = new LampAdjacencyManager();
-
         public MeterForegroundRoot0(RenderContext context) : base(
             context,
             new RootProperties(true,
@@ -51,7 +49,7 @@ namespace JREMonitors.E233.MeterScreen.Foreground
             );
             var tascLampGroup = new MeterTascLampGroup(context,
                 GeometryHelper.CreateGridBounds(147, 11, 9, 4, 60, 32, 2, 7),
-                _lampAdjacencyManager, 9, 4, true, false);
+                null, 9, 4, true, false);
             AddLampPanelWhenSafetyLampsVisible(new LampPanel(context, 1023, 432, 310, 455, 95,
                 new Widget[] { tascLampGroup, atsStateLampGroupWithTasc, vehicleStateLampGroupWithTasc }));
             var atsStateLampGroupWithoutTasc = new MeterAtsStateLampGroup(context, 6, 4, true);
@@ -73,7 +71,6 @@ namespace JREMonitors.E233.MeterScreen.Foreground
             );
             AddLampPanelWhenSafetyLampsVisibleWithoutTasc(CreateSafetyLampsVisiblePanel(context,
                 atsStateLampGroupWithoutTasc, vehicleStateLampGroupWithoutTasc));
-            WatchEffect(EffectPhase.Visual, () => { _lampAdjacencyManager.UpdateLimits(); });
         }
 
         protected override void OnSafetyLampsVisible()

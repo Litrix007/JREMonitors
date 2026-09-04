@@ -208,7 +208,7 @@ namespace JREMonitors.E233.MeterScreen.LampGroups
             {
                 row1Children, row2Children
             }, positionSnapToPixels: true);
-            _lampAdjacencyManager.AddFromRowGrid(grid, rowSpacing, colSpacing);
+            lampAdjacencyManager?.AddFromRowGrid(grid, rowSpacing, colSpacing);
             AddChild(grid);
         }
 

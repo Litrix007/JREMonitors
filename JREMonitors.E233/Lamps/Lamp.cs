@@ -8,6 +8,7 @@ using JREMonitors.Core.Constants;
 using JREMonitors.Core.Contexts;
 using JREMonitors.Core.Layouts;
 using JREMonitors.Core.Reactive;
+using JREMonitors.Core.Services.Render;
 using JREMonitors.Core.Shadows;
 using JREMonitors.Core.Utils;
 using JREMonitors.Core.Utils.Render;
@@ -35,7 +36,6 @@ namespace JREMonitors.E233.Lamps
         private readonly PropertySlot<float> _currentTopExpansion;
         private readonly bool _expandToFillGaps;
         private readonly bool _hiddenWhenOff;
-        private readonly Baker _offBackgroundBaker;
         private readonly Color4 _offBackgroundColor;
         private readonly LampBackgroundType _offBackgroundType;
         private readonly Color4 _offBorderColor;
@@ -46,12 +46,12 @@ namespace JREMonitors.E233.Lamps
         private readonly float _offOutlineWidth;
         private readonly Baker _offTextBaker;
         private readonly Color4 _offTextColor;
-        private readonly Baker _onBackgroundBaker;
         private readonly Color4 _onBackgroundColor;
         private readonly float _onBorderRadius;
         private readonly DropShadow[] _onDropShadows;
         private readonly InnerShadowEffectChain _onInnerShadowChain;
         private readonly float _onInnerShadowWidth;
+        private readonly float _onInnerShadowAlphaRatio;
         private readonly Color4 _onOutlineColor;
         private readonly float _onOutlineRadius;
         private readonly float _onOutlineWidth;
@@ -102,14 +102,14 @@ namespace JREMonitors.E233.Lamps
         {
             _boundsDrawer = boundsDrawer;
             RegisterResource(boundsDrawer);
-            _offBackgroundBaker = new Baker(context);
-            RegisterResource(_offBackgroundBaker);
-            _offTextBaker = new Baker(context);
-            RegisterResource(_offTextBaker);
-            _onBackgroundBaker = new Baker(context);
-            RegisterResource(_onBackgroundBaker);
-            _onTextBaker = new Baker(context);
-            RegisterResource(_onTextBaker);
+            if (!(boundsDrawer is IContentHashable))
+            {
+                _offTextBaker = new Baker(context);
+                RegisterResource(_offTextBaker);
+                _onTextBaker = new Baker(context);
+                RegisterResource(_onTextBaker);
+            }
+
             _offBorderColor = offBorderColor ?? default;
             _offBorderWidth = offBorderWidth;
             _offBorderRadius = offBorderRadius;
@@ -131,6 +131,7 @@ namespace JREMonitors.E233.Lamps
             _onTextColor = onTextColor ?? Colors.Black;
             _hiddenWhenOff = hiddenWhenOff;
             _onInnerShadowWidth = onInnerShadowWidth;
+            _onInnerShadowAlphaRatio = onInnerShadowAlphaRatio;
             _topLeftInnerShadowImage = new ImageInnerShadow(1f,
                 new Color4(1f, 1f, 1f, 100f * onInnerShadowAlphaRatio / 255f));
             _bottomRightInnerShadowImage = new ImageInnerShadow(1f,
@@ -160,24 +161,21 @@ namespace JREMonitors.E233.Lamps
             _currentBottomExpansion = CreatePropertySlot(DirtyType.Visual, -1f);
             WatchEffect(() =>
             {
-                _offBackgroundBaker.Refresh();
-                _offTextBaker.Refresh();
-                _onBackgroundBaker.Refresh();
-                _onTextBaker.Refresh();
+                _offTextBaker?.Refresh();
+                _onTextBaker?.Refresh();
                 _topLeftInnerShadowRecorder.Invalidate();
                 _bottomRightInnerShadowRecorder.Invalidate();
             }, _baseWidth, _baseHeight);
 
             WatchEffect(() =>
             {
-                _offTextBaker.Refresh();
-                _onTextBaker.Refresh();
+                _offTextBaker?.Refresh();
+                _onTextBaker?.Refresh();
             }, _boundsDrawer);
 
             if (_expandToFillGaps)
                 WatchEffect(() =>
                 {
-                    _onBackgroundBaker.Refresh();
                     _topLeftInnerShadowRecorder.Invalidate();
                     _bottomRightInnerShadowRecorder.Invalidate();
                 }, _currentLeftExpansion, _currentRightExpansion, _currentTopExpansion, _currentBottomExpansion);
@@ -347,7 +345,11 @@ namespace JREMonitors.E233.Lamps
 
         private void DrawOff()
         {
-            _offBackgroundBaker.BakeAndDraw(SelfRelativeDirtyBounds, () =>
+            var bakeBounds = SelfRelativeDirtyBounds;
+            var key = BuildBackgroundKey(bakeBounds, isOn: false);
+            var baker = Context.GetBakerCache()
+                .GetOrCreateBaker<Lamp, LampBakerKey>(Context, key);
+            baker.BakeAndDraw(bakeBounds, () =>
             {
                 if (_offBackgroundType == LampBackgroundType.Solid)
                 {
@@ -374,17 +376,308 @@ namespace JREMonitors.E233.Lamps
                         _offBorderWidth);
                 }
             }, overrideInterpolationMode: InterpolationMode.Cubic);
+            DrawDrawer(SelfRelativeDirtyBounds, _offTextColor, _offTextBaker);
+        }
 
-            if (_boundsDrawer == null) return;
-            var shouldSnapToPixels = _offTextBaker.GetInterpolationMode(_overrideTextInterpolationMode) ==
-                                     InterpolationMode.NearestNeighbor;
-            var bounds = shouldSnapToPixels ? SelfRelativeDirtyBounds.SnapToPixels() : SelfRelativeDirtyBounds;
-            _offTextBaker.BakeAndDraw(bounds,
-                () =>
+        private void DrawOn()
+        {
+            var bakeBounds = SelfRelativeDirtyBounds;
+            var key = BuildBackgroundKey(bakeBounds, isOn: true);
+            var baker = Context.GetBakerCache().GetOrCreateBaker<Lamp, LampBakerKey>(Context, key);
+            baker.BakeAndDraw(bakeBounds, () =>
+            {
+                GetRectPositions(out var rectX, out var rectY, out var rectW, out var rectH);
+                var outlineRect = new RoundedRectangle(
+                    new RectangleF(rectX - _onOutlineWidth, rectY - _onOutlineWidth,
+                        rectW + _onOutlineWidth * 2, rectH + _onOutlineWidth * 2), _onOutlineRadius, _onOutlineRadius);
+                var rect = new RoundedRectangle(new RectangleF(rectX, rectY, rectW, rectH), _onBorderRadius,
+                    _onBorderRadius);
+
+                if (_onDropShadows.Length > 0)
                 {
-                    _boundsDrawer.Draw(shouldSnapToPixels ? TextBounds.SnapToPixels() : TextBounds,
-                        _offTextColor);
-                }, overrideInterpolationMode: _overrideTextInterpolationMode);
+                    Context.CommonBrush.Color = Colors.Black;
+                    Context.DropShadowProcessor.DrawWithDropShadows(_onDropShadows,
+                        shadowAction: () =>
+                        {
+                            Context.DeviceContext.FillRoundedRectangle(
+                                _onOutlineWidth > 0 ? outlineRect : rect, Context.CommonBrush);
+                        });
+                }
+
+                if (_onOutlineWidth > 0)
+                {
+                    Context.CommonBrush.Color = _onOutlineColor;
+                    Context.DeviceContext.FillRoundedRectangle(outlineRect, Context.CommonBrush);
+                }
+
+                _topLeftInnerShadowEffect.Update(_topLeftInnerShadowImage,
+                    _topLeftInnerShadowRecorder.RecordTransformed(RecordTopLeftMaskGeometry));
+                _bottomRightInnerShadowEffect.Update(_bottomRightInnerShadowImage,
+                    _bottomRightInnerShadowRecorder.RecordTransformed(RecordBottomRightMaskGeometry));
+                Context.CommonBrush.Color = _onBackgroundColor;
+                Context.InnerShadowProcessor.DrawWithInnerShadows(_onInnerShadowChain,
+                    () => Context.DeviceContext.FillRoundedRectangle(rect, Context.CommonBrush));
+            }, overrideInterpolationMode: InterpolationMode.Cubic);
+            DrawDrawer(SelfRelativeDirtyBounds, _onTextColor, _onTextBaker);
+        }
+
+        private LampBakerKey BuildBackgroundKey(RectangleF bakeBounds, bool isOn)
+        {
+            return new LampBakerKey(
+                bakeBounds.Width, bakeBounds.Height,
+                BaseWidth, BaseHeight,
+                _currentLeftExpansion, _currentRightExpansion, _currentTopExpansion, _currentBottomExpansion,
+                MaxDynamicExpansion,
+                _onStaticExtensionWidth, _onStaticExtensionHeight,
+                _expandToFillGaps,
+                isOn,
+                _offBackgroundType, _offBorderRadius, _offBorderWidth, _offBorderColor, _offBackgroundColor,
+                _onBorderRadius, _onOutlineWidth, _onOutlineRadius, _onOutlineColor, _onBackgroundColor,
+                _onInnerShadowAlphaRatio, _onDropShadows
+            );
+        }
+
+        private InterpolationMode GetTextInterpolationMode()
+        {
+            if (_overrideTextInterpolationMode.HasValue) return _overrideTextInterpolationMode.Value;
+            Context.DeviceContext.GetWorldScale(out var scaleX, out var scaleY);
+            return Math.Abs(scaleX - (int)scaleX) < Epsilons.FloatEpsilon &&
+                   Math.Abs(scaleY - (int)scaleY) < Epsilons.FloatEpsilon
+                ? InterpolationMode.NearestNeighbor
+                : InterpolationMode.Cubic;
+        }
+
+        private void DrawDrawer(RectangleF bakeBounds, Color4 color, Baker localBaker)
+        {
+            if (_boundsDrawer == null) return;
+            var shouldSnapToPixels = GetTextInterpolationMode() == InterpolationMode.NearestNeighbor;
+            var bounds = shouldSnapToPixels ? bakeBounds.SnapToPixels() : bakeBounds;
+            var textBounds = shouldSnapToPixels ? TextBounds.SnapToPixels() : TextBounds;
+
+            if (_boundsDrawer is IContentHashable hashable)
+            {
+                var key = new LampDrawerKey(hashable.ToSnapshot(), bounds.Size, color,
+                    textBounds.Left - bounds.Left, textBounds.Top - bounds.Top,
+                    textBounds.Width, textBounds.Height);
+                var baker = Context.GetBakerCache().GetOrCreateBaker<Lamp, LampDrawerKey>(Context, key);
+                baker.BakeAndDraw(bounds, () => _boundsDrawer.Draw(textBounds, color),
+                    overrideInterpolationMode: _overrideTextInterpolationMode);
+                return;
+            }
+
+            localBaker.BakeAndDraw(bounds, () => _boundsDrawer.Draw(textBounds, color),
+                overrideInterpolationMode: _overrideTextInterpolationMode);
+        }
+
+        private readonly struct LampBakerKey : IEquatable<LampBakerKey>
+        {
+            private readonly float _bakeWidth, _bakeHeight;
+            private readonly float _baseWidth, _baseHeight;
+            private readonly float _expansionLeft, _expansionRight, _expansionTop, _expansionBottom;
+            private readonly float _maxDynamicExpansion;
+            private readonly float _onStaticExtensionWidth, _onStaticExtensionHeight;
+            private readonly bool _expandToFillGaps;
+            private readonly bool _isOn;
+            private readonly LampBackgroundType _offType;
+            private readonly float _offBorderRadius, _offBorderWidth;
+            private readonly Color4 _offBorderColor, _offBackgroundColor;
+            private readonly float _onBorderRadius, _onOutlineWidth, _onOutlineRadius;
+            private readonly Color4 _onOutlineColor, _onBackgroundColor;
+            private readonly float _onInnerShadowAlphaRatio;
+            private readonly IReadOnlyList<DropShadow> _onDropShadows;
+
+            public LampBakerKey(
+                float bakeW, float bakeH,
+                float baseW, float baseH,
+                float expL, float expR, float expT, float expB,
+                float maxDynExp,
+                float onStaticW, float onStaticH,
+                bool expandToFillGaps,
+                bool isOn,
+                LampBackgroundType offType, float offBorderRadius, float offBorderWidth,
+                Color4 offBorderColor, Color4 offBackgroundColor,
+                float onBorderRadius, float onOutlineWidth, float onOutlineRadius,
+                Color4 onOutlineColor, Color4 onBackgroundColor,
+                float onInnerShadowAlphaRatio,
+                DropShadow[] onDropShadows)
+            {
+                _bakeWidth = bakeW;
+                _bakeHeight = bakeH;
+                _baseWidth = baseW;
+                _baseHeight = baseH;
+                _expansionLeft = expL;
+                _expansionRight = expR;
+                _expansionTop = expT;
+                _expansionBottom = expB;
+                _maxDynamicExpansion = maxDynExp;
+                _onStaticExtensionWidth = onStaticW;
+                _onStaticExtensionHeight = onStaticH;
+                _expandToFillGaps = expandToFillGaps;
+                _isOn = isOn;
+                _offType = offType;
+                _offBorderRadius = offBorderRadius;
+                _offBorderWidth = offBorderWidth;
+                _offBorderColor = offBorderColor;
+                _offBackgroundColor = offBackgroundColor;
+                _onBorderRadius = onBorderRadius;
+                _onOutlineWidth = onOutlineWidth;
+                _onOutlineRadius = onOutlineRadius;
+                _onOutlineColor = onOutlineColor;
+                _onBackgroundColor = onBackgroundColor;
+                _onInnerShadowAlphaRatio = onInnerShadowAlphaRatio;
+                _onDropShadows = onDropShadows ?? Array.Empty<DropShadow>();
+            }
+
+            public bool Equals(LampBakerKey o)
+            {
+                if (!FloatEquals(_bakeWidth, o._bakeWidth) || !FloatEquals(_bakeHeight, o._bakeHeight)) return false;
+                if (!FloatEquals(_baseWidth, o._baseWidth) || !FloatEquals(_baseHeight, o._baseHeight)) return false;
+                if (!FloatEquals(_expansionLeft, o._expansionLeft) || !FloatEquals(_expansionRight, o._expansionRight))
+                    return false;
+                if (!FloatEquals(_expansionTop, o._expansionTop) || !FloatEquals(_expansionBottom, o._expansionBottom))
+                    return false;
+                if (!FloatEquals(_maxDynamicExpansion, o._maxDynamicExpansion)) return false;
+                if (_expandToFillGaps != o._expandToFillGaps || _isOn != o._isOn) return false;
+
+                if (_isOn)
+                {
+                    if (!FloatEquals(_onStaticExtensionWidth, o._onStaticExtensionWidth) ||
+                        !FloatEquals(_onStaticExtensionHeight, o._onStaticExtensionHeight))
+                        return false;
+                    if (!FloatEquals(_onBorderRadius, o._onBorderRadius)) return false;
+                    if (!FloatEquals(_onOutlineWidth, o._onOutlineWidth) ||
+                        !FloatEquals(_onOutlineRadius, o._onOutlineRadius))
+                        return false;
+                    if (!_onOutlineColor.Equals(o._onOutlineColor) ||
+                        !_onBackgroundColor.Equals(o._onBackgroundColor))
+                        return false;
+                    if (!FloatEquals(_onInnerShadowAlphaRatio, o._onInnerShadowAlphaRatio)) return false;
+
+                    var shadowsA = _onDropShadows;
+                    var shadowsB = o._onDropShadows;
+                    if (shadowsA.Count != shadowsB.Count) return false;
+                    for (var i = 0; i < shadowsA.Count; i++)
+                        if (!shadowsA[i].Equals(shadowsB[i]))
+                            return false;
+                    return true;
+                }
+
+                if (_offType != o._offType) return false;
+                if (!FloatEquals(_offBorderRadius, o._offBorderRadius) ||
+                    !FloatEquals(_offBorderWidth, o._offBorderWidth))
+                    return false;
+                if (!_offBorderColor.Equals(o._offBorderColor) || !_offBackgroundColor.Equals(o._offBackgroundColor))
+                    return false;
+                return true;
+            }
+
+            public override bool Equals(object obj)
+            {
+                return obj is LampBakerKey o && Equals(o);
+            }
+
+            public override int GetHashCode()
+            {
+                var hc = new HashCode();
+                hc.Add(_bakeWidth);
+                hc.Add(_bakeHeight);
+                hc.Add(_baseWidth);
+                hc.Add(_baseHeight);
+                hc.Add(_expansionLeft);
+                hc.Add(_expansionRight);
+                hc.Add(_expansionTop);
+                hc.Add(_expansionBottom);
+                hc.Add(_maxDynamicExpansion);
+                hc.Add(_expandToFillGaps);
+                hc.Add(_isOn);
+                if (_isOn)
+                {
+                    hc.Add(_onStaticExtensionWidth);
+                    hc.Add(_onStaticExtensionHeight);
+                    hc.Add(_onBorderRadius);
+                    hc.Add(_onOutlineWidth);
+                    hc.Add(_onOutlineRadius);
+                    hc.Add(_onOutlineColor);
+                    hc.Add(_onBackgroundColor);
+                    hc.Add(_onInnerShadowAlphaRatio);
+                    for (var i = 0; i < _onDropShadows.Count; i++) AddDropShadow(hc, _onDropShadows[i]);
+                }
+                else
+                {
+                    hc.Add(_offType);
+                    hc.Add(_offBorderRadius);
+                    hc.Add(_offBorderWidth);
+                    hc.Add(_offBorderColor);
+                    hc.Add(_offBackgroundColor);
+                }
+
+                return hc.ToHashCode();
+            }
+
+            private static void AddDropShadow(HashCode hc, DropShadow s)
+            {
+                hc.Add(s.OffsetX);
+                hc.Add(s.OffsetY);
+                hc.Add(s.BlurX);
+                hc.Add(s.BlurY);
+                hc.Add(s.Color);
+            }
+
+            private static bool FloatEquals(float a, float b)
+            {
+                return Math.Abs(a - b) < Epsilons.FloatEpsilon;
+            }
+        }
+
+        private readonly struct LampDrawerKey : IEquatable<LampDrawerKey>
+        {
+            private readonly IContentSnapshot _snapshot;
+            private readonly float _bakeWidth, _bakeHeight;
+            private readonly Color4 _color;
+            private readonly float _offsetX, _offsetY;
+            private readonly float _textWidth, _textHeight;
+
+            public LampDrawerKey(IContentSnapshot snapshot, SizeF bakeSize, Color4 color,
+                float offsetX, float offsetY, float textWidth, float textHeight)
+            {
+                _snapshot = snapshot;
+                _bakeWidth = bakeSize.Width;
+                _bakeHeight = bakeSize.Height;
+                _color = color;
+                _offsetX = offsetX;
+                _offsetY = offsetY;
+                _textWidth = textWidth;
+                _textHeight = textHeight;
+            }
+
+            public bool Equals(LampDrawerKey o)
+            {
+                if (Math.Abs(_bakeWidth - o._bakeWidth) > Epsilons.FloatEpsilon) return false;
+                if (Math.Abs(_bakeHeight - o._bakeHeight) > Epsilons.FloatEpsilon) return false;
+                if (!_color.Equals(o._color)) return false;
+                if (Math.Abs(_offsetX - o._offsetX) > Epsilons.FloatEpsilon) return false;
+                if (Math.Abs(_offsetY - o._offsetY) > Epsilons.FloatEpsilon) return false;
+                if (Math.Abs(_textWidth - o._textWidth) > Epsilons.FloatEpsilon) return false;
+                if (Math.Abs(_textHeight - o._textHeight) > Epsilons.FloatEpsilon) return false;
+                var a = _snapshot;
+                var b = o._snapshot;
+                if (a == null && b == null) return true;
+                if (a == null || b == null) return false;
+                if (a.ContentHash != b.ContentHash) return false;
+                return a.Equals(b);
+            }
+
+            public override bool Equals(object obj)
+            {
+                return obj is LampDrawerKey o && Equals(o);
+            }
+
+            public override int GetHashCode()
+            {
+                return HashCode.Combine(
+                    _snapshot?.ContentHash ?? 0, _bakeWidth, _bakeHeight, _color,
+                    _offsetX, _offsetY, _textWidth, _textHeight);
+            }
         }
 
         private void GetRectPositions(out float rectX, out float rectY, out float rectW, out float rectH)
@@ -448,51 +741,6 @@ namespace JREMonitors.E233.Lamps
                 Context.DeviceContext.FillGeometry(geom, Context.CommonBrush);
                 Context.DeviceContext.Transform = oldTransform;
             }
-        }
-
-        private void DrawOn()
-        {
-            _onBackgroundBaker.BakeAndDraw(SelfRelativeDirtyBounds, () =>
-            {
-                GetRectPositions(out var rectX, out var rectY, out var rectW, out var rectH);
-                var outlineRect = new RoundedRectangle(
-                    new RectangleF(rectX - _onOutlineWidth, rectY - _onOutlineWidth,
-                        rectW + _onOutlineWidth * 2, rectH + _onOutlineWidth * 2), _onOutlineRadius, _onOutlineRadius);
-                var rect = new RoundedRectangle(new RectangleF(rectX, rectY, rectW, rectH), _onBorderRadius,
-                    _onBorderRadius);
-
-                if (_onDropShadows.Length > 0)
-                {
-                    Context.CommonBrush.Color = Colors.Black;
-                    Context.DropShadowProcessor.DrawWithDropShadows(_onDropShadows,
-                        shadowAction: () =>
-                        {
-                            Context.DeviceContext.FillRoundedRectangle(
-                                _onOutlineWidth > 0 ? outlineRect : rect, Context.CommonBrush);
-                        });
-                }
-
-                if (_onOutlineWidth > 0)
-                {
-                    Context.CommonBrush.Color = _onOutlineColor;
-                    Context.DeviceContext.FillRoundedRectangle(outlineRect, Context.CommonBrush);
-                }
-
-                _topLeftInnerShadowEffect.Update(_topLeftInnerShadowImage,
-                    _topLeftInnerShadowRecorder.RecordTransformed(RecordTopLeftMaskGeometry));
-                _bottomRightInnerShadowEffect.Update(_bottomRightInnerShadowImage,
-                    _bottomRightInnerShadowRecorder.RecordTransformed(RecordBottomRightMaskGeometry));
-                Context.CommonBrush.Color = _onBackgroundColor;
-                Context.InnerShadowProcessor.DrawWithInnerShadows(_onInnerShadowChain,
-                    () => Context.DeviceContext.FillRoundedRectangle(rect, Context.CommonBrush));
-            }, overrideInterpolationMode: InterpolationMode.Cubic);
-            if (_boundsDrawer == null) return;
-            var shouldSnapToPixels = _onTextBaker.GetInterpolationMode(_overrideTextInterpolationMode) ==
-                                     InterpolationMode.NearestNeighbor;
-            var bounds = shouldSnapToPixels ? SelfRelativeDirtyBounds.SnapToPixels() : SelfRelativeDirtyBounds;
-            _onTextBaker.BakeAndDraw(bounds,
-                () => _boundsDrawer.Draw(shouldSnapToPixels ? TextBounds.SnapToPixels() : TextBounds, _onTextColor),
-                overrideInterpolationMode: _overrideTextInterpolationMode);
         }
 
         protected override void ClearStates(bool clearDirtyStates, bool clearRenderStates, bool parentWasUpdated)

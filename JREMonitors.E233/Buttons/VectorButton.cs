@@ -8,6 +8,7 @@ using JREMonitors.Core.Constants;
 using JREMonitors.Core.Contexts;
 using JREMonitors.Core.Layouts;
 using JREMonitors.Core.Reactive;
+using JREMonitors.Core.Services.Render;
 using JREMonitors.Core.Shadows;
 using JREMonitors.Core.Utils;
 using JREMonitors.Core.Widgets;
@@ -116,7 +117,6 @@ namespace JREMonitors.E233.Buttons
         private readonly PropertySlot<float> _baseWidth;
         private readonly IBoundsDrawer _boundsDrawer;
         private readonly Computed<bool> _currentlyPressed;
-        private readonly Baker _idleBackgroundBaker;
         private readonly ImageInnerShadowEffect _idleBottomRightEffect;
         private readonly CommandRecorder _idleBottomRightRecorder;
         private readonly InnerShadowEffectChain _idleInnerShadowChain;
@@ -124,7 +124,6 @@ namespace JREMonitors.E233.Buttons
         private readonly CommandRecorder _idleTopLeftRecorder;
         private readonly PropertySlot<LayoutLength> _preferredHeightSlot;
         private readonly PropertySlot<LayoutLength> _preferredWidthSlot;
-        private readonly Baker _pressedBackgroundBaker;
         private readonly ImageInnerShadowEffect _pressedBottomRightEffect;
         private readonly CommandRecorder _pressedBottomRightRecorder;
         private readonly InnerShadowEffectChain _pressedInnerShadowChain;
@@ -146,10 +145,6 @@ namespace JREMonitors.E233.Buttons
         {
             ViewModel = new ButtonViewModel(clickable, reboundImmediate, playPressAnimation);
             _style = style;
-            _idleBackgroundBaker = new Baker(Context);
-            RegisterResource(_idleBackgroundBaker);
-            _pressedBackgroundBaker = new Baker(Context);
-            RegisterResource(_pressedBackgroundBaker);
             _boundsDrawer = boundsDrawer;
             if (_boundsDrawer != null) RegisterResource(_boundsDrawer);
             _preferredWidthSlot = CreatePropertySlot(DirtyType.Layout, width);
@@ -174,19 +169,6 @@ namespace JREMonitors.E233.Buttons
             _pressedBottomRightEffect = _pressedInnerShadowChain.AddImageShadow();
             _pressedBottomRightRecorder = new CommandRecorder(context);
             RegisterResource(_pressedBottomRightRecorder);
-            WatchEffect(() =>
-                {
-                    _idleBackgroundBaker.Refresh();
-                    _pressedBackgroundBaker.Refresh();
-                    _idleTopLeftRecorder.Invalidate();
-                    _idleBottomRightRecorder.Invalidate();
-                    _pressedTopLeftRecorder.Invalidate();
-                    _pressedBottomRightRecorder.Invalidate();
-                }, _baseWidth, _baseHeight, _style.BorderRadius,
-                _style.IdleTopLeftInnerShadow, _style.IdleBottomRightInnerShadow,
-                _style.PressedTopLeftInnerShadow, _style.PressedBottomRightInnerShadow);
-            WatchEffect(() => { _idleBackgroundBaker.Refresh(); }, _style.IdleBackgroundColor, _style.IdleDropShadows);
-            WatchEffect(() => { _pressedBackgroundBaker.Refresh(); }, _style.PressedBackgroundColor);
             WatchEffect(_currentlyPressed, _style.DrawerPadding, _style.IdleDrawerColor, _style.PressedDrawerColor);
             WatchEffect(boundsDrawer);
         }
@@ -277,8 +259,8 @@ namespace JREMonitors.E233.Buttons
 
         protected override void OnStaticWarmUp(float totalScale)
         {
-            _idleBackgroundBaker.BakeAndDraw(SelfRelativeDirtyBounds, () => Draw(false));
-            _pressedBackgroundBaker.BakeAndDraw(SelfRelativeDirtyBounds, () => Draw(true));
+            DrawBackground(false);
+            DrawBackground(true);
             DrawContent(_style.IdleDrawerColor.Value ?? Colors.Transparent);
         }
 
@@ -286,14 +268,40 @@ namespace JREMonitors.E233.Buttons
         {
             if (_currentlyPressed.Value)
             {
-                _pressedBackgroundBaker.BakeAndDraw(SelfRelativeDirtyBounds, () => Draw(true));
+                DrawBackground(true);
                 DrawContent(_style.PressedDrawerColor.Value);
             }
             else
             {
-                _idleBackgroundBaker.BakeAndDraw(SelfRelativeDirtyBounds, () => Draw(false));
+                DrawBackground(false);
                 DrawContent(_style.IdleDrawerColor.Value ?? Colors.Transparent);
             }
+        }
+
+        private void DrawBackground(bool pressed)
+        {
+            var bakeBounds = SelfRelativeDirtyBounds;
+            var key = BuildBackgroundKey(bakeBounds, pressed);
+            var baker = Context.GetBakerCache().GetOrCreateBaker<VectorButton, VectorButtonBakerKey>(Context, key);
+            baker.BakeAndDraw(bakeBounds, () => Draw(pressed), overrideInterpolationMode: InterpolationMode.Cubic);
+        }
+
+        private VectorButtonBakerKey BuildBackgroundKey(RectangleF bakeBounds, bool pressed)
+        {
+            var topLeft = pressed
+                ? _style.PressedTopLeftInnerShadow.Value ?? _style.IdleTopLeftInnerShadow.Value
+                : _style.IdleTopLeftInnerShadow.Value;
+            var bottomRight = pressed
+                ? _style.PressedBottomRightInnerShadow.Value ?? _style.IdleBottomRightInnerShadow.Value
+                : _style.IdleBottomRightInnerShadow.Value;
+            return new VectorButtonBakerKey(
+                bakeBounds.Width, bakeBounds.Height,
+                _baseWidth, _baseHeight,
+                _style.BorderRadius.Value,
+                pressed,
+                pressed ? _style.PressedBackgroundColor.Value : _style.IdleBackgroundColor.Value,
+                _style.IdleDropShadows,
+                topLeft, bottomRight);
         }
 
         private void DrawContent(Color4 color)
@@ -327,11 +335,9 @@ namespace JREMonitors.E233.Buttons
             {
                 var topLeft = _style.PressedTopLeftInnerShadow.Value ?? _style.IdleTopLeftInnerShadow.Value;
                 var bottomRight = _style.PressedBottomRightInnerShadow.Value ?? _style.IdleBottomRightInnerShadow.Value;
-
                 UpdateShadowEffect(_pressedTopLeftEffect, _pressedTopLeftRecorder, topLeft, RecordTopLeftMaskGeometry);
                 UpdateShadowEffect(_pressedBottomRightEffect, _pressedBottomRightRecorder, bottomRight,
                     RecordBottomRightMaskGeometry);
-
                 Context.CommonBrush.Color = _style.PressedBackgroundColor.Value;
                 Context.InnerShadowProcessor.DrawWithInnerShadows(_pressedInnerShadowChain,
                     () => { Context.DeviceContext.FillRoundedRectangle(rect, Context.CommonBrush); });
@@ -372,6 +378,91 @@ namespace JREMonitors.E233.Buttons
         {
             ViewModel.TryClick();
             return true;
+        }
+
+        private readonly struct VectorButtonBakerKey : IEquatable<VectorButtonBakerKey>
+        {
+            private readonly float _bakeWidth, _bakeHeight;
+            private readonly float _baseWidth, _baseHeight;
+            private readonly float _borderRadius;
+            private readonly bool _isPressed;
+            private readonly Color4 _backgroundColor;
+            private readonly IReadOnlyList<DropShadow> _idleDropShadows;
+            private readonly VectorButtonInnerShadow? _topLeftInnerShadow;
+            private readonly VectorButtonInnerShadow? _bottomRightInnerShadow;
+
+            public VectorButtonBakerKey(
+                float bakeWidth, float bakeHeight,
+                float baseWidth, float baseHeight,
+                float borderRadius,
+                bool isPressed,
+                Color4 backgroundColor,
+                IReadOnlyList<DropShadow> idleDropShadows,
+                VectorButtonInnerShadow? topLeftInnerShadow,
+                VectorButtonInnerShadow? bottomRightInnerShadow)
+            {
+                _bakeWidth = bakeWidth;
+                _bakeHeight = bakeHeight;
+                _baseWidth = baseWidth;
+                _baseHeight = baseHeight;
+                _borderRadius = borderRadius;
+                _isPressed = isPressed;
+                _backgroundColor = backgroundColor;
+                _idleDropShadows = idleDropShadows ?? Array.Empty<DropShadow>();
+                _topLeftInnerShadow = topLeftInnerShadow;
+                _bottomRightInnerShadow = bottomRightInnerShadow;
+            }
+
+            public bool Equals(VectorButtonBakerKey o)
+            {
+                if (Math.Abs(_bakeWidth - o._bakeWidth) > Epsilons.FloatEpsilon) return false;
+                if (Math.Abs(_bakeHeight - o._bakeHeight) > Epsilons.FloatEpsilon) return false;
+                if (Math.Abs(_baseWidth - o._baseWidth) > Epsilons.FloatEpsilon) return false;
+                if (Math.Abs(_baseHeight - o._baseHeight) > Epsilons.FloatEpsilon) return false;
+                if (Math.Abs(_borderRadius - o._borderRadius) > Epsilons.FloatEpsilon) return false;
+                if (_isPressed != o._isPressed) return false;
+                if (!_backgroundColor.Equals(o._backgroundColor)) return false;
+
+                var a = _idleDropShadows;
+                var b = o._idleDropShadows;
+                if (a.Count != b.Count) return false;
+                for (var i = 0; i < a.Count; i++)
+                    if (!a[i].Equals(b[i]))
+                        return false;
+
+                return Nullable.Equals(_topLeftInnerShadow, o._topLeftInnerShadow)
+                       && Nullable.Equals(_bottomRightInnerShadow, o._bottomRightInnerShadow);
+            }
+
+            public override bool Equals(object obj)
+            {
+                return obj is VectorButtonBakerKey o && Equals(o);
+            }
+
+            public override int GetHashCode()
+            {
+                var hc = new HashCode();
+                hc.Add(_bakeWidth);
+                hc.Add(_bakeHeight);
+                hc.Add(_baseWidth);
+                hc.Add(_baseHeight);
+                hc.Add(_borderRadius);
+                hc.Add(_isPressed);
+                hc.Add(_backgroundColor);
+                for (var i = 0; i < _idleDropShadows.Count; i++)
+                {
+                    var s = _idleDropShadows[i];
+                    hc.Add(s.OffsetX);
+                    hc.Add(s.OffsetY);
+                    hc.Add(s.BlurX);
+                    hc.Add(s.BlurY);
+                    hc.Add(s.Color);
+                }
+
+                hc.Add(_topLeftInnerShadow);
+                hc.Add(_bottomRightInnerShadow);
+                return hc.ToHashCode();
+            }
         }
     }
 }
