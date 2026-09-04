@@ -25,7 +25,7 @@ namespace JREMonitors.BveEx.Builders.Base
                 throw new ArgumentException(nameof(vehicleConfig));
         }
 
-        void IVehicleBuilder.PopulateMonitorLocalDataHub(VehicleBuildContext context,
+        void IVehicleBuilder.PopulateMonitorLocalDataHub(VehiclePostBuildContext context,
             Dictionary<string, Monitor> monitors,
             VehicleConfig vehicleConfig)
         {
@@ -97,8 +97,6 @@ namespace JREMonitors.BveEx.Builders.Base
             var panelDataProvider = new BvePanelDataProvider(atsPlugin, finalInputs,
                 CreatePanelDataFallbacks(config, context, finalInputs));
             context.RootDataHub.Put(panelDataProvider);
-            var soundFactory = context.RootDataHub.Get<ISoundFactory>();
-            context.RootDataHub.Put(new BveSoundProvider(soundFactory, config.Outputs.Sound), true);
         }
 
         protected Dictionary<string, IReadOnlyList<int>> BuildFinalInputs(TVehicleConfig config)
@@ -135,7 +133,7 @@ namespace JREMonitors.BveEx.Builders.Base
             }
         }
 
-        protected virtual void PopulateMonitorLocalDataHub(VehicleBuildContext context,
+        protected virtual void PopulateMonitorLocalDataHub(VehiclePostBuildContext context,
             Dictionary<string, Monitor> monitors,
             TVehicleConfig vehicleConfig)
         {
@@ -165,6 +163,7 @@ namespace JREMonitors.BveEx.Builders.Base
             context.TickUpdateManager.Register(vehicleStateProvider);
             context.JumpStationManager.Register(vehicleStateProvider);
             context.RootDataHub.Put(vehicleStateProvider);
+            context.RootDataHub.Put(new BveSoundProvider(context.RootDataHub, vehicleConfig.Outputs.Sound), true);
         }
 
         protected virtual Dictionary<string, Func<int>> CreatePanelDataFallbacks(TVehicleConfig config,

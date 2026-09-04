@@ -11,7 +11,7 @@ namespace JREMonitors.BveEx.Builders.Base
     {
         void PopulateRootDataHub(VehicleBuildContext context, VehicleConfig config);
 
-        void PopulateMonitorLocalDataHub(VehicleBuildContext context, Dictionary<string, Monitor> monitors,
+        void PopulateMonitorLocalDataHub(VehiclePostBuildContext context, Dictionary<string, Monitor> monitors,
             VehicleConfig config);
 
         void PostPopulateRootDataHub(VehiclePostBuildContext context, VehicleConfig config);

@@ -1,20 +1,32 @@
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using BveEx.Extensions.SoundFactory;
 using BveTypes.ClassWrappers;
 using JREMonitors.BveEx.Configs.Vehicle;
 using JREMonitors.Core.Providers;
+using JREMonitors.Core.State;
 
 namespace JREMonitors.BveEx.Providers
 {
     public class BveSoundProvider : ISoundProvider, IDisposable
     {
+        private const BindingFlags Flags = BindingFlags.Instance | BindingFlags.NonPublic;
+
+        private static readonly MethodInfo EpMethodA =
+            typeof(ep).GetMethod("a", Flags, null, new[] { typeof(object), typeof(EventArgs) }, null);
+
+        private static readonly MethodInfo EpMethodB =
+            typeof(ep).GetMethod("b", Flags, null, new[] { typeof(object), typeof(EventArgs) }, null);
+
+        private readonly Scenario _scenario;
         private readonly ISoundFactory _soundFactory;
         private Dictionary<string, Sound> _sounds;
 
-        public BveSoundProvider(ISoundFactory soundFactory, IReadOnlyDictionary<string, ConfigPath> soundPaths)
+        public BveSoundProvider(DataHub dataHub, IReadOnlyDictionary<string, ConfigPath> soundPaths)
         {
-            _soundFactory = soundFactory;
+            _scenario = dataHub.Get<Scenario>();
+            _soundFactory = dataHub.Get<ISoundFactory>();
             LoadSounds(soundPaths);
         }
 
@@ -24,15 +36,44 @@ namespace JREMonitors.BveEx.Providers
             sound.Play(volume, 1, 0);
         }
 
-        private static void Clear(Dictionary<string, Sound> sounds)
+        private void Clear(Dictionary<string, Sound> sounds)
         {
             if (sounds == null) return;
             foreach (var sound in sounds.Values)
             {
-                sound.Dispose();
+                DisposeSound(sound);
             }
 
             sounds.Clear();
+        }
+
+        private void DisposeSound(Sound sound)
+        {
+            if (!(sound?.Src is ep epImpl)) return;
+            TryUnsubscribeHandlers(epImpl);
+            sound.Dispose();
+        }
+
+        private void TryUnsubscribeHandlers(ep epImpl)
+        {
+            try
+            {
+                if (!(_scenario.TimeManager.Src is cn timeManager)) return;
+                var tickHandler = CreateHandler(epImpl, EpMethodA);
+                timeManager.d(tickHandler);
+                var stateHandler = CreateHandler(epImpl, EpMethodB);
+                timeManager.h(stateHandler);
+            }
+            catch (Exception)
+            {
+                // ignored
+            }
+        }
+
+        private static EventHandler CreateHandler(ep target, MethodInfo method)
+        {
+            var handler = (EventHandler)Delegate.CreateDelegate(typeof(EventHandler), target, method);
+            return handler;
         }
 
         public void Reconfigure(IReadOnlyDictionary<string, ConfigPath> soundPaths)

@@ -38,7 +38,7 @@ namespace JREMonitors.BveEx.Builders.Base
             );
         }
 
-        protected override void PopulateMonitorLocalDataHub(VehicleBuildContext context,
+        protected override void PopulateMonitorLocalDataHub(VehiclePostBuildContext context,
             Dictionary<string, Monitor> monitors, TConfig vehicleConfig)
         {
             base.PopulateMonitorLocalDataHub(context, monitors, vehicleConfig);

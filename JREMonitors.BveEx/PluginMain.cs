@@ -497,13 +497,15 @@ namespace JREMonitors.BveEx
             _monitorManager = BveMonitorManagerFactory.Create(
                 _dataHub, _monitorContext, monitorProperties, _timeProvider,
                 config.Display.ShowCabTextureBoundsRect, config.Display.BufferFrameCount);
-            _vehicleBuilder.PopulateMonitorLocalDataHub(context, _monitorManager.Monitors, config);
         }
 
         private void ActivateMonitors(VehicleConfig config)
         {
             _vehicleBuilder.PostPopulateRootDataHub(
                 new VehiclePostBuildContext(_dataHub, _tickUpdateManager, _jumpStationManager), config);
+            _vehicleBuilder.PopulateMonitorLocalDataHub(
+                new VehiclePostBuildContext(_dataHub, _tickUpdateManager, _jumpStationManager),
+                _monitorManager.Monitors, config);
             InvokeJumpStationActions();
             _monitorManager.Initialize(_scenario);
             _monitorManager.AttachMonitors();
