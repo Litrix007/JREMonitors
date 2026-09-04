@@ -19,11 +19,11 @@ namespace JREMonitors.E233.TIMS.D01AX.EDen
                 this.CreateTIMSTextDrawer(
                     new[]
                     {
-                        new BitmapScaleDrawer.DrawerProperties(this.CreateTIMSTextLayout("行路番号"), 1, 1),
+                        new BitmapScaleDrawer.DrawerProperties(this.CreateTIMSTextLayout("行路番号")),
                         new BitmapScaleDrawer.DrawerProperties(
                             this.CreateTIMSTextLayout(
                                 documentSource: CreateComputed(() => RichTextParser.Raw(DutyNumber)),
-                                context: scopedContext), 1, 1,
+                                context: scopedContext),
                             color: MonitorColors.White)
                     },
                     context: scopedContext, spacing: 8),

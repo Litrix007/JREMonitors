@@ -36,6 +36,7 @@ namespace JREMonitors.E233.ViewModels
         public Signal<bool> Highlight200Kpa { get; } = new Signal<bool>();
         public Signal<bool> IsSafetyLampsVisibleExternally { get; } = new Signal<bool>();
         public Signal<bool> IsSafetyLampVisible { get; } = new Signal<bool>();
+        public Signal<bool> SupportsTasc { get; } = new Signal<bool>();
 
         protected override void OnInitialize(DataHub dataHub)
         {
@@ -45,13 +46,14 @@ namespace JREMonitors.E233.ViewModels
             _brakeTickTracker = new TickTracker(delayService.GetDelayProvider(DelayTypes.Brake));
             _normalTickTracker = new TickTracker(delayService.GetDelayProvider(DelayTypes.Normal));
             _delayedSpeedProvider = dataHub.Get<DelayedSpeedProvider>();
-            _monitorStates = dataHub.GetOrNull<E233MonitorStates>();
+            _monitorStates = dataHub.Get<E233MonitorStates>();
         }
 
         protected override void OnUpdate(TimeSpan elapsed)
         {
-            IsSafetyLampsVisibleExternally.Value = _monitorStates?.IsSafetyLampsVisibleExternally ?? false;
-            IsSafetyLampVisible.Value = _monitorStates?.IsSafetyLampVisibleOnMeterScreen ?? true;
+            IsSafetyLampsVisibleExternally.Value = _monitorStates.IsSafetyLampsVisibleExternally;
+            IsSafetyLampVisible.Value = _monitorStates.IsSafetyLampVisibleOnMeterScreen;
+            SupportsTasc.Value = _monitorStates.SupportsTasc;
             if (_normalTickTracker.TrackAndSync())
             {
                 DeviceVoltage.Value = _panelDataProvider.GetRawValue(JRE.Constants.DirectInputIds.DeviceVoltage);
@@ -91,7 +93,7 @@ namespace JREMonitors.E233.ViewModels
 
         public void ToggleLocalSafetyLampVisibility()
         {
-            _monitorStates?.ToggleLocalSafetyLampVisibility();
+            _monitorStates.ToggleLocalSafetyLampVisibility();
         }
     }
 }

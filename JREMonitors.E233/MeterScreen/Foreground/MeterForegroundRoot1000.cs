@@ -15,7 +15,6 @@ namespace JREMonitors.E233.MeterScreen.Foreground
 {
     public class MeterForegroundRoot1000 : MeterForegroundRootBase
     {
-        private readonly AtcSpeedGaugeForeground _atcSpeedGaugeForeground;
         private readonly LampAdjacencyManager _lampAdjacencyManager = new LampAdjacencyManager();
 
         public MeterForegroundRoot1000(RenderContext context) : base(context, new RootProperties(
@@ -27,12 +26,11 @@ namespace JREMonitors.E233.MeterScreen.Foreground
                 176),
             65,
             Vector2.Zero,
-            0,
-            -25
-        ), MeterBackgroundRootBase.CommonRootPropertiesWithoutSafetyAndHldLamps)
+            0
+        ), MeterBackgroundRootBase.CommonRootPropertiesWithoutSafetyAndHldLamps, -25)
         {
-            _atcSpeedGaugeForeground = new AtcSpeedGaugeForeground(context, RootPropertiesWithSafetyLamps.SpeedOffsetY);
-            InsertChildAfter(_atcSpeedGaugeForeground, InfoButtonGroup);
+            var atcSpeedGaugeForeground = new AtcSpeedGaugeForeground(context, SpeedOffsetY);
+            InsertChildAfter(atcSpeedGaugeForeground, InfoButtonGroup);
             var vehicleStateLampGroupWhenSafetyLampsVisible = new VehicleStateLampGroup(context,
                 GeometryHelper.CreateRowBounds(488, 10, 6,
                     new[] { new RowItemWidth(6, 34), new RowItemWidth(1, 38) }, 118),
@@ -57,19 +55,30 @@ namespace JREMonitors.E233.MeterScreen.Foreground
                 8,
                 10,
                 16,
-                new MeterNormalAtcLampGroup.InchingActivatedLampProperties(false, 0, "インチング制御中", 14),
+                new MeterNormalAtcLampGroup.InchingActivatedLampProperties(false, 0, "インチング制御中", 14,
+                    ViewModel.SupportsTasc),
                 true
             );
             var tascLampGroup = new MeterTascLampGroup(context, new RectangleF(483, 190, 323, 72),
                 _lampAdjacencyManager, 9, 4, false, true);
-            AddLampPanelWhenSafetyLampsVisible(new LampPanel(context, 1023, 545, 275,
+            tascLampGroup.IsVisible.Bind(ViewModel.SupportsTasc);
+            var visiblePanel = new LampPanel(context, 1023, 545, 275,
                 children: new Widget[]
-                    { vehicleStateLampGroupWhenSafetyLampsVisible, tascLampGroup, normalAtcLampGroup }));
-            _lampAdjacencyManager.AddConnection(tascLampGroup.TascFailureLamp, normalAtcLampGroup.AtcServiceBrakeLamp,
-                AdjacencyDirection.Right, 4);
-            _lampAdjacencyManager.AddConnection(tascLampGroup.PlatformDecouplingLamp,
-                normalAtcLampGroup.AtcServiceBrakeLamp, AdjacencyDirection.Right, 4);
-            WatchEffect(EffectPhase.Visual, () => { _lampAdjacencyManager.UpdateLimits(); });
+                    { vehicleStateLampGroupWhenSafetyLampsVisible, tascLampGroup, normalAtcLampGroup });
+            AddLampPanelWhenSafetyLampsVisible(visiblePanel);
+            AddLampPanelWhenSafetyLampsVisibleWithoutTasc(visiblePanel);
+            var tascFailureConnection =
+                _lampAdjacencyManager.AddConnection(tascLampGroup.TascFailureLamp,
+                    normalAtcLampGroup.AtcServiceBrakeLamp,
+                    AdjacencyDirection.Right, 5);
+            var platformDecouplingConnection = _lampAdjacencyManager.AddConnection(tascLampGroup.PlatformDecouplingLamp,
+                normalAtcLampGroup.AtcServiceBrakeLamp, AdjacencyDirection.Right, 5);
+            WatchEffect(EffectPhase.Visual, () =>
+            {
+                if (tascFailureConnection != null) tascFailureConnection.Enabled = ViewModel.SupportsTasc;
+                if (platformDecouplingConnection != null) platformDecouplingConnection.Enabled = ViewModel.SupportsTasc;
+                _lampAdjacencyManager.UpdateLimits();
+            });
         }
 
         public override RectangleF SelfRelativeDirtyBounds => RectangleF.Empty;

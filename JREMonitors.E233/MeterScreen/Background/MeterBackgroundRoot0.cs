@@ -15,14 +15,22 @@ namespace JREMonitors.E233.MeterScreen.Background
                 new Vector2(339, 213),
                 65,
                 Vector2.Zero,
-                0,
                 0),
             false,
             CommonRootPropertiesWithoutSafetyLamps,
-            true
+            true,
+            0
         )
         {
             AddChild(new NormalSpeedGaugeBackground(context));
+        }
+
+        protected override void OnSafetyLampsVisible()
+        {
+            if (!ViewModel.SupportsTasc)
+                ApplyLayout(RootPropertiesWithoutSafetyLamps, BoldCenterMinorTicksWithoutSafetyLamps);
+            else
+                base.OnSafetyLampsVisible();
         }
     }
 }

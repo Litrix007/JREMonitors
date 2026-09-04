@@ -10,7 +10,8 @@ namespace JREMonitors.E233.MeterScreen.Background
             CommonRootPropertiesWithoutSafetyLamps,
             true,
             CommonRootPropertiesWithoutSafetyLamps,
-            true
+            true,
+            0
         )
         {
             AddChild(new NormalSpeedGaugeBackground(context));

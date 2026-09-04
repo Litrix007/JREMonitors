@@ -9,7 +9,7 @@ namespace JREMonitors.E233.TIMS.D05AA
     {
         public D05AAScreen(RenderContext context, TIMSVehicleSpec spec, D05AABrakeInformation brakeInformation) : base(
             ScreenIds.D05AA,
-            ScreenSizes.TIMSScreenSize, 0, true, Colors.Transparent)
+            ScreenSizes.TIMSScreenSize, 0, true)
         {
             ForegroundRoot = new D05AAForegroundRoot(context, spec, brakeInformation);
         }

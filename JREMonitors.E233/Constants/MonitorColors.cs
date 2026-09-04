@@ -10,6 +10,7 @@ namespace JREMonitors.E233.Constants
         public static readonly Color4 TIMSScreenBackground = "#2A343A".ToColor4();
         public static readonly Color4 TIMSTitleGrey = "#999".ToColor4();
         public static readonly Color4 TIMSTitleGreen = "#43e77d".ToColor4();
+        public static readonly Color4 PanelColor = "#2A343A".ToColor4();
         public static readonly Color4 MinorTickMark = "#7a7d80".ToColor4();
         public static readonly Color4 MeterTitleGrey = "#919191".ToColor4();
         public static readonly Color4 Recessed = "#091712".ToColor4();

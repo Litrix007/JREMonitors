@@ -7,7 +7,7 @@ namespace JREMonitors.E233.TIMS
         public static readonly IReadOnlyDictionary<string, TIMSFormationSpec> FormationSpecs0 =
             new Dictionary<string, TIMSFormationSpec>
             {
-                ["4after6"] = new TIMSFormationSpec(new[]
+                ["4after6"] = new TIMSFormationSpec(false, new[]
                 {
                     new TIMSCarSpec(7, TIMSCarType.FirstCar, TIMSCarPantoGraphType.None, 4, false, true, false),
                     new TIMSCarSpec(8, TIMSCarType.MotorCar, TIMSCarPantoGraphType.WithYellowRect, 4, true, false,
@@ -16,7 +16,7 @@ namespace JREMonitors.E233.TIMS
                     new TIMSCarSpec(10, TIMSCarType.LastCar, TIMSCarPantoGraphType.None, 4, false, true, false)
                 }),
 
-                ["6"] = new TIMSFormationSpec(new[]
+                ["6"] = new TIMSFormationSpec(false, new[]
                 {
                     new TIMSCarSpec(1, TIMSCarType.FirstCar, TIMSCarPantoGraphType.None, 4, false, true, false),
                     new TIMSCarSpec(2, TIMSCarType.MotorCar, TIMSCarPantoGraphType.WithYellowRect, 4, false, false,
@@ -27,7 +27,7 @@ namespace JREMonitors.E233.TIMS
                     new TIMSCarSpec(6, TIMSCarType.LastCar, TIMSCarPantoGraphType.None, 4, false, true, false)
                 }),
 
-                ["10"] = new TIMSFormationSpec(new[]
+                ["10"] = new TIMSFormationSpec(false, new[]
                 {
                     new TIMSCarSpec(1, TIMSCarType.FirstCar, TIMSCarPantoGraphType.None, 4, false, true, false),
                     new TIMSCarSpec(2, TIMSCarType.MotorCar, TIMSCarPantoGraphType.WithYellowRect, 4, false, false,
@@ -42,7 +42,7 @@ namespace JREMonitors.E233.TIMS
                     new TIMSCarSpec(10, TIMSCarType.LastCar, TIMSCarPantoGraphType.None, 4, false, true, false)
                 }),
 
-                ["10g"] = new TIMSFormationSpec(new[]
+                ["10g"] = new TIMSFormationSpec(false, new[]
                 {
                     new TIMSCarSpec(1, TIMSCarType.FirstCar, TIMSCarPantoGraphType.None, 4, false, true, false),
                     new TIMSCarSpec(2, TIMSCarType.MotorCar, TIMSCarPantoGraphType.WithYellowRect, 4, true, false,
@@ -57,7 +57,7 @@ namespace JREMonitors.E233.TIMS
                     new TIMSCarSpec(10, TIMSCarType.LastCar, TIMSCarPantoGraphType.None, 4, false, true, false)
                 }),
 
-                ["6+4"] = new TIMSFormationSpec(new[]
+                ["6+4"] = new TIMSFormationSpec(false, new[]
                 {
                     new TIMSCarSpec(1, TIMSCarType.FirstCar, TIMSCarPantoGraphType.None, 4, false, true, false),
                     new TIMSCarSpec(2, TIMSCarType.MotorCar, TIMSCarPantoGraphType.WithYellowRect, 4, false, false,
@@ -73,7 +73,7 @@ namespace JREMonitors.E233.TIMS
                     new TIMSCarSpec(10, TIMSCarType.LastCar, TIMSCarPantoGraphType.None, 4, false, true, false)
                 }),
 
-                ["4after8"] = new TIMSFormationSpec(new[]
+                ["4after8"] = new TIMSFormationSpec(true, new[]
                 {
                     new TIMSCarSpec(1, TIMSCarType.FirstCar, TIMSCarPantoGraphType.None, 4, false, true, false),
                     new TIMSCarSpec(2, TIMSCarType.MotorCar, TIMSCarPantoGraphType.WithYellowRect, 4, true, false,
@@ -82,7 +82,7 @@ namespace JREMonitors.E233.TIMS
                     new TIMSCarSpec(4, TIMSCarType.LastCar, TIMSCarPantoGraphType.None, 4, false, true, false)
                 }),
 
-                ["8"] = new TIMSFormationSpec(new[]
+                ["8"] = new TIMSFormationSpec(true, new[]
                 {
                     new TIMSCarSpec(1, TIMSCarType.FirstCar, TIMSCarPantoGraphType.None, 4, false, true, false),
                     new TIMSCarSpec(2, TIMSCarType.MotorCar, TIMSCarPantoGraphType.WithYellowRect, 4, true, false,
@@ -97,7 +97,7 @@ namespace JREMonitors.E233.TIMS
                     new TIMSCarSpec(8, TIMSCarType.LastCar, TIMSCarPantoGraphType.None, 4, false, true, false)
                 }),
 
-                ["12"] = new TIMSFormationSpec(new[]
+                ["12"] = new TIMSFormationSpec(true, new[]
                 {
                     new TIMSCarSpec(1, TIMSCarType.FirstCar, TIMSCarPantoGraphType.None, 4, false, true, false),
                     new TIMSCarSpec(2, TIMSCarType.MotorCar, TIMSCarPantoGraphType.WithYellowRect, 4, true, false,
@@ -116,7 +116,7 @@ namespace JREMonitors.E233.TIMS
                     new TIMSCarSpec(12, TIMSCarType.LastCar, TIMSCarPantoGraphType.None, 4, false, true, false)
                 }),
 
-                ["8+4"] = new TIMSFormationSpec(new[]
+                ["8+4"] = new TIMSFormationSpec(true, new[]
                 {
                     new TIMSCarSpec(1, TIMSCarType.FirstCar, TIMSCarPantoGraphType.None, 4, false, true, false),
                     new TIMSCarSpec(2, TIMSCarType.MotorCar, TIMSCarPantoGraphType.WithYellowRect, 4, true, false,
@@ -140,7 +140,7 @@ namespace JREMonitors.E233.TIMS
         public static readonly IReadOnlyDictionary<string, TIMSFormationSpec> FormationSpecs1000 =
             new Dictionary<string, TIMSFormationSpec>
             {
-                ["10"] = new TIMSFormationSpec(new[]
+                ["10"] = new TIMSFormationSpec(false, new[]
                 {
                     new TIMSCarSpec(1, TIMSCarType.FirstCar, TIMSCarPantoGraphType.None, 4, false, true, false),
                     new TIMSCarSpec(2, TIMSCarType.MotorCar, TIMSCarPantoGraphType.None, 4, false, false, false),
@@ -159,7 +159,7 @@ namespace JREMonitors.E233.TIMS
         public static readonly IReadOnlyDictionary<string, TIMSFormationSpec> FormationSpecs3000 =
             new Dictionary<string, TIMSFormationSpec>
             {
-                ["5"] = new TIMSFormationSpec(new[]
+                ["5"] = new TIMSFormationSpec(true, new[]
                 {
                     new TIMSCarSpec(1, TIMSCarType.FirstCar, TIMSCarPantoGraphType.None, 4, false, false, true),
                     new TIMSCarSpec(2, TIMSCarType.MotorCar, TIMSCarPantoGraphType.None, 4, true, true, false),
@@ -169,7 +169,7 @@ namespace JREMonitors.E233.TIMS
                     new TIMSCarSpec(5, TIMSCarType.LastCar, TIMSCarPantoGraphType.None, 4, false, false, false)
                 }),
 
-                ["10"] = new TIMSFormationSpec(new[]
+                ["10"] = new TIMSFormationSpec(true, new[]
                 {
                     new TIMSCarSpec(1, TIMSCarType.FirstCar, TIMSCarPantoGraphType.None, 4, false, false, true),
                     new TIMSCarSpec(2, TIMSCarType.MotorCar, TIMSCarPantoGraphType.None, 4, true, true, false),
@@ -186,7 +186,7 @@ namespace JREMonitors.E233.TIMS
                     new TIMSCarSpec(10, TIMSCarType.LastCar, TIMSCarPantoGraphType.None, 4, false, false, true)
                 }),
 
-                ["10+5"] = new TIMSFormationSpec(new[]
+                ["10+5"] = new TIMSFormationSpec(true, new[]
                 {
                     new TIMSCarSpec(1, TIMSCarType.FirstCar, TIMSCarPantoGraphType.None, 4, false, false, true),
                     new TIMSCarSpec(2, TIMSCarType.MotorCar, TIMSCarPantoGraphType.None, 4, true, true, false),
@@ -213,7 +213,7 @@ namespace JREMonitors.E233.TIMS
         public static readonly IReadOnlyDictionary<string, TIMSFormationSpec> FormationSpecs5000 =
             new Dictionary<string, TIMSFormationSpec>
             {
-                ["4"] = new TIMSFormationSpec(new[]
+                ["4"] = new TIMSFormationSpec(false, new[]
                 {
                     new TIMSCarSpec(1, TIMSCarType.FirstCar, TIMSCarPantoGraphType.None, 4, false, true, false),
                     new TIMSCarSpec(2, TIMSCarType.MotorCar, TIMSCarPantoGraphType.None, 4, true, false, false),
@@ -221,7 +221,7 @@ namespace JREMonitors.E233.TIMS
                         false),
                     new TIMSCarSpec(4, TIMSCarType.LastCar, TIMSCarPantoGraphType.None, 4, false, true, false),
                 }),
-                ["6"] = new TIMSFormationSpec(new[]
+                ["6"] = new TIMSFormationSpec(false, new[]
                 {
                     new TIMSCarSpec(1, TIMSCarType.FirstCar, TIMSCarPantoGraphType.None, 4, false, true, false),
                     new TIMSCarSpec(2, TIMSCarType.MotorCar, TIMSCarPantoGraphType.None, 4, false, false, false),
@@ -231,7 +231,7 @@ namespace JREMonitors.E233.TIMS
                         false),
                     new TIMSCarSpec(6, TIMSCarType.LastCar, TIMSCarPantoGraphType.None, 4, false, true, false),
                 }),
-                ["6+4"] = new TIMSFormationSpec(new[]
+                ["6+4"] = new TIMSFormationSpec(false, new[]
                 {
                     new TIMSCarSpec(1, TIMSCarType.FirstCar, TIMSCarPantoGraphType.None, 4, false, true, false),
                     new TIMSCarSpec(2, TIMSCarType.MotorCar, TIMSCarPantoGraphType.None, 4, false, false, false),
@@ -246,7 +246,7 @@ namespace JREMonitors.E233.TIMS
                         false),
                     new TIMSCarSpec(10, TIMSCarType.LastCar, TIMSCarPantoGraphType.None, 4, false, true, false)
                 }),
-                ["10"] = new TIMSFormationSpec(new[]
+                ["10"] = new TIMSFormationSpec(false, new[]
                 {
                     new TIMSCarSpec(1, TIMSCarType.FirstCar, TIMSCarPantoGraphType.None, 4, false, true, false),
                     new TIMSCarSpec(2, TIMSCarType.MotorCar, TIMSCarPantoGraphType.None, 4, false, false, false),

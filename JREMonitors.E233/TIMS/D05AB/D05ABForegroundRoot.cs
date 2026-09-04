@@ -41,7 +41,6 @@ namespace JREMonitors.E233.TIMS.D05AB
                 var formationSpec = ViewModel.FormationSpec.Value;
                 if (IsOffScreen) return;
                 if (!IsFirstUpdate) Context.DisplayController.RequestReset();
-
                 if (formationSpec == null) return;
                 Invalidate(DirtyType.Layout);
             });

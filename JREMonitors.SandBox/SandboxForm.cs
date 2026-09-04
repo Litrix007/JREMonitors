@@ -40,7 +40,6 @@ namespace JREMonitors.SandBox
         private readonly Monitor _monitor1;
         private readonly Monitor _monitor2;
         private readonly Monitor _monitor3;
-        private readonly E233MonitorStates _monitorStates;
         private readonly SandboxMonitorManager _sandboxManager;
         private readonly TickUpdateManager _tickUpdateManager;
         private readonly SystemTimeProvider _timeProvider;
@@ -82,12 +81,6 @@ namespace JREMonitors.SandBox
             _dataHub.Put(_delayedSpeedProvider);
             var mockSignalProvider = new MockSignalProvider<E233SignalSystem>();
             _dataHub.Put(mockSignalProvider);
-            _monitorStates = new E233MonitorStates
-            {
-                MonitorType = E233MonitorType.TIMSMain,
-                IsSafetyLampsVisibleExternally = false
-            };
-            _dataHub.Put(_monitorStates);
             var carStateService = new CarStateService(_dataHub);
             _tickUpdateManager.Register(carStateService);
             _dataHub.Put(carStateService);
@@ -99,7 +92,7 @@ namespace JREMonitors.SandBox
             var mockPassengerStateService = new MockPassengerStateService();
             _tickUpdateManager.Register(mockPassengerStateService);
             _dataHub.Put(mockPassengerStateService);
-            var formationSpecs = TIMSFormationSpecs.FormationSpecs1000;
+            var formationSpecs = TIMSFormationSpecs.FormationSpecs0;
             _mockTIMSICCardService = new MockTIMSICCardService(_dataHub, formationSpecs);
             _tickUpdateManager.Register(_mockTIMSICCardService,
                 _mockTIMSICCardService.BeforeDeps.OfType<ITickUpdatable>());
@@ -107,29 +100,30 @@ namespace JREMonitors.SandBox
             _context = new MonitorContext(_debugForm);
             var size1 = new Size(1024, 768);
             var size2 = new Size(800, 600);
-            var size3 = new Size(1024, 768);
+            var size3 = new Size(800, 600);
             _monitor1 = new Monitor(MonitorIds.Monitor1, _dataHub, _context,
-                context => new Screen[] { new S00AAScreen(context), new MeterScreen1000(context) }, ScreenIds.S00AA,
+                context => new Screen[] { new S00AAScreen(context), new MeterScreen0(context) }, ScreenIds.S00AA,
                 () => false);
             _monitor2 = new Monitor(MonitorIds.Monitor2, _dataHub, _context,
-                context => E233Screens.CreateE233Screens1000(context, "SandBox", new[] { new TidScreen1000(context) }),
+                context => E233Screens.CreateE233Screens0(context, "SandBox", new[] { new TidScreen0(context) }),
                 ScreenIds.S00AB);
             _monitor3 = new Monitor(MonitorIds.Monitor3, _dataHub, _context,
-                context => E233Screens.CreateE233Screens1000(context, "SandBox", new[] { new TidScreen1000(context) }),
+                context => E233Screens.CreateE233Screens0(context, "SandBox", new[] { new TidScreen0(context) }),
                 ScreenIds.Tid);
-            _monitor1.LocalDataHub.Put(new E233MonitorStates());
-            _monitor2.LocalDataHub.Put(new E233MonitorStates());
-            _monitor3.LocalDataHub.Put(new E233MonitorStates());
+            _monitor1.LocalDataHub.Put(CreateStates());
+            _monitor2.LocalDataHub.Put(CreateStates());
+            _monitor3.LocalDataHub.Put(CreateStates());
             var monitorDict = new Dictionary<string, Monitor>
             {
                 [MonitorIds.Monitor1] = _monitor1,
-                [MonitorIds.Monitor2] = _monitor2
+                [MonitorIds.Monitor2] = _monitor2,
+                [MonitorIds.Monitor3] = _monitor3
             };
             var mediator = new E233MonitorInterlockMediator(monitorDict);
             _tickUpdateManager.Register(mediator);
             _dataHub.Put(mediator);
             _sandboxManager = new SandboxMonitorManager(_context, _dataHub, Handle,
-                new[] { (_monitor1, size1), (_monitor2, size2) });
+                new[] { (_monitor1, size1), (_monitor2, size2), (_monitor3, size3) });
             Text = "JREMonitors SandBox";
             ClientSize = new Size(400, 300);
             KeyPreview = true;
@@ -138,6 +132,11 @@ namespace JREMonitors.SandBox
                      ControlStyles.AllPaintingInWmPaint |
                      ControlStyles.OptimizedDoubleBuffer, true);
             _debugForm.Show();
+        }
+
+        private static E233MonitorStates CreateStates()
+        {
+            return new E233MonitorStates { SupportsTasc = true };
         }
 
         protected override void OnLoad(EventArgs e)
@@ -233,12 +232,23 @@ namespace JREMonitors.SandBox
                 case Keys.D7:
                     _monitor2.ChangeScreen(ScreenIds.C01AB);
                     break;
+                case Keys.D8:
+                    ToggleSupportsTasc(_monitor1);
+                    ToggleSupportsTasc(_monitor2);
+                    ToggleSupportsTasc(_monitor3);
+                    break;
                 case Keys.S:
                     _timsService.VehicleDirection = _timsService.VehicleDirection == TIMSVehicleDirection.Left
                         ? TIMSVehicleDirection.Right
                         : TIMSVehicleDirection.Left;
                     break;
             }
+        }
+
+        private void ToggleSupportsTasc(Monitor monitor)
+        {
+            var monitorStates = monitor.LocalDataHub.Get<E233MonitorStates>();
+            monitorStates.SupportsTasc = !monitorStates.SupportsTasc;
         }
 
         protected override void OnFormClosed(FormClosedEventArgs e)

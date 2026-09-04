@@ -16,7 +16,6 @@ namespace JREMonitors.Core.Monitors
             Size size,
             float backgroundRefreshSpeed,
             bool clearWhenSwitchingTo,
-            Color4 backgroundColor,
             bool isBackgroundStatic = true
         )
         {
@@ -25,7 +24,6 @@ namespace JREMonitors.Core.Monitors
             AvailableIds = availableIds.ToArray();
             Size = size;
             BackgroundRefreshSpeed = backgroundRefreshSpeed;
-            BackgroundColor = backgroundColor;
             ClearWhenSwitchingTo = clearWhenSwitchingTo;
             IsBackgroundStatic = isBackgroundStatic;
         }
@@ -35,16 +33,15 @@ namespace JREMonitors.Core.Monitors
             Size size,
             float backgroundRefreshSpeed,
             bool clearWhenSwitchingTo,
-            Color4 backgroundColor,
             bool isBackgroundStatic = true
-        ) : this(new[] { id }, size, backgroundRefreshSpeed, clearWhenSwitchingTo, backgroundColor, isBackgroundStatic)
+        ) : this(new[] { id }, size, backgroundRefreshSpeed, clearWhenSwitchingTo, isBackgroundStatic)
         {
         }
 
         public string[] AvailableIds { get; }
         public Size Size { get; }
         public float BackgroundRefreshSpeed { get; }
-        public Color4 BackgroundColor { get; }
+        public virtual Color4 BackgroundColor => default;
         public bool ClearWhenSwitchingTo { get; }
         public bool IsBackgroundStatic { get; }
         protected Widget BackgroundRoot { get; set; }

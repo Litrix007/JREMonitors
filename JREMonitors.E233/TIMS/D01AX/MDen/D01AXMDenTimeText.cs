@@ -40,7 +40,7 @@ namespace JREMonitors.E233.TIMS.D01AX.MDen
                     {
                         new BitmapScaleDrawer.DrawerProperties(
                             this.CreateTIMSTextLayout(context: scopedContext,
-                                documentSource: CreateComputed(() => RichTextParser.Raw(hoursAndMinutes.Value))), 2, 1),
+                                documentSource: CreateComputed(() => RichTextParser.Raw(hoursAndMinutes.Value))), 2),
                         new BitmapScaleDrawer.DrawerProperties(
                             this.CreateTIMSTextLayout(context: scopedContext,
                                 documentSource: CreateComputed(() => RichTextParser.Raw(seconds.Value)),

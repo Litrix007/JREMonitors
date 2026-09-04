@@ -16,7 +16,7 @@ namespace JREMonitors.SandBox.Providers
         public bool IsCompressorWorking { get; set; } = false;
         public float Current { get; set; } = 0;
         public int PowerNotch { get; set; } = 0;
-        public int BrakeNotch { get; set; } = 1;
+        public int BrakeNotch { get; set; } = 9;
         public int TascBrakeNotch => 2;
         public bool AreAllDoorClosed { get; set; } = false;
         public float MotorForceFeedback { get; set; } = 50;

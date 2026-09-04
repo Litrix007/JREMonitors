@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using JREMonitors.Core.Contexts;
 using JREMonitors.Core.Monitors;
@@ -73,15 +73,15 @@ namespace JREMonitors.E233
                         null,
                         null),
                     new C01AASpec(true),
-                    false,
                     true),
                 spec => new D00AAScreen(context, new D00AAButtonGroup0(context, spec)),
                 spec => new D01AXScreen(context, spec, new D01AXTrainTypeButtonGroup0(context)),
                 spec => new D05AAScreen(context, spec, new D05AABrakeInformation0(context, spec)),
                 spec => new D05ABScreen(context, spec),
                 spec => new C00AAScreen(context, new C00AAButtonGroup(context, spec)),
-                () => new TidChangeToTIMSWarningScreen(context, Images.MeterScreenWithSafetyLamps0,
-                    Images.TidScreenWithSafetyLamps0),
+                () => new TidChangeToTIMSWarningScreen(context, Images.MeterScreenWithSafetyLampsAndTasc0,
+                    Images.TidScreenWithSafetyLampsLampsAndTasc0, Images.MeterScreenWithSafetyLampsNoTasc0,
+                    Images.TidScreenWithSafetyLampsNoTasc0),
                 customScreens
             );
         }
@@ -105,15 +105,15 @@ namespace JREMonitors.E233
                         null,
                         null),
                     new C01AASpec(false),
-                    false,
                     false),
                 spec => new D00AAScreen(context, new D00AAButtonGroup1000(context, spec)),
                 spec => new D01AXScreen(context, spec, new D01AXTrainTypeButtonGroup(context, false)),
                 spec => new D05AAScreen(context, spec, new D05AABrakeInformation1000(context, spec)),
                 spec => new D05ABScreen(context, spec, new D05ABDataTable1000(context, spec)),
                 spec => new C00AAScreen(context, new C00AAButtonGroup1000(context, spec)),
-                () => new TidChangeToTIMSWarningScreen(context, Images.MeterScreenWithSafetyLamps1000,
-                    Images.TidScreenWithSafetyLamps1000),
+                () => new TidChangeToTIMSWarningScreen(context, Images.MeterScreenWithSafetyLampsAndTasc1000,
+                    Images.TidScreenWithSafetyLampsAndTasc1000, Images.MeterScreenWithSafetyLampsNoTasc1000,
+                    Images.TidScreenWithSafetyLampsNoTasc1000),
                 customScreens
             );
         }
@@ -137,7 +137,6 @@ namespace JREMonitors.E233
                         Colors.Red.ToColor3(),
                         MonitorColors.White.ToColor3()),
                     new C01AASpec(false),
-                    true,
                     false),
                 spec => new D00AAScreen(context, new D00AAButtonGroup(context, spec)),
                 spec => new D01AXScreen(context, spec, new D01AXTrainTypeButtonGroup(context, true)),
@@ -169,7 +168,6 @@ namespace JREMonitors.E233
                         null,
                         null),
                     new C01AASpec(true),
-                    false,
                     false),
                 spec => new D00AAScreen(context, new D00AAButtonGroup5000(context, spec)),
                 spec => new D01AXScreen(context, spec, new D01AXTrainTypeButtonGroup(context, true)),

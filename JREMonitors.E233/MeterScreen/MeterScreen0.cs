@@ -3,6 +3,7 @@ using JREMonitors.Core.Monitors;
 using JREMonitors.E233.Constants;
 using JREMonitors.E233.MeterScreen.Background;
 using JREMonitors.E233.MeterScreen.Foreground;
+using Vortice.Mathematics;
 
 namespace JREMonitors.E233.MeterScreen
 {
@@ -13,12 +14,13 @@ namespace JREMonitors.E233.MeterScreen
             ScreenSizes.MeterScreenSize,
             RefreshSpeeds.Fast,
             true,
-            MonitorColors.MeterScreenBackground,
             false
         )
         {
             BackgroundRoot = new MeterBackgroundRoot0(context);
             ForegroundRoot = new MeterForegroundRoot0(context);
         }
+
+        public override Color4 BackgroundColor => MonitorColors.MeterScreenBackground;
     }
 }

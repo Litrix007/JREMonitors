@@ -60,6 +60,8 @@ namespace JREMonitors.E233.TIMS.D01AX
     {
         private TickTracker _blinkTickTracker;
         private TIMSService _timsService;
+        private E233MonitorStates _monitorStates;
+        public Signal<bool> SupportsTasc { get; } = new Signal<bool>();
         public Signal<bool> IsTrainSelectionPressed { get; } = new Signal<bool>();
         public Signal<bool> IsSetButtonHighlighted { get; } = new Signal<bool>();
 
@@ -68,6 +70,7 @@ namespace JREMonitors.E233.TIMS.D01AX
             var delayService = dataHub.Get<DelayService>();
             _blinkTickTracker = new TickTracker(delayService.GetDelayProvider(DelayTypes.Blink));
             _timsService = dataHub.Get<TIMSService>();
+            _monitorStates = dataHub.Get<E233MonitorStates>();
         }
 
         protected override void OnEnter()
@@ -80,6 +83,7 @@ namespace JREMonitors.E233.TIMS.D01AX
             var isTrainSelectionActive = _timsService.CurrentSelectionType == TIMSSelectionType.TrainSelection;
             IsTrainSelectionPressed.Value = isTrainSelectionActive;
             IsSetButtonHighlighted.Value = isTrainSelectionActive && TIMSHelper.IsBlink(_blinkTickTracker.Sync());
+            SupportsTasc.Value = _monitorStates.SupportsTasc;
         }
 
         public void SelectTrainType()
@@ -107,8 +111,17 @@ namespace JREMonitors.E233.TIMS.D01AX
     {
         public D01AXTrainTypeButtonGroup0(RenderContext context) : base(context, true)
         {
-            InsertChild(this.CreateTIMSFlexButton("次駅停車\nクリア", 1, 1, clickable: new Signal<bool>()));
-            InsertChild(this.CreateTIMSFlexButton("ＴＡＳＣ\n次駅停車", 1, 1, clickable: new Signal<bool>()));
+            var button1 = this.CreateTIMSFlexButton("次駅停車\nクリア", 1, 1, clickable: new Signal<bool>());
+            button1.IsVisible.Bind(ViewModel.SupportsTasc);
+            InsertChild(button1);
+            var button2 = this.CreateTIMSFlexButton("ＴＡＳＣ\n次駅停車", 1, 1, clickable: new Signal<bool>());
+            button2.IsVisible.Bind(ViewModel.SupportsTasc);
+            InsertChild(button2);
+            WatchEffect(() =>
+            {
+                if (IsOffScreen || IsFirstUpdate) return;
+                Context.DisplayController.RequestReset();
+            }, ViewModel.SupportsTasc);
         }
     }
 }

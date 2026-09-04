@@ -26,6 +26,7 @@ namespace JREMonitors.Core.Layouts
         public TElement ElementB { get; }
         public AdjacencyDirection DirectionFromAToB { get; }
         public float Spacing { get; }
+        public bool Enabled { get; set; } = true;
     }
 
     public abstract class AdjacencyManagerBase<TElement, TState> where TElement : class, IExpandableElement<TState>
@@ -43,12 +44,15 @@ namespace JREMonitors.Core.Layouts
                 _elements.Add(element);
         }
 
-        public void AddConnection(TElement elementA, TElement elementB, AdjacencyDirection direction, float spacing)
+        public AdjacencyConnection<TElement, TState> AddConnection(
+            TElement elementA, TElement elementB, AdjacencyDirection direction, float spacing)
         {
-            if (elementA == null || elementB == null) return;
+            if (elementA == null || elementB == null) return null;
             RegisterElement(elementA);
             RegisterElement(elementB);
-            _connections.Add(new AdjacencyConnection<TElement, TState>(elementA, elementB, direction, spacing));
+            var connection = new AdjacencyConnection<TElement, TState>(elementA, elementB, direction, spacing);
+            _connections.Add(connection);
+            return connection;
         }
 
         public void AddFromRow(Row row, float spacing)
@@ -100,49 +104,60 @@ namespace JREMonitors.Core.Layouts
 
                 var maxA = a.MaxDynamicExpansion;
                 var maxB = b.MaxDynamicExpansion;
-
-                var isActiveA = IsActive(a.ExpansionState);
-                var isActiveB = IsActive(b.ExpansionState);
-
-                var staticA = isActiveA
-                    ? dir == AdjacencyDirection.Right ? a.StaticExtensionRight : a.StaticExtensionBottom
-                    : 0f;
-                var staticB = isActiveB
-                    ? dir == AdjacencyDirection.Right ? b.StaticExtensionLeft : b.StaticExtensionTop
-                    : 0f;
-
-                var effectiveSpacing = s - staticA - staticB;
-
-                var limitA = maxA;
-                var limitB = maxB;
-
-                if (isActiveA && isActiveB)
+                float limitA;
+                float limitB;
+                if (!conn.Enabled)
                 {
-                    if (effectiveSpacing < 0)
+                    limitA = -1f;
+                    limitB = -1f;
+                }
+                else
+                {
+                    var isActiveA = IsActive(a.ExpansionState);
+                    var isActiveB = IsActive(b.ExpansionState);
+
+                    var staticA = isActiveA
+                        ? dir == AdjacencyDirection.Right ? a.StaticExtensionRight : a.StaticExtensionBottom
+                        : 0f;
+                    var staticB = isActiveB
+                        ? dir == AdjacencyDirection.Right ? b.StaticExtensionLeft : b.StaticExtensionTop
+                        : 0f;
+
+                    var effectiveSpacing = s - staticA - staticB;
+
+                    if (isActiveA && isActiveB)
+                    {
+                        if (effectiveSpacing < 0)
+                        {
+                            limitA = 0;
+                            limitB = 0;
+                        }
+                        else if (maxA + maxB > effectiveSpacing)
+                        {
+                            limitA = Math.Min(maxA, effectiveSpacing / 2f);
+                            limitB = Math.Min(maxB, effectiveSpacing / 2f);
+                        }
+                        else
+                        {
+                            limitA = maxA;
+                            limitB = maxB;
+                        }
+                    }
+                    else if (isActiveA)
+                    {
+                        limitA = Math.Min(maxA, Math.Max(0, effectiveSpacing));
+                        limitB = 0;
+                    }
+                    else if (isActiveB)
+                    {
+                        limitA = 0;
+                        limitB = Math.Min(maxB, Math.Max(0, effectiveSpacing));
+                    }
+                    else
                     {
                         limitA = 0;
                         limitB = 0;
                     }
-                    else if (maxA + maxB > effectiveSpacing)
-                    {
-                        limitA = Math.Min(maxA, effectiveSpacing / 2f);
-                        limitB = Math.Min(maxB, effectiveSpacing / 2f);
-                    }
-                }
-                else if (isActiveA)
-                {
-                    limitA = Math.Min(maxA, Math.Max(0, effectiveSpacing));
-                    limitB = 0;
-                }
-                else if (isActiveB)
-                {
-                    limitA = 0;
-                    limitB = Math.Min(maxB, Math.Max(0, effectiveSpacing));
-                }
-                else
-                {
-                    limitA = 0;
-                    limitB = 0;
                 }
 
                 var currentA = limits[a];

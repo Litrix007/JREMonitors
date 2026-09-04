@@ -42,7 +42,9 @@ namespace JREMonitors.BveEx.Builders.Base
             Dictionary<string, Monitor> monitors, TConfig vehicleConfig)
         {
             base.PopulateMonitorLocalDataHub(context, monitors, vehicleConfig);
-            foreach (var monitor in monitors.Values) monitor.LocalDataHub.Put(new E233MonitorStates());
+            var supportsTasc = vehicleConfig.EffectiveSupportsTasc;
+            foreach (var monitor in monitors.Values)
+                monitor.LocalDataHub.Put(new E233MonitorStates { SupportsTasc = supportsTasc });
             var interlockMediator = new E233MonitorInterlockMediator(monitors);
             context.TickUpdateManager.Register(interlockMediator);
             context.RootDataHub.Put(interlockMediator);
@@ -53,9 +55,10 @@ namespace JREMonitors.BveEx.Builders.Base
         {
             base.PopulateMonitorLocalDataHub(context, monitors, vehicleConfig);
             var mediator = context.RootDataHub.GetOrNull<E233MonitorInterlockMediator>();
+            var supportsTasc = vehicleConfig.EffectiveSupportsTasc;
             foreach (var monitor in monitors)
             {
-                monitor.LocalDataHub.Put(new E233MonitorStates());
+                monitor.LocalDataHub.Put(new E233MonitorStates { SupportsTasc = supportsTasc });
                 mediator?.AddMonitor(monitor);
             }
         }
@@ -77,6 +80,18 @@ namespace JREMonitors.BveEx.Builders.Base
                 newConfig.TIMS.ExternalTemperature, newConfig.TIMS.BaseHumidity);
             var icCardService = context.RootDataHub.Get<BveTIMSICCardService<E233SignalSystem>>();
             icCardService.Reconfigure(newConfig, newConfig.TIMS.ICCardPath?.GetAbsolutePath());
+        }
+
+        protected override void ReconfigureMonitorLocal(VehicleBuildContext context, TConfig oldConfig,
+            TConfig newConfig, IList<Monitor> monitors)
+        {
+            base.ReconfigureMonitorLocal(context, oldConfig, newConfig, monitors);
+            var supportsTasc = newConfig.EffectiveSupportsTasc;
+            foreach (var monitor in monitors)
+            {
+                var states = monitor.LocalDataHub.GetOrNull<E233MonitorStates>();
+                if (states != null) states.SupportsTasc = supportsTasc;
+            }
         }
 
         protected override void PostPopulateRootDataHub(VehiclePostBuildContext context, TConfig vehicleConfig)

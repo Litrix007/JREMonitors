@@ -3,6 +3,7 @@ using System.Drawing;
 using JREMonitors.Core.Contexts;
 using JREMonitors.Core.Layouts;
 using JREMonitors.Core.Layouts.Text;
+using JREMonitors.Core.Reactive;
 using JREMonitors.Core.Widgets;
 using JREMonitors.E233.Constants;
 using JREMonitors.E233.Lamps;
@@ -59,6 +60,9 @@ namespace JREMonitors.E233.MeterScreen.LampGroups
                 onBorderRadius: lampOnBorderRadius,
                 onInnerShadowWidth: lampOnInnerShadowWidth,
                 expandToFillGaps: true);
+            _inchingActivatedLamp.IsVisible.Bind(inchingActivatedLampProperties.IsVisible);
+            _inchingActivatedLamp.SkipArrangeWhenHidden.Value = false;
+            _inchingActivatedLamp.IncludeInTotalMajorDimensionSizeWhenHidden.Value = true;
             _inchingActivatedLamp.On.Bind(ViewModel.IsInchingActivatedLit);
             var row1Children = new List<Widget>
                 { inchingActivatedLampProperties.IsBottom ? null : _inchingActivatedLamp };
@@ -219,13 +223,16 @@ namespace JREMonitors.E233.MeterScreen.LampGroups
             public readonly float SizeLimit;
             public readonly string Text;
             public readonly float FontSize;
+            public readonly IValueSignal<bool> IsVisible;
 
-            public InchingActivatedLampProperties(bool isBottom, float sizeLimit, string text, float fontSize)
+            public InchingActivatedLampProperties(bool isBottom, float sizeLimit, string text, float fontSize,
+                IValueSignal<bool> isVisible)
             {
                 IsBottom = isBottom;
                 SizeLimit = sizeLimit;
                 Text = text;
                 FontSize = fontSize;
+                IsVisible = isVisible;
             }
         }
     }

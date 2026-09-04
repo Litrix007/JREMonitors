@@ -21,6 +21,8 @@ namespace JREMonitors.BveEx.Builders.Base
             VehicleConfig config, DataHub dataHub);
 
         void Reconfigure(VehicleBuildContext context, VehicleConfig oldConfig, VehicleConfig newConfig);
+        void ReconfigureMonitorLocal(VehicleBuildContext context, VehicleConfig oldConfig, VehicleConfig newConfig,
+            IList<Monitor> monitors);
 
         void PopulateMonitorLocalDataHub(VehicleBuildContext context, IReadOnlyCollection<Monitor> newMonitors,
             VehicleConfig config);

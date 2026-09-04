@@ -24,11 +24,12 @@ namespace JREMonitors.Core.Widgets
             Slowest
         }
 
+        protected override bool SkipUpdateWhenHidden => false;
         private readonly FrameCollector _frameCollector = new FrameCollector();
         private readonly RefreshPolicy _refreshPolicy;
         private readonly RefreshSpeedPreferences _refreshSpeedPreferences;
-
         private readonly Dictionary<string, Widget> _widgets = new Dictionary<string, Widget>();
+        private readonly HashSet<Widget> _addedWidgets = new HashSet<Widget>();
         private string _displayedWidgetId;
         private bool _pendingFadeIn;
 
@@ -47,9 +48,15 @@ namespace JREMonitors.Core.Widgets
             WatchEffect(EffectPhase.State, () =>
             {
                 var newId = ActiveWidgetId.Value;
-                if (newId == null || !_widgets.TryGetValue(newId, out _)) return;
+                if (newId == null || !_widgets.TryGetValue(newId, out var newWidget)) return;
                 if (newId == _displayedWidgetId) return;
                 var prevId = _displayedWidgetId;
+                if (prevId != null && _widgets.TryGetValue(prevId, out var prevWidget) && prevWidget == newWidget)
+                {
+                    _displayedWidgetId = newId;
+                    return;
+                }
+
                 _displayedWidgetId = newId;
 
                 if (_refreshPolicy == RefreshPolicy.FadeOutThenFadeIn && prevId != null)
@@ -73,17 +80,19 @@ namespace JREMonitors.Core.Widgets
 
         public override RectangleF SelfRelativeDirtyBounds => RectangleF.Empty;
 
+        public bool Add(string id, Widget widget) => Add(widget, id);
 
-        public string CurrentWidgetId => ActiveWidgetId.Value;
-
-        public void Add(string id, Widget widget)
+        public bool Add(Widget widget, params string[] ids)
         {
-            AddChild(widget);
-            _widgets[id] = widget;
+            var hasNotAdded = _addedWidgets.Add(widget);
+            if (hasNotAdded) AddChild(widget);
+            foreach (var id in ids) _widgets[id] = widget;
+            return hasNotAdded;
         }
 
         public void SetActiveWidget(string widgetId)
         {
+            if (!_widgets.ContainsKey(widgetId)) return;
             ActiveWidgetId.Value = widgetId;
         }
 

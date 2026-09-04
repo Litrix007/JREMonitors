@@ -9,7 +9,7 @@ using JREMonitors.Core.Widgets;
 
 namespace JREMonitors.Core.Layouts
 {
-    public class Row : Widget, ILayoutable
+    public class Row : Group, ILayoutable
     {
         private readonly bool _positionSnapToPixels;
         private readonly float _rowHorizontalAlignment;
@@ -40,7 +40,7 @@ namespace JREMonitors.Core.Layouts
             bool skipArrangeWhenHidden = true,
             bool spreadWidthFlex = true,
             bool spreadHeightFlex = true
-        ) : base(context, x, y)
+        ) : base(context, x, y, widgets?.ToArray())
         {
             ExplicitAvailableWidth = CreatePropertySlot(DirtyType.Layout, explicitAvailableWidth);
             FallbackFlexUnitWidth = CreatePropertySlot(DirtyType.Layout, fallbackFlexUnitWidth);
@@ -107,9 +107,6 @@ namespace JREMonitors.Core.Layouts
                 var pref = PreferredWidth.Value;
                 return pref.AbsoluteValue + pref.FlexValue * FallbackFlexUnitWidth.Value;
             });
-            if (widgets == null) return;
-            foreach (var widget in widgets)
-                AddChild(widget);
         }
 
         public PropertySlot<float> ExplicitAvailableWidth { get; }
@@ -174,19 +171,9 @@ namespace JREMonitors.Core.Layouts
                 widgets, rowHorizontalAlign, rowVerticalAlign, widgetVerticalAlign, bounds.Width, positionSnapToPixels);
         }
 
-        public new void AddChild(Widget widget, bool isGlobalPosition = false)
+        protected override Widget CreateFallbackWidget()
         {
-            base.AddChild(widget ?? new PlaceHolder(Context), isGlobalPosition);
-        }
-
-        public new void InsertChild(Widget widget, int index = 0, bool isGlobalPosition = false)
-        {
-            base.InsertChild(widget, index, isGlobalPosition);
-        }
-
-        public new void InsertChildAfter(Widget widget, Widget afterWidget, bool isGlobalPosition = false)
-        {
-            base.InsertChildAfter(widget, afterWidget, isGlobalPosition);
+            return new PlaceHolder(Context);
         }
 
         public void UpdateFromBounds(RectangleF bounds)

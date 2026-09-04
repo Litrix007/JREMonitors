@@ -12,6 +12,8 @@ namespace JREMonitors.BveEx.Configs.Vehicle
     public class E233_1000Config : E233Config
     {
         public override string VehicleName => "E233-1000";
+        protected override bool DefaultSupportsTasc => true;
+        protected override bool CanSetSupportsTasc => true;
 
         public override HashSet<string> AllowedInputs => base.AllowedInputs.Union(DirectInputIds.Atc6LampIds)
             .Union(DirectInputIds.DatcLampIds).Union(DirectInputIds.TascBaseLampIds)

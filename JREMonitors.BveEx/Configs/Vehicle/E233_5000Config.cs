@@ -14,6 +14,9 @@ namespace JREMonitors.BveEx.Configs.Vehicle
     {
         public override string VehicleName => "E233-5000";
 
+        protected override bool DefaultSupportsTasc => false;
+        protected override bool CanSetSupportsTasc => false;
+
         public override HashSet<string> AllowedInputs =>
             base.AllowedInputs
                 .Union(DirectInputIds.AtsPLampIds)

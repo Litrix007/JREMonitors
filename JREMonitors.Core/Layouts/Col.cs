@@ -177,19 +177,9 @@ namespace JREMonitors.Core.Layouts
                 positionSnapToPixels);
         }
 
-        public new void AddChild(Widget widget, bool isGlobalPosition = false)
+        protected override Widget CreateFallbackWidget()
         {
-            base.AddChild(widget ?? new PlaceHolder(Context), isGlobalPosition);
-        }
-
-        public new void InsertChild(Widget widget, int index = 0, bool isGlobalPosition = false)
-        {
-            base.InsertChild(widget, index, isGlobalPosition);
-        }
-
-        public new void InsertChildAfter(Widget widget, Widget afterWidget, bool isGlobalPosition = false)
-        {
-            base.InsertChildAfter(widget, afterWidget, isGlobalPosition);
+            return new PlaceHolder(Context);
         }
 
         public void UpdateFromBounds(RectangleF bounds)

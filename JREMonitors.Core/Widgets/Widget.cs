@@ -620,6 +620,11 @@ namespace JREMonitors.Core.Widgets
         {
         }
 
+        protected virtual Widget CreateFallbackWidget()
+        {
+            return null;
+        }
+
         public virtual void Reset()
         {
             if (_hub != null) ViewModel?.Reset();
@@ -634,6 +639,11 @@ namespace JREMonitors.Core.Widgets
 
         protected void AddChild(Widget widget, bool isGlobalPosition = false)
         {
+            if (widget == null)
+            {
+                widget = CreateFallbackWidget();
+            }
+
             if (widget == null) return;
             Children.Add(widget);
             widget.OnInvalidated += OnChildInvalidated;
@@ -652,6 +662,12 @@ namespace JREMonitors.Core.Widgets
 
         protected void InsertChild(Widget widget, int index = 0, bool isGlobalPosition = false)
         {
+            if (widget == null)
+            {
+                widget = CreateFallbackWidget();
+            }
+
+            if (widget == null) return;
             Children.Insert(index, widget);
             widget.OnInvalidated += OnChildInvalidated;
             if (isGlobalPosition) widget.IsGlobalPosition = true;
@@ -659,6 +675,13 @@ namespace JREMonitors.Core.Widgets
 
         protected void InsertChildAfter(Widget widget, Widget afterWidget, bool isGlobalPosition = false)
         {
+            if (afterWidget == null) return;
+            if (widget == null)
+            {
+                widget = CreateFallbackWidget();
+            }
+
+            if (widget == null) return;
             var index = Children.IndexOf(afterWidget);
             if (index == -1) throw new InvalidOperationException($"{afterWidget.GetType()} not found in children.");
             InsertChild(widget, index + 1, isGlobalPosition);

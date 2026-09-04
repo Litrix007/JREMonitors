@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 using JREMonitors.BveEx.Configs.Vehicle.TIMS;
@@ -70,6 +71,21 @@ namespace JREMonitors.BveEx.Configs.Vehicle
             set => _tims = value ?? new TIMSConfig();
         }
 
+        /// <summary>
+        ///     是否搭载了TASC设备。
+        /// </summary>
+        /// <remarks>
+        ///     仅 <see cref="CanSetSupportsTasc" /> 为 true 的番台允许设置。
+        ///     其余番台固定为 <see cref="DefaultSupportsTasc" />，且不允许设置。
+        /// </remarks>
+        public bool? SupportsTasc { get; set; }
+
+        protected abstract bool DefaultSupportsTasc { get; }
+        protected abstract bool CanSetSupportsTasc { get; }
+
+        public bool EffectiveSupportsTasc =>
+            CanSetSupportsTasc ? SupportsTasc ?? DefaultSupportsTasc : DefaultSupportsTasc;
+
         public static class LightingDefaults
         {
             public const float NightAdaptationGain = 1.3f;
@@ -77,6 +93,13 @@ namespace JREMonitors.BveEx.Configs.Vehicle
             public const float CompressThresholdNight = 0.75f;
             public const float PanelContrastRatio = 1200.0f;
             public static readonly Color3 LeakColor = "#E8EFFF".ToColor3();
+        }
+
+        public override void Validate()
+        {
+            base.Validate();
+            if (!CanSetSupportsTasc && SupportsTasc.HasValue)
+                throw new JsonException($"supportsTasc is not supported for {VehicleName}");
         }
     }
 }

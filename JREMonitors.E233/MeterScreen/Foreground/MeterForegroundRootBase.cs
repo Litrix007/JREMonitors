@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using System.Collections.Generic;
+using System.Numerics;
 using JREMonitors.Core.Contexts;
 using JREMonitors.Core.Layouts;
 using JREMonitors.Core.Layouts.Text;
@@ -21,8 +22,9 @@ namespace JREMonitors.E233.MeterScreen.Foreground
 {
     public abstract class MeterForegroundRootBase : Widget<MeterForegroundRootBaseViewModel>
     {
-        private static readonly string IdSafetyLampsHidden = "SafetyLampsHidden";
-        private static readonly string IdSafetyLampsVisible = "SafetyLampsVisible";
+        private const string IdSafetyLampsHidden = "SafetyLampsHidden";
+        private const string IdVisibleWithTasc = "VisibleWithTasc";
+        private const string IdVisibleWithoutTasc = "VisibleWithoutTasc";
 
         private static readonly DropShadow[] EbLampOnDropShadows =
         {
@@ -41,28 +43,31 @@ namespace JREMonitors.E233.MeterScreen.Foreground
         private readonly Lamp _holdSpeedLamp;
         private readonly WidgetSwitcher _lampPanelSwitcher;
         private readonly LampPanel _lampPanelWhenSafetyLampsHidden;
+        private readonly List<LampPanel> _safetyLampsVisiblePanels = new List<LampPanel>();
         private readonly MrForeground _mrForeground;
         private readonly bool _showHoldSpeedLamp;
         private readonly SpeedNumTitle _speedNumTitle;
         protected readonly InfoButtonGroup InfoButtonGroup;
-        private LampPanel _lampPanelWhenSafetyLampsVisible;
 
         protected RootProperties RootPropertiesWithoutSafetyLamps;
         protected RootProperties RootPropertiesWithSafetyLamps;
+        protected readonly float SpeedOffsetY;
 
         public MeterForegroundRootBase(
             RenderContext context,
             RootProperties propertiesWithSafetyLamps,
-            RootProperties propertiesWithoutSafetyLamps
+            RootProperties propertiesWithoutSafetyLamps,
+            float speedOffsetY
         ) : base(context)
         {
             ViewModel = new MeterForegroundRootBaseViewModel();
             RootPropertiesWithSafetyLamps = propertiesWithSafetyLamps;
             RootPropertiesWithoutSafetyLamps = propertiesWithoutSafetyLamps;
+            SpeedOffsetY = speedOffsetY;
             _showHoldSpeedLamp = propertiesWithSafetyLamps.ShowHoldSpeedLamp;
             InfoButtonGroup = new InfoButtonGroup(context, 10, new Vector2(1024, 768));
             AddChild(InfoButtonGroup);
-            _speedNumTitle = new SpeedNumTitle(context, 840, 728 + propertiesWithSafetyLamps.SpeedOffsetY);
+            _speedNumTitle = new SpeedNumTitle(context, 840, 728 + SpeedOffsetY);
             AddChild(_speedNumTitle);
             _mrForeground = new MrForeground(context, 354, 333);
             AddChild(_mrForeground);
@@ -122,36 +127,12 @@ namespace JREMonitors.E233.MeterScreen.Foreground
             AddChild(_lampPanelSwitcher);
             WatchEffect(EffectPhase.State, () =>
             {
+                var activeLampPanelId = ResolveActiveLampPanelId();
                 _lampPanelWhenSafetyLampsHidden.Clickable = ViewModel.IsSafetyLampsVisibleExternally;
-                if (_lampPanelWhenSafetyLampsVisible != null)
-                    _lampPanelWhenSafetyLampsVisible.Clickable = ViewModel.IsSafetyLampsVisibleExternally;
-                if (ViewModel.IsSafetyLampVisible)
-                {
-                    _deviceVoltGaugeNeedle.X.Value = RootPropertiesWithSafetyLamps.DeviceVoltageGaugePos.X;
-                    _deviceVoltGaugeNeedle.Y.Value = RootPropertiesWithSafetyLamps.DeviceVoltageGaugePos.Y;
-                    _deviceVoltGaugeNeedle.Scale.Value = RootPropertiesWithSafetyLamps.DeviceVoltageSectorRadius /
-                                                         DeviceVoltGaugeBackground.SectorRadius;
-                    _catenaryVoltGaugeNeedle.X.Value = RootPropertiesWithSafetyLamps.CatenaryVoltageGaugePos.X;
-                    _catenaryVoltGaugeNeedle.Y.Value = RootPropertiesWithSafetyLamps.CatenaryVoltageGaugePos.Y;
-                    _catenaryVoltGaugeNeedle.Scale.Value = RootPropertiesWithSafetyLamps.CatenaryVoltageSectorRadius /
-                                                           CatenaryVoltGaugeBackground.SectorRadius;
-                }
-                else
-                {
-                    _deviceVoltGaugeNeedle.X.Value = RootPropertiesWithoutSafetyLamps.DeviceVoltageGaugePos.X;
-                    _deviceVoltGaugeNeedle.Y.Value = RootPropertiesWithoutSafetyLamps.DeviceVoltageGaugePos.Y;
-                    _deviceVoltGaugeNeedle.Scale.Value = RootPropertiesWithoutSafetyLamps.DeviceVoltageSectorRadius /
-                                                         DeviceVoltGaugeBackground.SectorRadius;
-                    _catenaryVoltGaugeNeedle.X.Value = RootPropertiesWithoutSafetyLamps.CatenaryVoltageGaugePos.X;
-                    _catenaryVoltGaugeNeedle.Y.Value = RootPropertiesWithoutSafetyLamps.CatenaryVoltageGaugePos.Y;
-                    _catenaryVoltGaugeNeedle.Scale.Value =
-                        RootPropertiesWithoutSafetyLamps.CatenaryVoltageSectorRadius /
-                        CatenaryVoltGaugeBackground.SectorRadius;
-                }
-
-                _lampPanelSwitcher.SetActiveWidget(ViewModel.IsSafetyLampVisible
-                    ? IdSafetyLampsVisible
-                    : IdSafetyLampsHidden);
+                foreach (var panel in _safetyLampsVisiblePanels)
+                    panel.Clickable = ViewModel.IsSafetyLampsVisibleExternally;
+                OnLampPanelStateResolved(activeLampPanelId);
+                _lampPanelSwitcher.SetActiveWidget(activeLampPanelId);
                 _deviceVoltGaugeNeedle.Degree.Value = -210 + 210 * ViewModel.DeviceVoltage / 150;
                 _catenaryVoltGaugeNeedle.Degree.Value = -210 + 210 * ViewModel.CatenaryVoltage / 2000;
                 _speedNumTitle.Speed = ViewModel.Speed;
@@ -162,13 +143,70 @@ namespace JREMonitors.E233.MeterScreen.Foreground
                 _ebLamp.On.Value = ViewModel.Eb;
                 if (_showHoldSpeedLamp) _holdSpeedLamp.On.Value = ViewModel.HoldSpeed;
             });
+            WatchEffect(() =>
+            {
+                if (IsOffScreen || IsFirstUpdate) return;
+                context.DisplayController.RequestReset();
+            }, ViewModel.SupportsTasc);
+        }
+
+        protected void ApplyLayout(RootProperties properties)
+        {
+            _deviceVoltGaugeNeedle.X.Value = properties.DeviceVoltageGaugePos.X;
+            _deviceVoltGaugeNeedle.Y.Value = properties.DeviceVoltageGaugePos.Y;
+            _deviceVoltGaugeNeedle.Scale.Value = properties.DeviceVoltageSectorRadius /
+                                                 DeviceVoltGaugeBackground.SectorRadius;
+            _catenaryVoltGaugeNeedle.X.Value = properties.CatenaryVoltageGaugePos.X;
+            _catenaryVoltGaugeNeedle.Y.Value = properties.CatenaryVoltageGaugePos.Y;
+            _catenaryVoltGaugeNeedle.Scale.Value =
+                properties.CatenaryVoltageSectorRadius / CatenaryVoltGaugeBackground.SectorRadius;
+            _ebLamp.Y.Value = properties.ShowHoldSpeedLamp ? 290 : 333;
+        }
+
+        protected virtual void OnSafetyLampsVisible()
+        {
+            ApplyLayout(RootPropertiesWithSafetyLamps);
+        }
+
+        protected virtual string ResolveActiveLampPanelId()
+        {
+            if (!ViewModel.IsSafetyLampVisible) return IdSafetyLampsHidden;
+            return ViewModel.SupportsTasc ? IdVisibleWithTasc : IdVisibleWithoutTasc;
+        }
+
+        protected virtual void OnLampPanelStateResolved(string activeLampPanelId)
+        {
+            if (activeLampPanelId == IdSafetyLampsHidden) ApplyLayout(RootPropertiesWithoutSafetyLamps);
+            else OnSafetyLampsVisible();
+        }
+
+        protected void AddLampPanel(string id, LampPanel lampPanel)
+        {
+            RegisterSafetyLampsVisiblePanel(lampPanel, id);
         }
 
         protected void AddLampPanelWhenSafetyLampsVisible(LampPanel lampPanel)
         {
-            _lampPanelWhenSafetyLampsVisible = lampPanel;
-            lampPanel.OnClick += OnLampPanelClick;
-            _lampPanelSwitcher.Add(IdSafetyLampsVisible, lampPanel);
+            AddLampPanel(IdVisibleWithTasc, lampPanel);
+        }
+
+        protected void AddLampPanelWhenSafetyLampsVisibleWithoutTasc(LampPanel lampPanel)
+        {
+            AddLampPanel(IdVisibleWithoutTasc, lampPanel);
+        }
+
+        protected static LampPanel CreateSafetyLampsVisiblePanel(RenderContext context, params Widget[] lamps)
+        {
+            return new LampPanel(context, 1023, 432, 310, children: lamps);
+        }
+
+        private void RegisterSafetyLampsVisiblePanel(LampPanel lampPanel, string id)
+        {
+            if (_lampPanelSwitcher.Add(id, lampPanel))
+            {
+                lampPanel.OnClick += OnLampPanelClick;
+                _safetyLampsVisiblePanels.Add(lampPanel);
+            }
         }
 
         private LampPanel CreateLampPanelWhenSafetyLampsHidden()

@@ -75,6 +75,20 @@ namespace JREMonitors.BveEx.Builders.Base
             OnMonitorsRemoved(context, removedMonitors, config);
         }
 
+        public void ReconfigureMonitorLocal(VehicleBuildContext context, VehicleConfig oldConfig,
+            VehicleConfig newConfig, IList<Monitor> monitors)
+        {
+            if (newConfig is TVehicleConfig typedNew)
+                ReconfigureMonitorLocal(context, (TVehicleConfig)oldConfig, typedNew, monitors);
+            else
+                throw new ArgumentException(nameof(newConfig));
+        }
+
+        protected virtual void ReconfigureMonitorLocal(VehicleBuildContext context, TVehicleConfig oldConfig,
+            TVehicleConfig newConfig, IList<Monitor> monitors)
+        {
+        }
+
 
         protected virtual void PopulateRootDataHub(VehicleBuildContext context, TVehicleConfig config)
         {

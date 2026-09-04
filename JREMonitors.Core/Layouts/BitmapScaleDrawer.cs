@@ -7,6 +7,7 @@ using System.Numerics;
 using JREMonitors.Core.Boosters;
 using JREMonitors.Core.Constants;
 using JREMonitors.Core.Contexts;
+using JREMonitors.Core.Managers;
 using JREMonitors.Core.Reactive;
 using JREMonitors.Core.Services.Render;
 using JREMonitors.Core.Utils;
@@ -79,9 +80,9 @@ namespace JREMonitors.Core.Layouts
             _context.DeviceContext.GetWorldScale(out var worldScaleX, out var worldScaleY);
             TraverseLayout(targetBounds, (originalTargetBounds, bakeBounds, itemDestBounds, prop) =>
             {
-                var effectiveColor = prop.Color ?? color;
-                var totalScaleX = worldScaleX * prop.ScaleX;
-                var totalScaleY = worldScaleY * prop.ScaleY;
+                var effectiveColor = prop.Color.Value ?? color;
+                var totalScaleX = worldScaleX * prop.ScaleX.Value;
+                var totalScaleY = worldScaleY * prop.ScaleY.Value;
                 var is1XScale = Math.Abs(totalScaleX - 1) < Epsilons.FloatEpsilon &&
                                 Math.Abs(totalScaleY - 1) < Epsilons.FloatEpsilon;
 
@@ -90,7 +91,7 @@ namespace JREMonitors.Core.Layouts
                     var oldTransform = _context.DeviceContext.Transform;
                     _context.DeviceContext.Transform =
                         Matrix3x2.CreateTranslation(-bakeBounds.X, -bakeBounds.Y)
-                        * Matrix3x2.CreateScale(prop.ScaleX, prop.ScaleY)
+                        * Matrix3x2.CreateScale(prop.ScaleX.Value, prop.ScaleY.Value)
                         * Matrix3x2.CreateTranslation(itemDestBounds.X, itemDestBounds.Y)
                         * oldTransform;
                     prop.Drawer.Draw(originalTargetBounds, effectiveColor);
@@ -105,9 +106,9 @@ namespace JREMonitors.Core.Layouts
                         originalTargetBounds.Size,
                         bakeBounds.Size,
                         effectiveColor,
-                        prop.ScaleX,
-                        prop.ScaleY,
-                        prop.FinalOffsetCrossAxis
+                        prop.ScaleX.Value,
+                        prop.ScaleY.Value,
+                        prop.FinalOffsetCrossAxis.Value
                     );
 
                     var baker = _context.GetBakerCache().GetOrCreateBaker<BitmapScaleDrawer, BakerContentKey>(
@@ -143,7 +144,10 @@ namespace JREMonitors.Core.Layouts
         {
             _snapshot?.Dispose();
             var count = _propertiesList.Count;
-            for (var i = 0; i < count; i++) _propertiesList[i].Drawer?.Dispose();
+            for (var i = 0; i < count; i++)
+            {
+                _propertiesList[i].Dispose();
+            }
 
             _propertiesList.Clear();
             _dynamicBaker.Dispose();
@@ -152,8 +156,11 @@ namespace JREMonitors.Core.Layouts
         public void Track()
         {
             for (var i = 0; i < _propertiesList.Count; i++)
-                if (_propertiesList[i].Drawer is ITrackable trackable)
-                    trackable.Track();
+            {
+                var prop = _propertiesList[i];
+                prop.Track();
+                if (prop.Drawer is ITrackable trackable) trackable.Track();
+            }
         }
 
         private RectangleF TraverseLayout(
@@ -182,9 +189,9 @@ namespace JREMonitors.Core.Layouts
 
                     var bakeBounds = _snapToPixels ? contentBounds.SnapToPixels() : contentBounds;
                     bakeBoundsList[i] = bakeBounds;
-                    var scaledH = bakeBounds.Height * prop.ScaleY;
+                    var scaledH = bakeBounds.Height * prop.ScaleY.Value;
                     if (scaledH > maxScaledHeight) maxScaledHeight = scaledH;
-                    totalScaledWidth += bakeBounds.Width * prop.ScaleX;
+                    totalScaledWidth += bakeBounds.Width * prop.ScaleX.Value;
                     validCount++;
                 }
 
@@ -211,8 +218,8 @@ namespace JREMonitors.Core.Layouts
                     var bakeBounds = bakeBoundsList[i];
                     if (bakeBounds.IsEmpty) continue;
 
-                    var scaledW = bakeBounds.Width * prop.ScaleX;
-                    var scaledH = bakeBounds.Height * prop.ScaleY;
+                    var scaledW = bakeBounds.Width * prop.ScaleX.Value;
+                    var scaledH = bakeBounds.Height * prop.ScaleY.Value;
 
                     float yOffset;
                     switch (_arrangement)
@@ -230,7 +237,7 @@ namespace JREMonitors.Core.Layouts
                             break;
                     }
 
-                    var y = boxY + yOffset + prop.FinalOffsetCrossAxis;
+                    var y = boxY + yOffset + prop.FinalOffsetCrossAxis.Value;
 
                     var itemDestBounds = new RectangleF(x, y, scaledW, scaledH);
                     if (_snapToPixels) itemDestBounds = itemDestBounds.SnapToPixels(false);
@@ -255,31 +262,66 @@ namespace JREMonitors.Core.Layouts
             }
         }
 
-        public class DrawerProperties
+        public class DrawerProperties : IDisposable
         {
+            private readonly DisposableStack _disposableStack = new DisposableStack();
+
             public DrawerProperties(
                 IContentMeasurableBoundsDrawer drawer,
-                float scaleX,
-                float scaleY,
+                float scaleX = 1,
+                float scaleY = 1,
                 float finalOffsetCrossAxis = 0,
                 Color4? color = null,
                 bool cacheBaker = true
             )
             {
                 Drawer = drawer;
-                ScaleX = scaleX;
-                ScaleY = scaleY;
-                FinalOffsetCrossAxis = finalOffsetCrossAxis;
-                Color = color;
+                _disposableStack.AddResource(Drawer);
+                ScaleX = new PropertySlot<float>(scaleX);
+                _disposableStack.AddResource(ScaleX);
+                ScaleY = new PropertySlot<float>(scaleY);
+                _disposableStack.AddResource(ScaleY);
+                FinalOffsetCrossAxis = new PropertySlot<float>(finalOffsetCrossAxis);
+                _disposableStack.AddResource(FinalOffsetCrossAxis);
+                Color = new PropertySlot<Color4?>(color);
+                _disposableStack.AddResource(Color);
                 CacheBaker = cacheBaker;
             }
 
+            public DrawerProperties(
+                IContentMeasurableBoundsDrawer drawer,
+                IValueSignal<float> scaleX,
+                IValueSignal<float> scaleY,
+                IValueSignal<float> finalOffsetCrossAxis,
+                IValueSignal<Color4?> color = null,
+                bool cacheBaker = true
+            ) : this(drawer, cacheBaker: cacheBaker)
+            {
+                ScaleX.Bind(scaleX);
+                ScaleY.Bind(scaleY);
+                FinalOffsetCrossAxis.Bind(finalOffsetCrossAxis);
+                if (color != null) Color.Bind(color);
+            }
+
             public IContentMeasurableBoundsDrawer Drawer { get; }
-            public float ScaleX { get; }
-            public float ScaleY { get; }
-            public float FinalOffsetCrossAxis { get; }
-            public Color4? Color { get; }
+            public PropertySlot<float> ScaleX { get; }
+            public PropertySlot<float> ScaleY { get; }
+            public PropertySlot<float> FinalOffsetCrossAxis { get; }
+            public PropertySlot<Color4?> Color { get; }
             public bool CacheBaker { get; }
+
+            public void Track()
+            {
+                ScaleX.Track();
+                ScaleY.Track();
+                FinalOffsetCrossAxis.Track();
+                Color.Track();
+            }
+
+            public void Dispose()
+            {
+                _disposableStack.Dispose();
+            }
         }
 
         private readonly struct BakerContentKey : IEquatable<BakerContentKey>
@@ -364,12 +406,12 @@ namespace JREMonitors.Core.Layouts
                         hc.Add(childRef?.GetHashCode() ?? 0);
                     }
 
-                    _entries[i] = new PropEntry(childSnap, childRef, p.ScaleX, p.ScaleY,
-                        p.FinalOffsetCrossAxis, p.Color);
-                    hc.Add(p.ScaleX);
-                    hc.Add(p.ScaleY);
-                    hc.Add(p.FinalOffsetCrossAxis);
-                    hc.Add(p.Color);
+                    _entries[i] = new PropEntry(childSnap, childRef, p.ScaleX.Value, p.ScaleY.Value,
+                        p.FinalOffsetCrossAxis.Value, p.Color.Value);
+                    hc.Add(p.ScaleX.Value);
+                    hc.Add(p.ScaleY.Value);
+                    hc.Add(p.FinalOffsetCrossAxis.Value);
+                    hc.Add(p.Color.Value);
                 }
 
                 ContentHash = hc.ToHashCode();

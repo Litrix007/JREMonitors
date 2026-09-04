@@ -50,10 +50,10 @@ namespace JREMonitors.E233.TIMS.D01AX
                 this.CreateTIMSTextDrawer(
                     new[]
                     {
-                        new BitmapScaleDrawer.DrawerProperties(this.CreateTIMSTextLayout("列車番号"), 1, 1),
+                        new BitmapScaleDrawer.DrawerProperties(this.CreateTIMSTextLayout("列車番号")),
                         new BitmapScaleDrawer.DrawerProperties(
                             this.CreateTIMSTextLayout(documentSource: CreateComputed(() =>
-                                RichTextParser.Raw(ViewModel.SecondRowTrainNumber)), context: scopedContext), 2, 1,
+                                RichTextParser.Raw(ViewModel.SecondRowTrainNumber)), context: scopedContext), 2,
                             color: MonitorColors.TIMSTitleGreen),
                     }, spacing: 8, context: scopedContext),
                 contentColor: MonitorColors.TIMSTitleGrey, y: SecondRowY);

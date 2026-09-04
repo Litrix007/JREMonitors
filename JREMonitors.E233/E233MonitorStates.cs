@@ -11,6 +11,7 @@
     {
         private bool _shouldChangeToTIMSMain;
         private bool _userOverrideHide = true;
+        public bool SupportsTasc { get; set; }
         public bool HasOtherMonitorToShowSafetyLamps { get; set; }
         public bool IsSafetyLampsVisibleExternally { get; set; }
         public E233MonitorType MonitorType { get; set; }

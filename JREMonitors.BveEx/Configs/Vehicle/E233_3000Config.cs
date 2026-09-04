@@ -13,6 +13,8 @@ namespace JREMonitors.BveEx.Configs.Vehicle
     public class E233_3000Config : E233Config
     {
         public override string VehicleName => "E233-3000";
+        protected override bool DefaultSupportsTasc => false;
+        protected override bool CanSetSupportsTasc => false;
 
         public override HashSet<string> AllowedInputs =>
             base.AllowedInputs

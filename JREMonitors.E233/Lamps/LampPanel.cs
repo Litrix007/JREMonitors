@@ -17,8 +17,6 @@ namespace JREMonitors.E233.Lamps
 {
     public class LampPanel : Widget<LampPanelViewModel>
     {
-        private static readonly Color4 PanelColor = "#2A343A".ToColor4();
-
         private static readonly DropShadow[] PanelShadows =
         {
             new DropShadow
@@ -160,7 +158,7 @@ namespace JREMonitors.E233.Lamps
             Context.DropShadowProcessor.DrawWithDropShadows(PanelShadows,
                 () =>
                 {
-                    Context.CommonBrush.Color = PanelColor;
+                    Context.CommonBrush.Color = MonitorColors.PanelColor;
                     Context.DeviceContext.FillGeometry(_geometry, Context.CommonBrush);
                 });
         }

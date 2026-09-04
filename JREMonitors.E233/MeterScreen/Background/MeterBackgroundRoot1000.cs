@@ -15,15 +15,15 @@ namespace JREMonitors.E233.MeterScreen.Background
                 new Vector2(361, 176),
                 65,
                 Vector2.Zero,
-                0,
-                -25
+                0
             ),
             false,
             CommonRootPropertiesWithoutSafetyAndHldLamps,
-            true
+            true,
+            -25
         )
         {
-            AddChild(new AtcSpeedGaugeBackground(context, 755, 563 + RootPropertiesWithSafetyLamps.SpeedOffsetY));
+            AddChild(new AtcSpeedGaugeBackground(context, 755, 563 + SpeedOffsetY));
         }
     }
 }

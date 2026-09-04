@@ -265,7 +265,8 @@ namespace JREMonitors.BveEx.Monitors
             }
         }
 
-        public void Reconfigure(IVehicleBuilder builder, VehicleBuildContext context, VehicleConfig newConfig)
+        public void Reconfigure(IVehicleBuilder builder, VehicleBuildContext context, VehicleConfig oldConfig,
+            VehicleConfig newConfig)
         {
             var newProps = builder.CreateMonitorProperties(Context, newConfig, DataHub);
             var newPropsById = newProps.ToDictionary(p => p.Id);
@@ -315,6 +316,7 @@ namespace JREMonitors.BveEx.Monitors
 
             Monitors.Clear();
             foreach (var h in MonitorHolders) Monitors[h.Monitor.Id] = h.Monitor;
+            builder.ReconfigureMonitorLocal(context, oldConfig, newConfig, Monitors.Values.ToList());
         }
 
         public void SetShowTextureBoundsRect(bool value)

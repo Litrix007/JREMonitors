@@ -31,7 +31,7 @@ namespace JREMonitors.E233.TIMS.D01AX
             {
                 new BitmapScaleDrawer.DrawerProperties(
                     this.CreateTIMSTextLayout(
-                        documentSource: CreateComputed(() => RichTextParser.Raw(hoursAndMinutes.Value))), 1, 1),
+                        documentSource: CreateComputed(() => RichTextParser.Raw(hoursAndMinutes.Value)))),
                 new BitmapScaleDrawer.DrawerProperties(
                     this.CreateTIMSTextLayout(documentSource: CreateComputed(() => RichTextParser.Raw(seconds.Value)),
                         format: context.FontManager.GetOrCreateFormat(Fonts.MsGothicFamily, 12,
@@ -41,7 +41,7 @@ namespace JREMonitors.E233.TIMS.D01AX
             if (customText != null)
                 properties.Add(new BitmapScaleDrawer.DrawerProperties(
                     this.CreateTIMSTextLayout(
-                        documentSource: CreateComputed(() => RichTextParser.Raw(customText.Value))), 1, 1,
+                        documentSource: CreateComputed(() => RichTextParser.Raw(customText.Value))),
                     color: MonitorColors.TIMSTitleGrey));
             _text = new BoundsDrawerWidget(context,
                 this.CreateTIMSTextDrawer(properties, arrangement: ContentArrangement.Near,

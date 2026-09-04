@@ -15,7 +15,6 @@ namespace JREMonitors.E233.TIMS
             Color3? overrideCarStrokeColor,
             D01AXSpec d01axSpec,
             C01AASpec c01aaSpec,
-            bool supportsSuica,
             bool supportsPartialDoorOperation
         )
         {
@@ -26,7 +25,6 @@ namespace JREMonitors.E233.TIMS
             IsPantoGraphReversed = isPantoGraphReversed;
             D01AXSpec = d01axSpec;
             C01AASpec = c01aaSpec;
-            SupportsSuica = supportsSuica;
             SupportsPartialDoorOperation = supportsPartialDoorOperation;
             MaxFormationCarCount = FormationSpecs.Values.Select(s => s.CarCount).Max();
             HasGreenCar = FormationSpecs.Values.Any(s => s.HasGreenCar);
@@ -39,7 +37,6 @@ namespace JREMonitors.E233.TIMS
         public bool IsPantoGraphReversed { get; }
         public D01AXSpec D01AXSpec { get; }
         public C01AASpec C01AASpec { get; }
-        public bool SupportsSuica { get; }
         public bool SupportsPartialDoorOperation { get; }
         public int MaxFormationCarCount { get; }
         public bool HasGreenCar { get; }
@@ -97,8 +94,9 @@ namespace JREMonitors.E233.TIMS
         public const int MaxGreenCarCount = 2;
         public const int GreenCarCapacity = 90;
 
-        public TIMSFormationSpec(IReadOnlyList<TIMSCarSpec> cars)
+        public TIMSFormationSpec(bool supportsSuica, IReadOnlyList<TIMSCarSpec> cars)
         {
+            SupportsSuica = supportsSuica;
             Cars = cars;
             CarCount = cars.Count;
             var doorCountPerCar = new List<int>(CarCount);
@@ -140,6 +138,7 @@ namespace JREMonitors.E233.TIMS
         }
 
         public int CarCount { get; }
+        public bool SupportsSuica { get; }
         public IReadOnlyList<TIMSCarSpec> Cars { get; }
         public IReadOnlyList<int> DoorCountPerCar { get; }
         public IReadOnlyList<int> UnitCarCounts { get; }

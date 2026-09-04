@@ -11,7 +11,6 @@ namespace JREMonitors.E233.MeterScreen.Base
         public readonly float CatenaryVoltageSectorRadius;
         public readonly Vector2 CurrentGaugePos;
         public readonly float CurrentSectorRadius;
-        public readonly float SpeedOffsetY;
 
         public RootProperties(
             bool showHoldSpeedLamp,
@@ -20,8 +19,7 @@ namespace JREMonitors.E233.MeterScreen.Base
             Vector2 catenaryVoltageGaugePos,
             float catenaryVoltageSectorRadius,
             Vector2 currentGaugePos,
-            float currentSectorRadius,
-            float speedOffsetY
+            float currentSectorRadius
         )
         {
             ShowHoldSpeedLamp = showHoldSpeedLamp;
@@ -31,7 +29,6 @@ namespace JREMonitors.E233.MeterScreen.Base
             CatenaryVoltageSectorRadius = catenaryVoltageSectorRadius;
             CurrentGaugePos = currentGaugePos;
             CurrentSectorRadius = currentSectorRadius;
-            SpeedOffsetY = speedOffsetY;
         }
     }
 }

@@ -1,13 +1,12 @@
-﻿using System;
+using System;
 using JREMonitors.Core.Reactive;
 using JREMonitors.Core.State;
 using JREMonitors.Core.Widgets;
 
 namespace JREMonitors.E233.ViewModels
 {
-    public class MeterBackgroundBaseViewModel : ViewModel
+    public class TidForegroundRootBaseViewModel : ViewModel
     {
-        public readonly Signal<bool> IsSafetyLampVisible = new Signal<bool>();
         public readonly Signal<bool> SupportsTasc = new Signal<bool>();
         private E233MonitorStates _monitorStates;
 
@@ -18,7 +17,6 @@ namespace JREMonitors.E233.ViewModels
 
         protected override void OnUpdate(TimeSpan elapsed)
         {
-            IsSafetyLampVisible.Value = _monitorStates.IsSafetyLampVisibleOnMeterScreen;
             SupportsTasc.Value = _monitorStates.SupportsTasc;
         }
     }

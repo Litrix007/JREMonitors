@@ -261,11 +261,13 @@ namespace JREMonitors.Core.Monitors
                 var showDebugRectChanged = buffer.ShowDebugRect != showDebugRect;
                 var prevHasBackgroundRendered = buffer.HasBackgroundRendered;
                 var isBackgroundDirty = _activeScreen.IsBackgroundDirty();
-                if (!prevHasBackgroundRendered || isBackgroundDirty || showDebugRectChanged)
+                var backgroundColorChanged = buffer.LastBackgroundColor != _activeScreen.BackgroundColor;
+                if (!prevHasBackgroundRendered || isBackgroundDirty || showDebugRectChanged || backgroundColorChanged)
                 {
                     _sw.Restart();
                     _suppressDebugRect = false;
                     RenderBackgroundToScreenBuffer(output, _activeScreen, buffer);
+                    buffer.LastBackgroundColor = _activeScreen.BackgroundColor;
                     _sw.Stop();
                     _debugger?.AddLineLasting($"{Id} render dynamic background {_sw.Elapsed.TotalMilliseconds}ms");
                     if (prevHasBackgroundRendered && _canBackgroundReset) shouldResetScreen = true;
@@ -276,6 +278,27 @@ namespace JREMonitors.Core.Monitors
 
             _canBackgroundReset = true;
             _activeScreen.ClearBackgroundDirty();
+        }
+
+        private void HandlePureColorBackground(bool selfBeginAndEndDraw)
+        {
+            if (_activeScreen.HasBackgroundRoot) return;
+            var backgroundColor = _activeScreen.BackgroundColor;
+            var shouldResetScreen = false;
+            for (var i = 0; i < _outputs.Count; i++)
+            {
+                var output = _outputs[i];
+                var prevHasBackgroundRendered = output.LastBackgroundColor.HasValue;
+                if (prevHasBackgroundRendered && output.LastBackgroundColor.Value == backgroundColor) continue;
+                _renderContext.DeviceContext.Target = output.PureColorBackgroundBitmap;
+                _renderContext.DeviceContext.Clear(backgroundColor);
+                _renderContext.DeviceContext.Target = null;
+                output.LastBackgroundColor = backgroundColor;
+                if (prevHasBackgroundRendered && _canBackgroundReset) shouldResetScreen = true;
+            }
+
+            if (shouldResetScreen) ResetActiveScreen(selfBeginAndEndDraw);
+            _canBackgroundReset = true;
         }
 
         private void BackToIdle()
@@ -327,6 +350,7 @@ namespace JREMonitors.Core.Monitors
 
             _blockingService.SetCurrentMonitor(Id);
             HandleDynamicBackground(elapsed, selfBeginAndEndDraw);
+            HandlePureColorBackground(selfBeginAndEndDraw);
             var elapsedSeconds = (float)elapsed.TotalSeconds;
             var logicalScreenSize = _activeScreen.Size;
             var logicalScreenBounds = new RectangleF(PointF.Empty, logicalScreenSize);

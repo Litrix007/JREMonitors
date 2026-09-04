@@ -151,6 +151,9 @@ namespace JREMonitors.E233.Lamps
             _overrideTextInterpolationMode = overrideTextInterpolationMode;
             if (truncateBottomRightInnerShadow) RefreshTruncatedBottomRightGeometry();
             On = CreatePropertySlot<bool>(DirtyType.Visual);
+            SkipArrangeWhenHidden = CreatePropertySlot(DirtyType.Layout, true);
+            IncludeInTotalMajorDimensionSizeWhenVisible = CreatePropertySlot(DirtyType.Layout, true);
+            IncludeInTotalMajorDimensionSizeWhenHidden = CreatePropertySlot(DirtyType.Layout, false);
             _currentLeftExpansion = CreatePropertySlot(DirtyType.Visual, -1f);
             _currentRightExpansion = CreatePropertySlot(DirtyType.Visual, -1f);
             _currentTopExpansion = CreatePropertySlot(DirtyType.Visual, -1f);
@@ -184,7 +187,9 @@ namespace JREMonitors.E233.Lamps
         }
 
         public PropertySlot<bool> On { get; }
-
+        public PropertySlot<bool> SkipArrangeWhenHidden { get; }
+        public PropertySlot<bool> IncludeInTotalMajorDimensionSizeWhenVisible { get; }
+        public PropertySlot<bool> IncludeInTotalMajorDimensionSizeWhenHidden { get; }
         protected override IList<RectangleF> LocalClickBoundsList => new[] { BaseBounds };
         public override float? RefreshSpeed => RefreshSpeeds.Fast;
         public bool KeepOffWhenFirstRender { get; set; }
@@ -259,9 +264,9 @@ namespace JREMonitors.E233.Lamps
 
         public float MarginWidth => _offOutlineWidth * 2;
         public float MarginHeight => _offOutlineWidth * 2;
-        public bool SkipArrangeWhenHidden => true;
-        public bool IncludeInTotalMajorDimensionSizeWhenVisible => true;
-        public bool IncludeInTotalMajorDimensionSizeWhenHidden => false;
+        bool ILayoutable.SkipArrangeWhenHidden => SkipArrangeWhenHidden;
+        bool ILayoutable.IncludeInTotalMajorDimensionSizeWhenVisible => IncludeInTotalMajorDimensionSizeWhenVisible;
+        bool ILayoutable.IncludeInTotalMajorDimensionSizeWhenHidden => IncludeInTotalMajorDimensionSizeWhenHidden;
 
         public void SetLayoutSize(float width, float height)
         {

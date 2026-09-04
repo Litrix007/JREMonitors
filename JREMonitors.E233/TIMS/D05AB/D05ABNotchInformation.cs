@@ -80,7 +80,11 @@ namespace JREMonitors.E233.TIMS.D05AB
             Context.DeviceContext.AntialiasMode = AntialiasMode.Aliased;
 
             var formationSpec = ViewModel.FormationSpec.Value;
-            if (formationSpec == null) return;
+            if (formationSpec == null)
+            {
+                Context.DeviceContext.AntialiasMode = oldAntialiasMode;
+                return;
+            }
 
             Context.CommonBrush.Color = MonitorColors.TIMSTitleGrey;
 

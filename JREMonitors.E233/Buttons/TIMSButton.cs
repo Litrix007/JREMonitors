@@ -95,11 +95,13 @@ namespace JREMonitors.E233.Buttons
             _style = style ?? throw new ArgumentNullException(nameof(style));
             _squareCapStroke = Context.D2D1Factory.CreateStrokeStyle(GeometryHelper.SquareStrokeStyleProperties);
             RegisterResource(_squareCapStroke);
-
             _boundsDrawer = boundsDrawer;
             if (_boundsDrawer != null) RegisterResource(_boundsDrawer);
             _preferredWidthSlot = CreatePropertySlot(DirtyType.Layout, width);
             _preferredHeightSlot = CreatePropertySlot(DirtyType.Layout, height);
+            SkipArrangeWhenHidden = CreatePropertySlot(DirtyType.Layout, true);
+            IncludeInTotalMajorDimensionSizeWhenVisible = CreatePropertySlot(DirtyType.Layout, true);
+            IncludeInTotalMajorDimensionSizeWhenHidden = CreatePropertySlot(DirtyType.Layout, false);
             _baseWidth = CreatePropertySlot(DirtyType.Visual, width.AbsoluteValue);
             _baseHeight = CreatePropertySlot(DirtyType.Visual, height.AbsoluteValue);
             PressedOverride = CreateRelayPropertySlot<bool>();
@@ -135,6 +137,9 @@ namespace JREMonitors.E233.Buttons
         public PropertySlot<bool> Clickable => ViewModel.Clickable;
         public PropertySlot<bool> Highlighted { get; }
         public PropertySlot<bool> PressedOverride { get; }
+        public PropertySlot<bool> SkipArrangeWhenHidden { get; }
+        public PropertySlot<bool> IncludeInTotalMajorDimensionSizeWhenVisible { get; }
+        public PropertySlot<bool> IncludeInTotalMajorDimensionSizeWhenHidden { get; }
 
         public RectangleF BaseBounds => new RectangleF(0, 0, _baseWidth, _baseHeight);
         public override RectangleF SelfRelativeDirtyBounds => BaseBounds;
@@ -156,9 +161,9 @@ namespace JREMonitors.E233.Buttons
 
         public float MarginWidth => 0;
         public float MarginHeight => 0;
-        public bool SkipArrangeWhenHidden => true;
-        public bool IncludeInTotalMajorDimensionSizeWhenVisible => true;
-        public bool IncludeInTotalMajorDimensionSizeWhenHidden => false;
+        bool ILayoutable.SkipArrangeWhenHidden => SkipArrangeWhenHidden;
+        bool ILayoutable.IncludeInTotalMajorDimensionSizeWhenVisible => IncludeInTotalMajorDimensionSizeWhenVisible;
+        bool ILayoutable.IncludeInTotalMajorDimensionSizeWhenHidden => IncludeInTotalMajorDimensionSizeWhenHidden;
 
         public void SetLayoutSize(float width, float height)
         {

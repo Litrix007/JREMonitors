@@ -9,7 +9,7 @@ namespace JREMonitors.E233.TIMS.D05AB
     {
         public D05ABScreen(RenderContext context, TIMSVehicleSpec spec, D05ABDataTable dataTable = null) : base(
             ScreenIds.D05AB,
-            ScreenSizes.TIMSScreenSize, 0, true, Colors.Transparent)
+            ScreenSizes.TIMSScreenSize, 0, true)
         {
             ForegroundRoot = new D05ABForegroundRoot(context, spec, dataTable ?? new D05ABDataTable(context, spec));
         }

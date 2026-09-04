@@ -11,8 +11,7 @@ namespace JREMonitors.E233.TIMS
     public class TIMSCommonForegroundRoot<TViewModel> : Widget<TViewModel>
         where TViewModel : TIMSCommonForegroundRootViewModel
     {
-        private readonly ContentGroup _contentGroup;
-
+        private readonly Group _group;
         protected readonly TIMSScreenTitle ScreenTitle;
 
         public TIMSCommonForegroundRoot(RenderContext context, string id, string title,
@@ -20,9 +19,9 @@ namespace JREMonitors.E233.TIMS
             : base(context)
         {
             base.AddChild(background ?? new TIMSCommonBackground(context));
-            _contentGroup = new ContentGroup(context);
-            _contentGroup.IsVisible.Value = false;
-            base.AddChild(_contentGroup);
+            _group = new Group(context);
+            _group.IsVisible.Value = false;
+            base.AddChild(_group);
             AddChild(new TIMSVehicleStateWidget(context, id.StartsWith("D")));
             ScreenTitle = new TIMSScreenTitle(context, id, title);
             AddChild(ScreenTitle);
@@ -32,12 +31,22 @@ namespace JREMonitors.E233.TIMS
 
         protected new void AddChild(Widget widget, bool isGlobalPosition = false)
         {
-            _contentGroup.AddChild(widget, isGlobalPosition);
+            _group.AddChild(widget, isGlobalPosition);
+        }
+
+        public new void InsertChild(Widget widget, int index = 0, bool isGlobalPosition = false)
+        {
+            _group.InsertChild(widget, index, isGlobalPosition);
+        }
+
+        public new void InsertChildAfter(Widget widget, Widget afterWidget, bool isGlobalPosition = false)
+        {
+            _group.InsertChildAfter(widget, afterWidget, isGlobalPosition);
         }
 
         protected override void OnUpdate(TimeSpan elapsed)
         {
-            _contentGroup.IsVisible.Value = !IsFirstUpdate;
+            _group.IsVisible.Value = !IsFirstUpdate;
         }
 
         protected override void Render(RectangleF globalClipRect, float parentScale, bool forceRender,
@@ -48,26 +57,13 @@ namespace JREMonitors.E233.TIMS
             base.Render(globalClipRect, parentScale, forceRender, ignoreHidden);
             Context.DeviceContext.TextAntialiasMode = oldTextAntialiasMode;
         }
-
-        private class ContentGroup : Widget
-        {
-            public ContentGroup(RenderContext context) : base(context)
-            {
-            }
-
-            public override RectangleF SelfRelativeDirtyBounds => RectangleF.Empty;
-
-            public new void AddChild(Widget widget, bool isGlobalPosition = false)
-            {
-                base.AddChild(widget, isGlobalPosition);
-            }
-        }
     }
 
     public class TIMSCommonForegroundRootViewModel : ViewModel
     {
         private E233MonitorStates _monitorStates;
         public Signal<E233MonitorType> MonitorType { get; } = new Signal<E233MonitorType>();
+        public Signal<bool> SupportsTasc { get; } = new Signal<bool>();
 
         protected override void OnInitialize(DataHub dataHub)
         {
@@ -78,6 +74,7 @@ namespace JREMonitors.E233.TIMS
         protected override void OnUpdate(TimeSpan elapsed)
         {
             MonitorType.Value = _monitorStates.MonitorType;
+            SupportsTasc.Value = _monitorStates.SupportsTasc;
         }
     }
 }

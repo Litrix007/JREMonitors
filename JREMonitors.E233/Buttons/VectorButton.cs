@@ -185,7 +185,6 @@ namespace JREMonitors.E233.Buttons
                 }, _baseWidth, _baseHeight, _style.BorderRadius,
                 _style.IdleTopLeftInnerShadow, _style.IdleBottomRightInnerShadow,
                 _style.PressedTopLeftInnerShadow, _style.PressedBottomRightInnerShadow);
-
             WatchEffect(() => { _idleBackgroundBaker.Refresh(); }, _style.IdleBackgroundColor, _style.IdleDropShadows);
             WatchEffect(() => { _pressedBackgroundBaker.Refresh(); }, _style.PressedBackgroundColor);
             WatchEffect(_currentlyPressed, _style.DrawerPadding, _style.IdleDrawerColor, _style.PressedDrawerColor);

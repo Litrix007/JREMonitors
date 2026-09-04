@@ -107,6 +107,8 @@ namespace JREMonitors.Core.Monitors
             _screenBuffers.Clear();
         }
 
+        public Color4? LastBackgroundColor { get; set; }
+
         public void CommitStateSwap()
         {
             CurrentStateIndex = 1 - CurrentStateIndex;

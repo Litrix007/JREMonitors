@@ -9,6 +9,7 @@ namespace JREMonitors.E233.TIMS.D00AA
             context, ScreenIds.D00AA, "運転士メニュー")
         {
             ViewModel = new TIMSCommonForegroundRootViewModel();
+            buttonGroup.SupportsTasc.Bind(ViewModel.SupportsTasc);
             AddChild(buttonGroup);
         }
     }

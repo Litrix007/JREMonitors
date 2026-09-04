@@ -1,8 +1,6 @@
 ﻿using System.Drawing;
 using JREMonitors.Core.Contexts;
 using JREMonitors.Core.Layouts;
-using JREMonitors.Core.Widgets;
-using JREMonitors.E233.Lamps;
 using JREMonitors.E233.MeterScreen.Background;
 using JREMonitors.E233.MeterScreen.Foreground.Base;
 using JREMonitors.E233.MeterScreen.LampGroups;
@@ -12,16 +10,15 @@ namespace JREMonitors.E233.MeterScreen.Foreground
 {
     public class MeterForegroundRoot3000 : MeterForegroundRootBase
     {
-        private readonly NormalSpeedGaugeNeedle _normalSpeedGaugeGaugeNeedle;
-
         public MeterForegroundRoot3000(RenderContext context) : base(
             context,
             MeterBackgroundRootBase.CommonRootPropertiesWithoutSafetyLamps,
-            MeterBackgroundRootBase.CommonRootPropertiesWithoutSafetyLamps
+            MeterBackgroundRootBase.CommonRootPropertiesWithoutSafetyLamps,
+            0
         )
         {
-            _normalSpeedGaugeGaugeNeedle = new NormalSpeedGaugeNeedle(context);
-            InsertChildAfter(_normalSpeedGaugeGaugeNeedle, InfoButtonGroup);
+            var normalSpeedGaugeGaugeNeedle = new NormalSpeedGaugeNeedle(context);
+            InsertChildAfter(normalSpeedGaugeGaugeNeedle, InfoButtonGroup);
             var atsStateLampGroup = new MeterAtsStateLampGroup(context, 6, 4, true);
             var vehicleStateLampGroupWhenSafetyLampsVisible = new VehicleStateLampGroup(context,
                 new RawRectF(
@@ -39,8 +36,8 @@ namespace JREMonitors.E233.MeterScreen.Foreground
                 LayoutLength.Absolute(153),
                 4
             );
-            AddLampPanelWhenSafetyLampsVisible(new LampPanel(context, 1023, 432, 310,
-                children: new Widget[] { atsStateLampGroup, vehicleStateLampGroupWhenSafetyLampsVisible }));
+            AddLampPanelWhenSafetyLampsVisibleWithoutTasc(
+                CreateSafetyLampsVisiblePanel(context, atsStateLampGroup, vehicleStateLampGroupWhenSafetyLampsVisible));
         }
 
         public override RectangleF SelfRelativeDirtyBounds => RectangleF.Empty;

@@ -4,21 +4,58 @@ using JREMonitors.Core.Contexts;
 using JREMonitors.Core.Widgets;
 using JREMonitors.E233.Buttons;
 using JREMonitors.E233.Constants;
+using JREMonitors.E233.ViewModels;
 
 namespace JREMonitors.E233.TidScreen.Foreground
 {
-    public class TidForegroundRootBase : Widget
+    public abstract class TidForegroundRootBase : Widget<TidForegroundRootBaseViewModel>
     {
-        protected readonly InfoButtonGroup InfoButtonGroup;
+        private const string IdWithTasc = "WithTasc";
+        private const string IdWithoutTasc = "WithoutTasc";
 
-        protected TidForegroundRootBase(RenderContext context, bool addHomeButton = true) : base(context)
+        private readonly WidgetSwitcher _layoutSwitcher;
+
+        protected TidForegroundRootBase(RenderContext context) : base(context)
         {
-            InfoButtonGroup = new InfoButtonGroup(context, 10, new Vector2(1024, 768), addHomeButton);
-            InfoButtonGroup.HomeButton.OnClick += OnHomeButtonClick;
-            AddChild(InfoButtonGroup);
+            ViewModel = new TidForegroundRootBaseViewModel();
+            _layoutSwitcher = new WidgetSwitcher(context, WidgetSwitcher.RefreshPolicy.FadeOutThenFadeIn);
+            AddChild(_layoutSwitcher);
+            WatchEffect(EffectPhase.State, () => _layoutSwitcher.SetActiveWidget(ResolveActiveLayoutId()));
+            WatchEffect(() =>
+            {
+                if (IsOffScreen || IsFirstUpdate) return;
+                context.DisplayController.RequestReset();
+            }, ViewModel.SupportsTasc);
         }
 
         public override RectangleF SelfRelativeDirtyBounds => RectangleF.Empty;
+
+        protected InfoButtonGroup CreateInfoButtonGroup(bool addHomeButton = true)
+        {
+            var group = new InfoButtonGroup(Context, 10, new Vector2(1024, 768), addHomeButton);
+            group.HomeButton.OnClick += OnHomeButtonClick;
+            return group;
+        }
+
+        protected virtual string ResolveActiveLayoutId()
+        {
+            return ViewModel.SupportsTasc ? IdWithTasc : IdWithoutTasc;
+        }
+
+        protected void AddLayout(string id, Widget layout)
+        {
+            _layoutSwitcher.Add(id, layout);
+        }
+
+        protected void AddTascLayout(Widget layout)
+        {
+            AddLayout(IdWithTasc, layout);
+        }
+
+        protected void AddNonTascLayout(Widget layout)
+        {
+            AddLayout(IdWithoutTasc, layout);
+        }
 
         private void OnHomeButtonClick()
         {

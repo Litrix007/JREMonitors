@@ -1,7 +1,8 @@
-﻿using System;
+using System;
 using System.Drawing;
 using JREMonitors.Core.Utils.Render;
 using Vortice.Direct2D1;
+using Vortice.Mathematics;
 
 namespace JREMonitors.Core.Monitors
 {
@@ -16,6 +17,7 @@ namespace JREMonitors.Core.Monitors
         public ID2D1Bitmap1 BackgroundBitmap { get; }
         public bool HasBackgroundRendered { get; set; }
         public bool ShowDebugRect { get; set; }
+        public Color4 LastBackgroundColor { get; set; }
 
         public void Dispose()
         {

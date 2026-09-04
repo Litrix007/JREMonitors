@@ -424,7 +424,7 @@ namespace JREMonitors.BveEx
             try
             {
                 _vehicleBuilder.Reconfigure(context, _vehicleConfig, newConfig);
-                _monitorManager.Reconfigure(_vehicleBuilder, context, newConfig);
+                _monitorManager.Reconfigure(_vehicleBuilder, context, _vehicleConfig, newConfig);
                 ReconfigureDisplay(_vehicleConfig.Display, newConfig.Display);
                 _bveBlockingService.Clear();
                 _vehicleConfig = newConfig;

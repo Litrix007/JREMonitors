@@ -247,7 +247,12 @@ namespace JREMonitors.E233.TIMS.D02AA
                 var oldAntialiasMode = Context.DeviceContext.AntialiasMode;
                 Context.DeviceContext.AntialiasMode = AntialiasMode.Aliased;
                 var formationSpec = ViewModel.FormationSpec.Value;
-                if (formationSpec == null) return;
+                if (formationSpec == null)
+                {
+                    Context.DeviceContext.AntialiasMode = oldAntialiasMode;
+                    return;
+                }
+
                 Context.CommonBrush.Color = MonitorColors.White;
                 var startX = StartX + 0.5f;
                 const float startY = TextStartY + 9 + 0.5f;

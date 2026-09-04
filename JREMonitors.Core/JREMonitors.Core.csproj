@@ -156,6 +156,7 @@
         <Compile Include="Utils\TimeSpanHelper.cs"/>
         <Compile Include="Utils\Win32Helper.cs"/>
         <Compile Include="Widgets\BoundsDrawerWidget.cs"/>
+        <Compile Include="Widgets\Group.cs" />
         <Compile Include="Widgets\ViewModel.cs"/>
         <Compile Include="Widgets\Widget.cs"/>
         <Compile Include="Widgets\WidgetSwitcher.cs"/>

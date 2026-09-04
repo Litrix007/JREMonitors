@@ -30,7 +30,7 @@ namespace JREMonitors.E233.TIMS.S00AB
 
         public S00ABForegroundRoot(RenderContext context, TIMSVehicleSpec spec) : base(context)
         {
-            ViewModel = new S00ABForegroundRootViewModel();
+            ViewModel = new S00ABForegroundRootViewModel(spec);
             AddChild(new TIMSScreenTitle(context, ScreenIds.S00AB, "初期選択"));
             var homeButton = new TIMSButton(context, new Vector2(X00AABackgroundRoot.Padding),
                 LayoutLength.Absolute(Constants.Buttons.SizeSmall.Width),
@@ -97,11 +97,14 @@ namespace JREMonitors.E233.TIMS.S00AB
             );
             conductorButton.OnClick += () => RequestBlock(TIMSBlockTypes.ChangeScreen, BlockingLevel.CurrentScreen, 1,
                 () => { Context.DisplayController.RequestChangeScreen(ScreenIds.C00AA); });
+            var runStateDrawerProperties = new BitmapScaleDrawer.DrawerProperties(this.CreateTIMSTextLayout(
+                documentSource: CreateComputed(() => RichTextParser.Raw(ViewModel.IsTIMSMain.Value ? "運転状況" : "")),
+                useVerticalOverhangMetrics: true), scaleY: 2);
+            runStateDrawerProperties.ScaleX.Bind(CreateComputed<float>(() => ViewModel.SupportsSuica ? 1 : 2));
             _runStateButton = new TIMSButton(context, Vector2.Zero, LayoutLength.Flex(), LayoutLength.Flex(),
                 context.TIMS().TextButtonStyle,
-                this.CreateTIMSTextDrawer(
-                    CreateComputed(() => RichTextParser.Raw(ViewModel.IsTIMSMain.Value ? "運転状況" : "")),
-                    spec.SupportsSuica ? 1 : 2, 2, 0.5f, 0.5f, useVerticalOverhangMetrics: true)
+                this.CreateTIMSTextDrawer(new[] { runStateDrawerProperties }, horizontalAlignment: 0.5f,
+                    verticalAlignment: 0.5f)
             );
             _runStateButton.Clickable.Bind(ViewModel.IsTIMSMain);
             var testRunButton = new TIMSButton(context, Vector2.Zero, LayoutLength.Flex(), LayoutLength.Flex(),
@@ -110,18 +113,25 @@ namespace JREMonitors.E233.TIMS.S00AB
                 reboundImmediate: true
             );
             var buttons = new List<Widget> { driverButton, conductorButton, _runStateButton, testRunButton };
-            if (spec.SupportsSuica)
+            var suicaButton = new TIMSButton(context, Vector2.Zero, LayoutLength.Flex(), LayoutLength.Flex(),
+                context.TIMS().TextButtonStyle,
+                this.CreateTIMSTextDrawer(
+                    documentSource: CreateComputed(() => RichTextParser.Raw(ViewModel.IsTIMSMain.Value ? "Ｓｕｉｃａ" : "")),
+                    1, 2, 0.5f, 0.5f, useVerticalOverhangMetrics: true),
+                reboundImmediate: true
+            );
+            suicaButton.Clickable.Bind(ViewModel.IsTIMSMain);
+            suicaButton.IncludeInTotalMajorDimensionSizeWhenHidden.Bind(ViewModel.SupportsSuica);
+            var hasGreenCar = CreateComputed(() =>
             {
-                var suicaButton = new TIMSButton(context, Vector2.Zero, LayoutLength.Flex(), LayoutLength.Flex(),
-                    context.TIMS().TextButtonStyle,
-                    this.CreateTIMSTextDrawer("Ｓｕｉｃａ", 1, 2, 0.5f, 0.5f, useVerticalOverhangMetrics: true),
-                    reboundImmediate: true
-                );
-                buttons.Add(suicaButton);
-            }
-
-            var row = new Row(context, 400, 300, spec.SupportsSuica ? 140 : 175, ButtonHeight, 0, buttons, 0.5f,
-                0.5f, positionSnapToPixels: true);
+                var formationSpec = ViewModel.FormationSpec.Value;
+                return formationSpec != null && formationSpec.HasGreenCar;
+            });
+            suicaButton.IsVisible.Bind(hasGreenCar);
+            buttons.Add(suicaButton);
+            var row = new Row(context, 400, 300, fallbackFlexUnitHeight: ButtonHeight, widgets: buttons,
+                rowHorizontalAlignment: 0.5f, rowVerticalAlignment: 0.5f, positionSnapToPixels: true);
+            row.FallbackFlexUnitWidth.Bind(CreateComputed<float>(() => ViewModel.SupportsSuica ? 140 : 175));
             AddChild(row);
             _changeToTIMSMainPrompt = new BoundsDrawerWidget(context,
                 this.CreateTIMSTextDrawer("※\u3000メイン画面切替キ一タッチにより、メインのTIMS画面を切替えます。", 1, 1, 0.5f, 0.5f,
@@ -131,6 +141,11 @@ namespace JREMonitors.E233.TIMS.S00AB
                 y: MathHelper.Lerp(300 + ButtonHeight / 2, 599, 0.5f));
             _changeToTIMSMainPrompt.IsVisible.Bind(CreateComputed(() => !ViewModel.IsTIMSMain.Value));
             AddChild(_changeToTIMSMainPrompt);
+            WatchEffect(() =>
+            {
+                if (IsOffScreen || IsFirstUpdate) return;
+                Context.DisplayController.RequestReset();
+            }, hasGreenCar, ViewModel.SupportsSuica);
         }
 
         public override bool IsPointerDownBlocked => IsTypeBlocked(TIMSBlockTypes.ChangeScreen);
@@ -139,28 +154,36 @@ namespace JREMonitors.E233.TIMS.S00AB
         public override RectangleF SelfRelativeDirtyBounds => RectangleF.Empty;
     }
 
-    public class S00ABForegroundRootViewModel : ViewModel
+    public class S00ABForegroundRootViewModel : TIMSFormationViewModel
     {
         private E233MonitorStates _monitorStates;
 
-        public S00ABForegroundRootViewModel()
+        public S00ABForegroundRootViewModel(TIMSVehicleSpec spec) : base(spec)
         {
             IsTIMSMain = CreateComputed(() => MonitorType == E233MonitorType.TIMSMain);
             IsNotTIMSMain = CreateComputed(() => MonitorType != E233MonitorType.TIMSMain);
+            SupportsSuica = CreateComputed(() =>
+            {
+                var formationSpec = FormationSpec.Value;
+                return formationSpec != null && formationSpec.SupportsSuica;
+            });
         }
 
         public Signal<bool> HasOtherMonitorToShowSafetyLamps { get; } = new Signal<bool>();
         public Signal<E233MonitorType> MonitorType { get; } = new Signal<E233MonitorType>();
         public Computed<bool> IsTIMSMain { get; }
         public Computed<bool> IsNotTIMSMain { get; }
+        public Computed<bool> SupportsSuica { get; }
 
         protected override void OnInitialize(DataHub dataHub)
         {
+            base.OnInitialize(dataHub);
             _monitorStates = dataHub.Get<E233MonitorStates>();
         }
 
         protected override void OnUpdate(TimeSpan elapsed)
         {
+            base.OnUpdate(elapsed);
             MonitorType.Value = _monitorStates.MonitorType;
             HasOtherMonitorToShowSafetyLamps.Value = _monitorStates.HasOtherMonitorToShowSafetyLamps;
         }

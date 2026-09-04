@@ -3,6 +3,7 @@ using System.Drawing;
 using System.Linq;
 using JREMonitors.Core.Contexts;
 using JREMonitors.Core.Layouts;
+using JREMonitors.Core.Reactive;
 using JREMonitors.Core.Services;
 using JREMonitors.Core.Widgets;
 using JREMonitors.E233.Constants;
@@ -16,6 +17,7 @@ namespace JREMonitors.E233.TIMS.D00AA
             const float bigButtonWidth = 218;
             const float bigButtonHeight = 80;
             const float bigButtonSpacing = 25;
+            SupportsTasc = CreateRelayPropertySlot<bool>();
             var bigButtonGrid = new Col(context,
                 40, 129,
                 bigButtonWidth,
@@ -63,8 +65,14 @@ namespace JREMonitors.E233.TIMS.D00AA
                 positionSnapToPixels: true
             );
             AddChild(smallButtonCol);
+            WatchEffect(() =>
+            {
+                if (IsOffScreen || IsFirstUpdate) return;
+                context.DisplayController.RequestReset();
+            }, SupportsTasc);
         }
 
+        public PropertySlot<bool> SupportsTasc { get; }
         public override bool IsPointerDownBlocked => IsTypeBlocked(TIMSBlockTypes.ChangeScreen);
 
         public override RectangleF SelfRelativeDirtyBounds => RectangleF.Empty;
@@ -133,7 +141,11 @@ namespace JREMonitors.E233.TIMS.D00AA
 
         protected override Widget GetLastWidget(TIMSVehicleSpec spec)
         {
-            return this.CreateTIMSFlexButton("TASC設定·確認", 1, 1);
+            var widget = this.CreateTIMSFlexButton("TASC設定·確認", 1, 1);
+            widget.SkipArrangeWhenHidden.Value = false;
+            widget.IncludeInTotalMajorDimensionSizeWhenHidden.Value = true;
+            widget.IsVisible.Bind(SupportsTasc);
+            return widget;
         }
     }
 

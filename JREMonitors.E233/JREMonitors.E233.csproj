@@ -35,10 +35,12 @@
         <EmbeddedResource Include="Resources\Brightness.svg"/>
         <EmbeddedResource Include="Resources\Home.svg"/>
         <EmbeddedResource Include="Resources\JRE.png"/>
-        <EmbeddedResource Include="Resources\MeterScreenWithSafetyLamps0.png"/>
-        <EmbeddedResource Include="Resources\TidScreenWithSafetyLamps0.png"/>
-        <EmbeddedResource Include="Resources\MeterScreenWithSafetyLamps1000.png"/>
-        <EmbeddedResource Include="Resources\TidScreenWithSafetyLamps1000.png"/>
+        <EmbeddedResource Include="Resources\MeterScreenWithSafetyLampsAndTasc0.png" />
+        <EmbeddedResource Include="Resources\TidScreenWithSafetyLampsAndTasc0.png" />
+        <EmbeddedResource Include="Resources\MeterScreenWithSafetyLampsNoTasc1000.png"/>
+        <EmbeddedResource Include="Resources\MeterScreenWithSafetyLampsAndTasc1000.png"/>
+        <EmbeddedResource Include="Resources\TidScreenWithSafetyLampsNoTasc1000.png"/>
+        <EmbeddedResource Include="Resources\TidScreenWithSafetyLampsAndTasc1000.png"/>
         <EmbeddedResource Include="Resources\MeterScreenWithSafetyLamps3000.png"/>
         <EmbeddedResource Include="Resources\TidScreenWithSafetyLamps3000.png"/>
     </ItemGroup>
@@ -139,7 +141,7 @@
         <Compile Include="TidScreen\LampGroups\TidTascCompactLampGroup.cs"/>
         <Compile Include="TidScreen\LampGroups\TidTascWideLampGroup.cs"/>
         <Compile Include="TidScreen\LampGroups\TidLampGroupBase.cs"/>
-        <Compile Include="TidScreen\TidChangeToTIMSWarning.cs"/>
+        <Compile Include="TidScreen\TidChangeToTIMSWarningScreen.cs" />
         <Compile Include="TidScreen\TidScreen0.cs"/>
         <Compile Include="TidScreen\TidScreen1000.cs"/>
         <Compile Include="TidScreen\TIdScreen3000.cs"/>
@@ -255,6 +257,7 @@
         <Compile Include="ViewModels\MeterForegroundRootBaseViewModel.cs"/>
         <Compile Include="ViewModels\NormalAtcViewModel.cs"/>
         <Compile Include="ViewModels\TascViewModel.cs"/>
+        <Compile Include="ViewModels\TidForegroundRootBaseViewModel.cs"/>
         <Compile Include="ViewModels\VehicleStateLampGroupViewModel.cs"/>
         <Compile Include="ViewModels\VolumeButtonViewModel.cs"/>
     </ItemGroup>

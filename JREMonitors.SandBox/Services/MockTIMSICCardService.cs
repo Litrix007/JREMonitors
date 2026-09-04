@@ -17,7 +17,7 @@ namespace JREMonitors.SandBox.Services
                 E233SignalSystem.Datc,
                 new[]
                 {
-                    new TIMSLeg<E233SignalSystem>("2334F", 'P', "10", TIMSDisplayMode.MDen,
+                    new TIMSLeg<E233SignalSystem>("2334F", 'P', "12", TIMSDisplayMode.MDen,
                         new TIMSDestination("蒲田"),
                         new TIMSNextDuty("824B", new TimeSpan(0, 23, 04, 30), new TimeSpan(0, 23, 05, 15)),
                         // null,

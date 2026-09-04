@@ -9,7 +9,7 @@ namespace JREMonitors.E233.TIMS.D01AX
     {
         public D01AXScreen(RenderContext context, TIMSVehicleSpec spec,
             D01AXTrainTypeButtonGroup trainTypeButtonGroup) : base(ScreenIds.D01AX,
-            ScreenSizes.TIMSScreenSize, 0, true, Colors.Transparent)
+            ScreenSizes.TIMSScreenSize, 0, true)
         {
             ForegroundRoot = new D01AXForegroundRoot(context, spec, trainTypeButtonGroup);
         }

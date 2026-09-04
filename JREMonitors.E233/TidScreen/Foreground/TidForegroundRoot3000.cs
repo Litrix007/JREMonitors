@@ -9,14 +9,16 @@ namespace JREMonitors.E233.TidScreen.Foreground
 {
     public class TidForegroundRoot3000 : TidForegroundRootBase
     {
-        public TidForegroundRoot3000(RenderContext context) : base(context, false)
+        public TidForegroundRoot3000(RenderContext context) : base(context)
         {
-            AddChild(new LampPanel(context, 1023, 1024, TidScreens.CompactLampHeight + 40, borderRadius: 0,
+            var infoButtonGroup = CreateInfoButtonGroup(false);
+            AddNonTascLayout(new Group(context, infoButtonGroup, new LampPanel(context, 1023, 1024,
+                TidScreens.CompactLampHeight + 40, borderRadius: 0,
                 clickable: false, children: new Widget[]
                 {
-                    InfoButtonGroup.HomeButton,
+                    infoButtonGroup.HomeButton,
                     new TidAtsLampGroup(context, 20, true, false)
-                }));
+                })));
         }
 
         public override RectangleF SelfRelativeDirtyBounds => RectangleF.Empty;

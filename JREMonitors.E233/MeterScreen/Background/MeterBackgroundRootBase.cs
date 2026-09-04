@@ -22,7 +22,6 @@ namespace JREMonitors.E233.MeterScreen.Background
             new Vector2(455, 165),
             CatenaryVoltGaugeBackground.SectorRadius,
             Vector2.Zero,
-            0,
             0);
 
         public static readonly RootProperties CommonRootPropertiesWithoutSafetyAndHldLamps = new RootProperties(false,
@@ -31,36 +30,41 @@ namespace JREMonitors.E233.MeterScreen.Background
             new Vector2(455, 165),
             CatenaryVoltGaugeBackground.SectorRadius,
             Vector2.Zero,
-            0,
             0);
 
-        private readonly bool _boldCenterMinorTicksWithoutSafetyLamps;
-        private readonly bool _boldCenterMinorTicksWithSafetyLamps;
+        protected readonly bool BoldCenterMinorTicksWithoutSafetyLamps;
+        protected readonly bool BoldCenterMinorTicksWithSafetyLamps;
 
         private readonly CatenaryVoltGaugeBackground _catenaryVoltGaugeBackground;
         private readonly DeviceVoltGaugeBackground _deviceVoltGaugeBackground;
+        private readonly Lamp _ebLamp;
         private readonly IDWriteTextFormat _format;
+        protected readonly float SpeedOffsetY;
         protected RootProperties RootPropertiesWithoutSafetyLamps;
         protected RootProperties RootPropertiesWithSafetyLamps;
+        protected readonly bool ShowHoldSpeedLamp;
 
         protected MeterBackgroundRootBase(
             RenderContext context,
             RootProperties propertiesWithSafetyLamps,
             bool boldCenterMinorTicksWithSafetyLamps,
             RootProperties propertiesWithoutSafetyLamps,
-            bool boldCenterMinorTicksWithoutSafetyLamps
+            bool boldCenterMinorTicksWithoutSafetyLamps,
+            float speedOffsetY
         ) : base(context)
         {
             ViewModel = new MeterBackgroundBaseViewModel();
             RootPropertiesWithSafetyLamps = propertiesWithSafetyLamps;
-            _boldCenterMinorTicksWithSafetyLamps = boldCenterMinorTicksWithSafetyLamps;
+            BoldCenterMinorTicksWithSafetyLamps = boldCenterMinorTicksWithSafetyLamps;
             RootPropertiesWithoutSafetyLamps = propertiesWithoutSafetyLamps;
-            _boldCenterMinorTicksWithoutSafetyLamps = boldCenterMinorTicksWithoutSafetyLamps;
+            BoldCenterMinorTicksWithoutSafetyLamps = boldCenterMinorTicksWithoutSafetyLamps;
+            ShowHoldSpeedLamp = propertiesWithSafetyLamps.ShowHoldSpeedLamp;
+            SpeedOffsetY = speedOffsetY;
             _format = context.FontManager.GetOrCreateFormat(Fonts.MyriadProFamily, 28);
             AddChild(new BcBackground(context, 147, 333));
             AddChild(new MrBackground(context, 354, 333));
             AddChild(new BrakeBackground(context, 128, 730));
-            var ebLamp = new Lamp(context,
+            _ebLamp = new Lamp(context,
                 new TextLayout(context,
                     context.FontManager.GetOrCreateFormat(Fonts.YuGothicUiFamily, 22, fontWeight: FontWeight.Bold),
                     "非常"),
@@ -69,8 +73,8 @@ namespace JREMonitors.E233.MeterScreen.Background
                 LayoutLength.Absolute(32),
                 offBackgroundColor: null, offBorderColor: LampBorderColor.EbRedOff, offBorderWidth: 3,
                 offBorderRadius: 4);
-            AddChild(ebLamp);
-            if (propertiesWithSafetyLamps.ShowHoldSpeedLamp)
+            AddChild(_ebLamp);
+            if (ShowHoldSpeedLamp)
             {
                 var holdSpeedLamp = new Lamp(context,
                     new TextLayout(context,
@@ -93,43 +97,39 @@ namespace JREMonitors.E233.MeterScreen.Background
             AddChild(_catenaryVoltGaugeBackground);
             WatchEffect(EffectPhase.State, () =>
             {
-                if (ViewModel.IsSafetyLampVisible)
-                {
-                    _deviceVoltGaugeBackground.X.Value = RootPropertiesWithSafetyLamps.DeviceVoltageGaugePos.X;
-                    _deviceVoltGaugeBackground.Y.Value = RootPropertiesWithSafetyLamps.DeviceVoltageGaugePos.Y;
-                    _deviceVoltGaugeBackground.Scale.Value = RootPropertiesWithSafetyLamps.DeviceVoltageSectorRadius /
-                                                             DeviceVoltGaugeBackground.SectorRadius;
-                    _catenaryVoltGaugeBackground.X.Value = RootPropertiesWithSafetyLamps.CatenaryVoltageGaugePos.X;
-                    _catenaryVoltGaugeBackground.Y.Value = RootPropertiesWithSafetyLamps.CatenaryVoltageGaugePos.Y;
-                    _catenaryVoltGaugeBackground.Scale.Value =
-                        RootPropertiesWithSafetyLamps.CatenaryVoltageSectorRadius /
-                        CatenaryVoltGaugeBackground.SectorRadius;
-                    _catenaryVoltGaugeBackground.BoldCenterMinorTicks = _boldCenterMinorTicksWithSafetyLamps;
-                }
+                if (!ViewModel.IsSafetyLampVisible)
+                    ApplyLayout(RootPropertiesWithoutSafetyLamps, BoldCenterMinorTicksWithoutSafetyLamps);
                 else
-                {
-                    _deviceVoltGaugeBackground.X.Value = RootPropertiesWithoutSafetyLamps.DeviceVoltageGaugePos.X;
-                    _deviceVoltGaugeBackground.Y.Value = RootPropertiesWithoutSafetyLamps.DeviceVoltageGaugePos.Y;
-                    _deviceVoltGaugeBackground.Scale.Value =
-                        RootPropertiesWithoutSafetyLamps.DeviceVoltageSectorRadius /
-                        DeviceVoltGaugeBackground.SectorRadius;
-                    _catenaryVoltGaugeBackground.X.Value = RootPropertiesWithoutSafetyLamps.CatenaryVoltageGaugePos.X;
-                    _catenaryVoltGaugeBackground.Y.Value = RootPropertiesWithoutSafetyLamps.CatenaryVoltageGaugePos.Y;
-                    _catenaryVoltGaugeBackground.Scale.Value =
-                        RootPropertiesWithoutSafetyLamps.CatenaryVoltageSectorRadius /
-                        CatenaryVoltGaugeBackground.SectorRadius;
-                    _catenaryVoltGaugeBackground.BoldCenterMinorTicks = _boldCenterMinorTicksWithoutSafetyLamps;
-                }
+                    OnSafetyLampsVisible();
             });
         }
 
         public override RectangleF SelfRelativeDirtyBounds => RectangleF.Empty;
 
+        protected void ApplyLayout(RootProperties properties, bool boldCenterMinorTicks)
+        {
+            _deviceVoltGaugeBackground.X.Value = properties.DeviceVoltageGaugePos.X;
+            _deviceVoltGaugeBackground.Y.Value = properties.DeviceVoltageGaugePos.Y;
+            _deviceVoltGaugeBackground.Scale.Value =
+                properties.DeviceVoltageSectorRadius / DeviceVoltGaugeBackground.SectorRadius;
+            _catenaryVoltGaugeBackground.X.Value = properties.CatenaryVoltageGaugePos.X;
+            _catenaryVoltGaugeBackground.Y.Value = properties.CatenaryVoltageGaugePos.Y;
+            _catenaryVoltGaugeBackground.Scale.Value =
+                properties.CatenaryVoltageSectorRadius / CatenaryVoltGaugeBackground.SectorRadius;
+            _catenaryVoltGaugeBackground.BoldCenterMinorTicks = boldCenterMinorTicks;
+            _ebLamp.Y.Value = properties.ShowHoldSpeedLamp ? 290 : 333;
+        }
+
+        protected virtual void OnSafetyLampsVisible()
+        {
+            ApplyLayout(RootPropertiesWithSafetyLamps, BoldCenterMinorTicksWithSafetyLamps);
+        }
+
         protected override void OnDraw(float totalScale)
         {
             Context.CommonBrush.Color = MonitorColors.White;
             Context.DeviceContext.DrawDynamicText(Context.DwFactory, "km/h", 845,
-                705 + RootPropertiesWithSafetyLamps.SpeedOffsetY, _format, Context.CommonBrush, angleDegrees: 10);
+                705 + SpeedOffsetY, _format, Context.CommonBrush, angleDegrees: 10);
         }
     }
 }

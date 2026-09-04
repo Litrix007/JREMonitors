@@ -1,6 +1,10 @@
-﻿using System.Drawing;
+using System;
+using System.Drawing;
 using JREMonitors.Core.Contexts;
 using JREMonitors.Core.Layouts;
+using JREMonitors.Core.Reactive;
+using JREMonitors.Core.Services.Render;
+using JREMonitors.Core.State;
 using JREMonitors.Core.Utils;
 using JREMonitors.Core.Utils.Render;
 using JREMonitors.Core.Widgets;
@@ -11,46 +15,75 @@ using Vortice.Mathematics;
 
 namespace JREMonitors.E233.TidScreen.Background
 {
-    public class TidChangeToTIMSWarningBackgroundRoot : Widget
+    public class TidChangeToTIMSWarningBackgroundRoot : Widget<TidChangeToTIMSWarningBackgroundRootViewModel>
     {
+        private static readonly PropertyKey ImageCacheKey = new PropertyKey("TidChangeToTIMSWarningImageCache");
         private const float ImageWidth = 250;
         private const float BoundsWidth = 700;
         private const float BoundsHeight = 150;
         private const float PaddingTop = 20;
         private readonly ID2D1Bitmap _meterScreenWithSafetyLampsBitmap;
-        private readonly BitmapScaleDrawer _textDrawer;
+        private readonly ID2D1Bitmap _meterScreenWithSafetyLampsWithoutTascBitmap;
         private readonly ID2D1Bitmap _tidScreenWithSafetyLampsBitmap;
+        private readonly ID2D1Bitmap _tidScreenWithSafetyLampsWithoutTascBitmap;
+        private readonly BitmapScaleDrawer _textDrawer;
 
         public TidChangeToTIMSWarningBackgroundRoot(RenderContext context, string meterScreenWithSafetyLampsName,
-            string tidScreenWithSafetyLampsName) :
+            string tidScreenWithSafetyLampsName, string meterScreenWithSafetyLampsWithoutTascName = null,
+            string tidScreenWithSafetyLampsWithoutTascName = null) :
             base(context)
         {
-            _meterScreenWithSafetyLampsBitmap = context.DeviceContext.LoadBitmapFromResource(context.WicImagingFactory,
-                typeof(Images), meterScreenWithSafetyLampsName);
-            RegisterResource(_meterScreenWithSafetyLampsBitmap);
-            _tidScreenWithSafetyLampsBitmap = context.DeviceContext.LoadBitmapFromResource(context.WicImagingFactory,
-                typeof(Images), tidScreenWithSafetyLampsName);
-            RegisterResource(_tidScreenWithSafetyLampsBitmap);
+            ViewModel = new TidChangeToTIMSWarningBackgroundRootViewModel();
+            var resourceCache = context.GetResourceCache<string, ID2D1Bitmap>(ImageCacheKey);
+            _meterScreenWithSafetyLampsBitmap = resourceCache.GetOrCreate(meterScreenWithSafetyLampsName, () =>
+                context.DeviceContext.LoadBitmapFromResource(context.WicImagingFactory,
+                    typeof(Images), meterScreenWithSafetyLampsName));
+            _tidScreenWithSafetyLampsBitmap = resourceCache.GetOrCreate(tidScreenWithSafetyLampsName,
+                () => context.DeviceContext.LoadBitmapFromResource(context.WicImagingFactory, typeof(Images),
+                    tidScreenWithSafetyLampsName));
+            _meterScreenWithSafetyLampsWithoutTascBitmap =
+                LoadOptionalBitmap(resourceCache, context, meterScreenWithSafetyLampsWithoutTascName);
+            _tidScreenWithSafetyLampsWithoutTascBitmap =
+                LoadOptionalBitmap(resourceCache, context, tidScreenWithSafetyLampsWithoutTascName);
             _textDrawer = this.CreateTIMSTextDrawer(
                 this.CreateTIMSTextLayout("この表示器をＴＩＭＳ表示器に\n切り替える場合は、左端の表示器に必ず\n保安表示灯を表示して下さい。",
                     arrangement: ContentArrangement.Near), 2, horizontalAlignment: 0.5f,
                 verticalAlignment: 0.5f);
             RegisterResource(_textDrawer);
+            WatchEffect(ViewModel.SupportsTasc);
+        }
+
+        private static ID2D1Bitmap LoadOptionalBitmap(ResourceCache<string, ID2D1Bitmap> resourceCache,
+            RenderContext context, string resourceName)
+        {
+            if (string.IsNullOrEmpty(resourceName)) return null;
+            return resourceCache.GetOrCreate(resourceName, () =>
+                context.DeviceContext.LoadBitmapFromResource(context.WicImagingFactory, typeof(Images),
+                    resourceName));
         }
 
         public override RectangleF SelfRelativeDirtyBounds => RectangleF.Empty;
 
         protected override void OnDraw(float totalScale)
         {
-            Context.DeviceContext.DrawBitmap(_meterScreenWithSafetyLampsBitmap,
+            var hasWithoutTascImages = _meterScreenWithSafetyLampsWithoutTascBitmap != null &&
+                                       _tidScreenWithSafetyLampsWithoutTascBitmap != null;
+            var showWithoutTasc = hasWithoutTascImages && !ViewModel.SupportsTasc;
+            var meterBitmap = showWithoutTasc
+                ? _meterScreenWithSafetyLampsWithoutTascBitmap
+                : _meterScreenWithSafetyLampsBitmap;
+            var tidBitmap = showWithoutTasc
+                ? _tidScreenWithSafetyLampsWithoutTascBitmap
+                : _tidScreenWithSafetyLampsBitmap;
+            Context.DeviceContext.DrawBitmap(meterBitmap,
                 new RectangleF(200 - ImageWidth / 2, PaddingTop, ImageWidth,
-                    ImageWidth * _meterScreenWithSafetyLampsBitmap.Size.Height /
-                    _meterScreenWithSafetyLampsBitmap.Size.Width),
+                    ImageWidth * meterBitmap.Size.Height /
+                    meterBitmap.Size.Width),
                 1, BitmapInterpolationMode.Linear, null);
-            Context.DeviceContext.DrawBitmap(_tidScreenWithSafetyLampsBitmap,
+            Context.DeviceContext.DrawBitmap(tidBitmap,
                 new RectangleF(600 - ImageWidth / 2, PaddingTop, ImageWidth,
-                    ImageWidth * _tidScreenWithSafetyLampsBitmap.Size.Height /
-                    _tidScreenWithSafetyLampsBitmap.Size.Width),
+                    ImageWidth * tidBitmap.Size.Height /
+                    tidBitmap.Size.Width),
                 1, BitmapInterpolationMode.Linear, null);
             Context.CommonBrush.Color = "#fdfd72".ToColor4();
             Context.DeviceContext.FillRectangle(
@@ -58,6 +91,22 @@ namespace JREMonitors.E233.TidScreen.Background
                 Context.CommonBrush);
             _textDrawer.Draw(
                 new RectangleF(400, 300 - BoundsHeight / 2, 0, BoundsHeight), Colors.Black);
+        }
+    }
+
+    public class TidChangeToTIMSWarningBackgroundRootViewModel : ViewModel
+    {
+        private E233MonitorStates _monitorStates;
+        public Signal<bool> SupportsTasc { get; } = new Signal<bool>();
+
+        protected override void OnInitialize(DataHub dataHub)
+        {
+            _monitorStates = dataHub.Get<E233MonitorStates>();
+        }
+
+        protected override void OnUpdate(TimeSpan elapsed)
+        {
+            SupportsTasc.Value = _monitorStates.SupportsTasc;
         }
     }
 }
