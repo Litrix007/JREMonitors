@@ -12,13 +12,13 @@
 本项目不附带界面所使用的字体，请自行在系统中安装以下字体，或将其置于插件目录下的`Fonts`文件夹中：
 
 | 字体名称                       | 字重               | 备注          |
-|----------------------------|------------------|-------------|
+| -------------------------- | ---------------- | ----------- |
 | Century Gothic             | Regular          | Windows 已内置 |
-| Century Gothic Paneuropean | Regular、SemiBold |             |
-| Myriad Pro                 | SemiBold、Bold    |             |
+| Century Gothic Paneuropean | Regular、SemiBold | <br />      |
+| Myriad Pro                 | SemiBold、Bold    | <br />      |
 | Yu Gothic UI               | Bold             | Windows 已内置 |
-| FOT-スーラ Pro                | Bold             |             |
-| FOT-スーラ Pro DB             | DemiBold         |             |
+| FOT-スーラ Pro                | Bold             | <br />      |
+| FOT-スーラ Pro DB             | DemiBold         | <br />      |
 | Arial                      | Regular、Bold     | Windows 已内置 |
 
 ### 插件与配置引用
@@ -57,16 +57,20 @@ Scenarios/
 
 [Examples](examples)目录下有多个常见车辆数据的基础示例配置，可根据需要进行修改。
 
-> [!WARNING]
+> \[!WARNING]
 > **重要提示**
 >
 > 因DWM合成限制，当游戏渲染所使用的显卡、游戏窗口和外置窗口所处显示屏的显卡不同，且各显示器的刷新率不同时，画面变动时可能出现明显掉帧情况。若遇到此问题，请尝试以下方法：
 >
-> - 将游戏窗口移至连接的显卡和游戏使用显卡相同的显示器。
-> - 在系统设置中将主显示器设置为连接的显卡和游戏使用显卡相同的显示器。
-> - 将外置窗口设为全屏模式（右键菜单设置）。
-> - 使用全屏模式启动游戏。
-> - 让各显示器使用相同的显卡(如开启独显直连)。
+> * 将游戏窗口移至连接的显卡和游戏使用显卡相同的显示器。
+>
+> * 在系统设置中将主显示器设置为连接的显卡和游戏使用显卡相同的显示器。
+>
+> * 将外置窗口设为全屏模式（右键菜单设置）。
+>
+> * 使用全屏模式启动游戏。
+>
+> * 让各显示器使用相同的显卡(如开启独显直连)。
 >
 > 此外，还需要关闭G-Sync/FreeSync。
 
@@ -120,7 +124,7 @@ interface JREVehicleConfig extends VehicleConfig {
      * - E233-0：`4after6` | `6` | `10` | `10g` | `6+4` | `4after8` | `8` | `12` | `8+4`
      * - E233-1000：`10`
      * - E233-3000：`5` | `10` | `10+5`
-     * - E233-5000：`10`
+     * - E233-5000：`4` | `6` | `6+4` | `10`
      */
     defaultFormation?: string;
 
@@ -134,12 +138,26 @@ interface JREVehicleConfig extends VehicleConfig {
      * 某编组未配置时，将回退至车辆的初始性能。
      */
     performanceCurves?: Record<string, string>;
+
+    /**
+     * 各编组使用的车辆参数文件路径。键为编组名，值为车辆参数文件路径。
+     * 某编组未配置或解析失败时，将回退至车辆文件中定义的参数路径。
+     * 不会更新 `[OneLeverCab]`、`[Cab]`、`[ViewPoint]`。
+     */
+    vehicleParameters?: Record<string, string>;
 }
 
 /** E233系相关配置。 */
 interface E233Config extends JREVehicleConfig {
     /** TIMS 相关配置。 */
     tims?: TIMSConfig;
+
+    /**
+     * 是否搭载 TASC 设备。
+     * - E233-0、E233-1000：可设置，默认 `true`；
+     * - E233-3000、E233-5000：固定为 `false`，填写该字段会导致配置校验失败。
+     */
+    supportsTasc?: boolean;
 }
 
 /** TIMS（乘务支援信息表示系统）配置。 */
@@ -158,6 +176,18 @@ interface TIMSConfig {
 
     /** IC 卡路径。启用热重载时，路径及对应内容变更均可自动响应。 */
     icCardPath?: string;
+
+    /**
+     * TIMS 画面 18 号点阵文字的字体族名称。未设置、字体不存在或缺字形时回退到 `MS Gothic`。
+     * 此为监视器构建期定型配置，更改此属性将重建整个监视器系统。
+     */
+    timsFont18Family?: string;
+
+    /**
+     * M电/E电 秒数文字的 Y 轴偏移量，默认为 `1`（适配 `MS Gothic`）；自定义字体对位不齐时调整。
+     * 此为监视器构建期定型配置，更改此属性将重建整个监视器系统。
+     */
+    timeTableSecondsOffsetY?: number | null;
 }
 
 /** 监视器配置。 */
@@ -551,7 +581,7 @@ type TIMSTrainType = "local" | "rapid";
 ATS-P 系列信号插件相关索引。
 
 | 索引名称                  | 面板索引 |
-|-----------------------|------|
+| --------------------- | ---- |
 | `atsPPower`           | `2`  |
 | `atsPPatternApproach` | `3`  |
 | `atsPBrakeCutout`     | `4`  |
@@ -565,7 +595,7 @@ ATS-P 系列信号插件相关索引。
 ATS-S 系列信号插件相关索引。
 
 | 索引名称            | 面板索引 |
-|-----------------|------|
+| --------------- | ---- |
 | `atsSPower`     | `0`  |
 | `atsSActivated` | `1`  |
 
@@ -574,7 +604,7 @@ ATS-S 系列信号插件相关索引。
 ATC-6 信号插件相关索引。
 
 | 索引名称                  | 面板索引 |
-|-----------------------|------|
+| --------------------- | ---- |
 | `atcSpeed0`           | `71` |
 | `atcSpeed15`          | `72` |
 | `atcSpeed25`          | `73` |
@@ -599,7 +629,7 @@ ATC-6 信号插件相关索引。
 Mi5000-DATC 信号插件相关索引。
 
 | 索引名称                  | 面板索引     |
-|-----------------------|----------|
+| --------------------- | -------- |
 | `datcSpeedLimit`      | `67`     |
 | `datcPatternApproach` | `68`     |
 | `datcAbsoluteStop`    | `70`     |
@@ -615,142 +645,143 @@ Mi5000-DATC 信号插件相关索引。
 #### 基础层（Builtin）
 
 | 索引名称         | 功能   | 补充                 |
-|--------------|------|--------------------|
+| ------------ | ---- | ------------------ |
 | `brakeNotch` | 制动级位 | 未配置时回退到读取游戏制动级位状态。 |
 
 #### JRE 层（JREVehicleConfig）
 
 | 索引名称            | 功能   | 补充                |
-|-----------------|------|-------------------|
+| --------------- | ---- | ----------------- |
 | `constantSpeed` | 定速   | 未配置时回退到读取游戏定速状态。  |
 | `deviceVoltage` | 设备电压 | 未配置时回退到默认值 `105`。 |
 
 #### E233 层（E233Config）
 
 | 索引名称              | 功能   | 补充                 |
-|-------------------|------|--------------------|
+| ----------------- | ---- | ------------------ |
 | `catenaryVoltage` | 架线电压 | 未配置时回退到默认值 `1500`。 |
 
 #### E233-0 层
 
 支持输入索引预设：`GAP-ATS-P`、`GAP-ATS-S`。
 
-| 索引名称                     | 功能           | 补充                                                  |
-|--------------------------|--------------|-----------------------------------------------------|
-| `holdSpeed`              | 抑速           | 配置此选项时必须同时指定定速索引，否则校验失败。                            |
-| `atsPPower`              | P電源          |                                                     |
-| `atsPPatternApproach`    | パターン接近       |                                                     |
-| `atsPServiceBrake`       | 常用ブレーキ       |                                                     |
-| `atsPEmergencyBrake`     | 非常ブレーキ       |                                                     |
-| `atsPBrakeCutout`        | ブレーキ開放       |                                                     |
-| `atsPEnabled`            | ATS-P        |                                                     |
-| `atsPFailure`            | 故障           |                                                     |
-| `atsSPower`              | ATS電源        |                                                     |
-| `atsSActivated`          | ATS動作        |                                                     |
-| `tascBrakeNotch`         | TASC制动级位     |                                                     |
-| `tascPower`              | TASC電源       | 未配置时回退为点亮。                                          |
-| `tascPattern`            | TASCパターン     |                                                     |
-| `tascBrake`              | TASCブレーキ     |                                                     |
-| `tascEnabled`            | 是否关闭TASC切    | 与 `tascDisabled` 功能互斥，二者不能同时定义。                     |
-| `tascDisabled`           | 是否显示TASC切    | 与 `tascEnabled` 功能互斥，二者不能同时定义。                      |
-| `tascFailure`            | TASC故障       |                                                     |
-| `tascFixedDistance`      | 定位置          |                                                     |
-| `vehicleDoorAllClosed`   | 車両ドア全閉       | 未配置时回退到游戏车门全闭状态。                                    |
-| `platformDoorAllClosed`  | ホームドア全閉      |                                                     |
-| `platformInterlocking`   | ホームドア連携      |                                                     |
-| `platformDecoupling`     | ホームドア分離      |                                                     |
-| `tascHoldingBrake`       | 転動防止ブレーキ     |                                                     |
-| `platformDoorCutout`     | ホームドア開放      |                                                     |
-| `carDoor1` ~ `carDoor12` | 对应车厢车门整体开闭状态 | 若配置则只能模拟到该节车厢整体的门开闭状态；未配置则可根据游戏内数据独立模拟该车厢内每扇门的开闭状态。 |
+| 索引名称                      | 功能           | 补充                                                  |
+| ------------------------- | ------------ | --------------------------------------------------- |
+| `holdSpeed`               | 抑速           | 配置此选项时必须同时指定定速索引，否则校验失败。                            |
+| `atsPPower`               | P電源          | <br />                                              |
+| `atsPPatternApproach`     | パターン接近       | <br />                                              |
+| `atsPServiceBrake`        | 常用ブレーキ       | <br />                                              |
+| `atsPEmergencyBrake`      | 非常ブレーキ       | <br />                                              |
+| `atsPBrakeCutout`         | ブレーキ開放       | <br />                                              |
+| `atsPEnabled`             | ATS-P        | <br />                                              |
+| `atsPFailure`             | 故障           | <br />                                              |
+| `atsSPower`               | ATS電源        | <br />                                              |
+| `atsSActivated`           | ATS動作        | <br />                                              |
+| `tascBrakeNotch`          | TASC制动级位     | <br />                                              |
+| `tascPower`               | TASC電源       | 未配置时回退为点亮。                                          |
+| `tascPattern`             | TASCパターン     | <br />                                              |
+| `tascBrake`               | TASCブレーキ     | <br />                                              |
+| `tascEnabled`             | 是否关闭TASC切    | 与 `tascDisabled` 功能互斥，二者不能同时定义。                     |
+| `tascDisabled`            | 是否显示TASC切    | 与 `tascEnabled` 功能互斥，二者不能同时定义。                      |
+| `tascFailure`             | TASC故障       | <br />                                              |
+| `tascFixedDistance`       | 定位置          | <br />                                              |
+| `vehicleDoorAllClosed`    | 車両ドア全閉       | 未配置时回退到游戏车门全闭状态。                                    |
+| `platformDoorAllClosed`   | ホームドア全閉      | <br />                                              |
+| `platformInterlocking`    | ホームドア連携      | <br />                                              |
+| `platformDecoupling`      | ホームドア分離      | <br />                                              |
+| `tascHoldingBrake`        | 転動防止ブレーキ     | <br />                                              |
+| `platformDoorCutout`      | ホームドア開放      | <br />                                              |
+| `carDoor1` \~ `carDoor12` | 对应车厢车门整体开闭状态 | 若配置则只能模拟到该节车厢整体的门开闭状态；未配置则可根据游戏内数据独立模拟该车厢内每扇门的开闭状态。 |
 
 #### E233-1000 层
 
 支持输入索引预设：`ATC-6`、`Mi5000-DATC`。
 
-| 索引名称                     | 功能               | 补充                                                  |
-|--------------------------|------------------|-----------------------------------------------------|
-| `atcSpeed0`              | ATC速度制限（0km/h）   | 仅在信号系统为 `atc6` 时生效；不是可配置输入，仅作 `ATC-6` 预设映射。         |
-| `atcSpeed15`             | ATC速度制限（15km/h）  | 仅在信号系统为 `atc6` 时生效；不是可配置输入，仅作 `ATC-6` 预设映射。         |
-| `atcSpeed25`             | ATC速度制限（25km/h）  | 仅在信号系统为 `atc6` 时生效；不是可配置输入，仅作 `ATC-6` 预设映射。         |
-| `atcSpeed45`             | ATC速度制限（45km/h）  | 仅在信号系统为 `atc6` 时生效；不是可配置输入，仅作 `ATC-6` 预设映射。         |
-| `atcSpeed55`             | ATC速度制限（55km/h）  | 仅在信号系统为 `atc6` 时生效；不是可配置输入，仅作 `ATC-6` 预设映射。         |
-| `atcSpeed65`             | ATC速度制限（65km/h）  | 仅在信号系统为 `atc6` 时生效；不是可配置输入，仅作 `ATC-6` 预设映射。         |
-| `atcSpeed75`             | ATC速度制限（75km/h）  | 仅在信号系统为 `atc6` 时生效；不是可配置输入，仅作 `ATC-6` 预设映射。         |
-| `atcSpeed90`             | ATC速度制限（90km/h）  | 仅在信号系统为 `atc6` 时生效；不是可配置输入，仅作 `ATC-6` 预设映射。         |
-| `atcSpeed100`            | ATC速度制限（100km/h） | 仅在信号系统为 `atc6` 时生效；不是可配置输入，仅作 `ATC-6` 预设映射。         |
-| `atcSpeed110`            | ATC速度制限（110km/h） | 仅在信号系统为 `atc6` 时生效；不是可配置输入，仅作 `ATC-6` 预设映射。         |
-| `atcSpeed120`            | ATC速度制限（120km/h） | 仅在信号系统为 `atc6` 时生效；不是可配置输入，仅作 `ATC-6` 预设映射。         |
-| `atc6Shunt`              | 入換               | 仅在信号系统为 `atc6` 时生效。                                 |
-| `atc6AbsoluteStop`       | 絶対停止             | 仅在信号系统为 `atc6` 时生效。                                 |
-| `atc6PatternApproach`    | パターン接近           | 仅在信号系统为 `atc6` 时生效。                                 |
-| `atc6InchingActivated`   | インチング制御中         | 仅在信号系统为 `atc6` 时生效。                                 |
-| `atc6TurnOff`            | 切                | 仅在信号系统为 `atc6` 时生效。                                 |
-| `atc6PatternCleared`     | パターン低滅           | 仅在信号系统为 `atc6` 时生效。                                 |
-| `atc6EmergencyRun`       | 非常運転             | 仅在信号系统为 `atc6` 时生效。                                 |
-| `atc6ServiceBrake`       | ATC常用            | 仅在信号系统为 `atc6` 时生效。                                 |
-| `atc6EmergencyBrake`     | ATC非常            | 仅在信号系统为 `atc6` 时生效。                                 |
-| `atc6OverrunAction`      | 停通防止動作           | 仅在信号系统为 `atc6` 时生效。                                 |
-| `atc6Power`              | ATC電源            | 仅在信号系统为 `atc6` 时生效。                                 |
-| `atc6Cutout`             | ATC開放            | 仅在信号系统为 `atc6` 时生效。                                 |
-| `datcSpeedLimit`         | ATC速度制限          | 仅在信号系统为 `datc` 时生效。                                 |
-| `datcShunt`              | 入換               | 仅在信号系统为 `datc` 时生效。                                 |
-| `datcAbsoluteStop`       | 絶対停止             | 仅在信号系统为 `datc` 时生效。                                 |
-| `datcPatternApproach`    | パターン接近           | 仅在信号系统为 `datc` 时生效。                                 |
-| `datcInchingActivated`   | インチング制御中         | 仅在信号系统为 `datc` 时生效。                                 |
-| `datcTurnOff`            | 切                | 仅在信号系统为 `datc` 时生效。                                 |
-| `datcPatternCleared`     | パターン低減           | 仅在信号系统为 `datc` 时生效。                                 |
-| `datcEmergencyRun`       | 非常運転             | 仅在信号系统为 `datc` 时生效。                                 |
-| `datcServiceBrake`       | ATC常用            | 仅在信号系统为 `datc` 时生效。                                 |
-| `datcEmergencyBrake`     | ATC非常            | 仅在信号系统为 `datc` 时生效。                                 |
-| `datcOverrunAction`      | 停通防止動作           | 仅在信号系统为 `datc` 时生效。                                 |
-| `datcPower`              | ATC電源            | 仅在信号系统为 `datc` 时生效。                                 |
-| `datcCutout`             | ATC開放            | 仅在信号系统为 `datc` 时生效。                                 |
-| `atcHoldingBrakeActive`  | 転動防止動作           |                                                     |
-| `tascBrakeNotch`         | TASC制动级位         |                                                     |
-| `tascPower`              | TASC電源           | 未配置时回退为点亮。                                          |
-| `tascPattern`            | TASCパターン         |                                                     |
-| `tascBrake`              | TASCブレーキ         |                                                     |
-| `tascEnabled`            | 是否关闭TASC切        | 与 `tascDisabled` 功能互斥，二者不能同时定义。                     |
-| `tascDisabled`           | 是否显示TASC切        | 与 `tascEnabled` 功能互斥，二者不能同时定义。                      |
-| `tascFailure`            | TASC故障           |                                                     |
-| `tascFixedDistance`      | 定位置              |                                                     |
-| `vehicleDoorAllClosed`   | 車両ドア全閉           | 未配置时回退到游戏车门全闭状态。                                    |
-| `platformDoorAllClosed`  | ホームドア全閉          |                                                     |
-| `platformInterlocking`   | ホームドア連携          |                                                     |
-| `platformDecoupling`     | ホームドア分離          |                                                     |
-| `carDoor1` ~ `carDoor10` | 对应车厢车门整体开闭状态     | 若配置则只能模拟到该节车厢整体的门开闭状态；未配置则可根据游戏内数据独立模拟该车厢内每扇门的开闭状态。 |
+| 索引名称                      | 功能               | 补充                                                  |
+| ------------------------- | ---------------- | --------------------------------------------------- |
+| `atcSpeed0`               | ATC速度制限（0km/h）   | 仅在信号系统为 `atc6` 时生效；不是可配置输入，仅作 `ATC-6` 预设映射。         |
+| `atcSpeed15`              | ATC速度制限（15km/h）  | 仅在信号系统为 `atc6` 时生效；不是可配置输入，仅作 `ATC-6` 预设映射。         |
+| `atcSpeed25`              | ATC速度制限（25km/h）  | 仅在信号系统为 `atc6` 时生效；不是可配置输入，仅作 `ATC-6` 预设映射。         |
+| `atcSpeed45`              | ATC速度制限（45km/h）  | 仅在信号系统为 `atc6` 时生效；不是可配置输入，仅作 `ATC-6` 预设映射。         |
+| `atcSpeed55`              | ATC速度制限（55km/h）  | 仅在信号系统为 `atc6` 时生效；不是可配置输入，仅作 `ATC-6` 预设映射。         |
+| `atcSpeed65`              | ATC速度制限（65km/h）  | 仅在信号系统为 `atc6` 时生效；不是可配置输入，仅作 `ATC-6` 预设映射。         |
+| `atcSpeed75`              | ATC速度制限（75km/h）  | 仅在信号系统为 `atc6` 时生效；不是可配置输入，仅作 `ATC-6` 预设映射。         |
+| `atcSpeed90`              | ATC速度制限（90km/h）  | 仅在信号系统为 `atc6` 时生效；不是可配置输入，仅作 `ATC-6` 预设映射。         |
+| `atcSpeed100`             | ATC速度制限（100km/h） | 仅在信号系统为 `atc6` 时生效；不是可配置输入，仅作 `ATC-6` 预设映射。         |
+| `atcSpeed110`             | ATC速度制限（110km/h） | 仅在信号系统为 `atc6` 时生效；不是可配置输入，仅作 `ATC-6` 预设映射。         |
+| `atcSpeed120`             | ATC速度制限（120km/h） | 仅在信号系统为 `atc6` 时生效；不是可配置输入，仅作 `ATC-6` 预设映射。         |
+| `atc6Shunt`               | 入換               | 仅在信号系统为 `atc6` 时生效。                                 |
+| `atc6AbsoluteStop`        | 絶対停止             | 仅在信号系统为 `atc6` 时生效。                                 |
+| `atc6PatternApproach`     | パターン接近           | 仅在信号系统为 `atc6` 时生效。                                 |
+| `atc6InchingActivated`    | インチング制御中         | 仅在信号系统为 `atc6` 时生效。                                 |
+| `atc6TurnOff`             | 切                | 仅在信号系统为 `atc6` 时生效。                                 |
+| `atc6PatternCleared`      | パターン低滅           | 仅在信号系统为 `atc6` 时生效。                                 |
+| `atc6EmergencyRun`        | 非常運転             | 仅在信号系统为 `atc6` 时生效。                                 |
+| `atc6ServiceBrake`        | ATC常用            | 仅在信号系统为 `atc6` 时生效。                                 |
+| `atc6EmergencyBrake`      | ATC非常            | 仅在信号系统为 `atc6` 时生效。                                 |
+| `atc6OverrunAction`       | 停通防止動作           | 仅在信号系统为 `atc6` 时生效。                                 |
+| `atc6Power`               | ATC電源            | 仅在信号系统为 `atc6` 时生效。                                 |
+| `atc6Cutout`              | ATC開放            | 仅在信号系统为 `atc6` 时生效。                                 |
+| `datcSpeedLimit`          | ATC速度制限          | 仅在信号系统为 `datc` 时生效。                                 |
+| `datcShunt`               | 入換               | 仅在信号系统为 `datc` 时生效。                                 |
+| `datcAbsoluteStop`        | 絶対停止             | 仅在信号系统为 `datc` 时生效。                                 |
+| `datcPatternApproach`     | パターン接近           | 仅在信号系统为 `datc` 时生效。                                 |
+| `datcInchingActivated`    | インチング制御中         | 仅在信号系统为 `datc` 时生效。                                 |
+| `datcTurnOff`             | 切                | 仅在信号系统为 `datc` 时生效。                                 |
+| `datcPatternCleared`      | パターン低減           | 仅在信号系统为 `datc` 时生效。                                 |
+| `datcEmergencyRun`        | 非常運転             | 仅在信号系统为 `datc` 时生效。                                 |
+| `datcServiceBrake`        | ATC常用            | 仅在信号系统为 `datc` 时生效。                                 |
+| `datcEmergencyBrake`      | ATC非常            | 仅在信号系统为 `datc` 时生效。                                 |
+| `datcOverrunAction`       | 停通防止動作           | 仅在信号系统为 `datc` 时生效。                                 |
+| `datcPower`               | ATC電源            | 仅在信号系统为 `datc` 时生效。                                 |
+| `datcCutout`              | ATC開放            | 仅在信号系统为 `datc` 时生效。                                 |
+| `atcHoldingBrakeActive`   | 転動防止動作           | <br />                                              |
+| `tascBrakeNotch`          | TASC制动级位         | <br />                                              |
+| `tascPower`               | TASC電源           | 未配置时回退为点亮。                                          |
+| `tascPattern`             | TASCパターン         | <br />                                              |
+| `tascBrake`               | TASCブレーキ         | <br />                                              |
+| `tascEnabled`             | 是否关闭TASC切        | 与 `tascDisabled` 功能互斥，二者不能同时定义。                     |
+| `tascDisabled`            | 是否显示TASC切        | 与 `tascEnabled` 功能互斥，二者不能同时定义。                      |
+| `tascFailure`             | TASC故障           | <br />                                              |
+| `tascFixedDistance`       | 定位置              | <br />                                              |
+| `vehicleDoorAllClosed`    | 車両ドア全閉           | 未配置时回退到游戏车门全闭状态。                                    |
+| `platformDoorAllClosed`   | ホームドア全閉          | <br />                                              |
+| `platformInterlocking`    | ホームドア連携          | <br />                                              |
+| `platformDecoupling`      | ホームドア分離          | <br />                                              |
+| `carDoor1` \~ `carDoor10` | 对应车厢车门整体开闭状态     | 若配置则只能模拟到该节车厢整体的门开闭状态；未配置则可根据游戏内数据独立模拟该车厢内每扇门的开闭状态。 |
 
 #### E233-3000 层
 
 支持输入索引预设：`GAP-ATS-P`、`GAP-ATS-S`。
 
-| 索引名称                     | 功能           | 补充                                                  |
-|--------------------------|--------------|-----------------------------------------------------|
-| `holdSpeed`              | 抑速           | 配置此选项时必须同时指定定速索引，否则校验失败。                            |
-| `atsPPower`              | P電源          |                                                     |
-| `atsPPatternApproach`    | パターン接近       |                                                     |
-| `atsPServiceBrake`       | 常用ブレーキ       |                                                     |
-| `atsPEmergencyBrake`     | 非常ブレーキ       |                                                     |
-| `atsPBrakeCutout`        | ブレーキ開放       |                                                     |
-| `atsPEnabled`            | ATS-P        |                                                     |
-| `atsPFailure`            | 故障           |                                                     |
-| `atsSPower`              | ATS電源        |                                                     |
-| `atsSActivated`          | ATS動作        |                                                     |
-| `carDoor1` ~ `carDoor15` | 对应车厢车门整体开闭状态 | 若配置则只能模拟到该节车厢整体的门开闭状态；未配置则可根据游戏内数据独立模拟该车厢内每扇门的开闭状态。 |
+| 索引名称                      | 功能           | 补充                                                  |
+| ------------------------- | ------------ | --------------------------------------------------- |
+| `holdSpeed`               | 抑速           | 配置此选项时必须同时指定定速索引，否则校验失败。                            |
+| `atsPPower`               | P電源          | <br />                                              |
+| `atsPPatternApproach`     | パターン接近       | <br />                                              |
+| `atsPServiceBrake`        | 常用ブレーキ       | <br />                                              |
+| `atsPEmergencyBrake`      | 非常ブレーキ       | <br />                                              |
+| `atsPBrakeCutout`         | ブレーキ開放       | <br />                                              |
+| `atsPEnabled`             | ATS-P        | <br />                                              |
+| `atsPFailure`             | 故障           | <br />                                              |
+| `atsSPower`               | ATS電源        | <br />                                              |
+| `atsSActivated`           | ATS動作        | <br />                                              |
+| `carDoor1` \~ `carDoor15` | 对应车厢车门整体开闭状态 | 若配置则只能模拟到该节车厢整体的门开闭状态；未配置则可根据游戏内数据独立模拟该车厢内每扇门的开闭状态。 |
 
 #### E233-5000 层
 
 支持输入索引预设：`GAP-ATS-P`、`GAP-ATS-S`。
 
-| 索引名称                     | 功能           | 补充                                                  |
-|--------------------------|--------------|-----------------------------------------------------|
-| `atsPPower`              | P電源          |                                                     |
-| `atsPPatternApproach`    | パターン接近       |                                                     |
-| `atsPServiceBrake`       | 常用ブレーキ       |                                                     |
-| `atsPEmergencyBrake`     | 非常ブレーキ       |                                                     |
-| `atsPBrakeCutout`        | ブレーキ開放       |                                                     |
-| `atsPEnabled`            | ATS-P        |                                                     |
-| `atsPFailure`            | 故障           |                                                     |
-| `atsSPower`              | ATS電源        |                                                     |
-| `atsSActivated`          | ATS動作        |                                                     |
-| `carDoor1` ~ `carDoor10` | 对应车厢车门整体开闭状态 | 若配置则只能模拟到该节车厢整体的门开闭状态；未配置则可根据游戏内数据独立模拟该车厢内每扇门的开闭状态。 |
+| 索引名称                      | 功能           | 补充                                                  |
+| ------------------------- | ------------ | --------------------------------------------------- |
+| `atsPPower`               | P電源          | <br />                                              |
+| `atsPPatternApproach`     | パターン接近       | <br />                                              |
+| `atsPServiceBrake`        | 常用ブレーキ       | <br />                                              |
+| `atsPEmergencyBrake`      | 非常ブレーキ       | <br />                                              |
+| `atsPBrakeCutout`         | ブレーキ開放       | <br />                                              |
+| `atsPEnabled`             | ATS-P        | <br />                                              |
+| `atsPFailure`             | 故障           | <br />                                              |
+| `atsSPower`               | ATS電源        | <br />                                              |
+| `atsSActivated`           | ATS動作        | <br />                                              |
+| `carDoor1` \~ `carDoor10` | 对应车厢车门整体开闭状态 | 若配置则只能模拟到该节车厢整体的门开闭状态；未配置则可根据游戏内数据独立模拟该车厢内每扇门的开闭状态。 |
+

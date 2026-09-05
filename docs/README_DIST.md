@@ -35,8 +35,6 @@ JREMonitors 是一款基于 Direct2D 渲染、为 BVE Trainsim 5.8/6 开发的�
 
 依赖关系自下而上：`Core` ← `JRE` ← `E233` ← `BveEx`，`SandBox` 独立于游戏运行。
 
-详见 [ARCHITECTURE.md](docs/ARCHITECTURE.md)。
-
 ## Direct3D9Ex API 支持
 
 本插件的游戏内画面同步逻辑针对 Direct3D9Ex

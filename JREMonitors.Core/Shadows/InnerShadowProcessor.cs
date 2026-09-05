@@ -7,6 +7,9 @@ using Vortice.Direct2D1;
 
 namespace JREMonitors.Core.Shadows
 {
+    /// <summary>
+    ///     内阴影处理器。
+    /// </summary>
     public class InnerShadowEffectChain : IDisposable
     {
         private readonly List<ID2D1Effect> _blurEffects = new List<ID2D1Effect>();

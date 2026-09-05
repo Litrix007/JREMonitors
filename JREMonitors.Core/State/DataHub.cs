@@ -3,6 +3,15 @@ using System.Collections.Generic;
 
 namespace JREMonitors.Core.State
 {
+    /// <summary>
+    ///     领域/服务层容器，按类型注册与解析非渲染层的服务、数据提供者与共享状态对象，支持父链解析。
+    /// </summary>
+    /// <remarks>
+    ///     <para>
+    ///         架构层级位于渲染层之外，渲染期资源一律放入 <see cref="JREMonitors.Core.Contexts.RenderContext.Properties" />，
+    ///         本容器只登记逻辑层可组合的服务与状态。
+    ///     </para>
+    /// </remarks>
     public class DataHub : IDisposable
     {
         private readonly DataHub _parent;

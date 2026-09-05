@@ -8,20 +8,25 @@ using Vortice.DirectWrite;
 
 namespace JREMonitors.Core.Managers
 {
+    /// <summary>
+    ///     字体管理器。
+    /// </summary>
     public class FontManager : IDisposable
     {
         private const string FallbackFont = "Yu Gothic UI";
         private readonly IDebugger _debugger;
+
+        private readonly Dictionary<string, IDWriteFontFallback> _fallbackCache =
+            new Dictionary<string, IDWriteFontFallback>(StringComparer.OrdinalIgnoreCase);
+
         private readonly IDWriteFontCollection _fontCollection;
-        private readonly IDWriteFontCollection _systemFontCollection;
 
         private readonly
             Dictionary<(string family, float size, FontStyle style, FontWeight weight, FontStretch stretch),
                 IDWriteTextFormat> _formatCache =
                 new Dictionary<(string, float, FontStyle, FontWeight, FontStretch), IDWriteTextFormat>();
 
-        private readonly Dictionary<string, IDWriteFontFallback> _fallbackCache =
-            new Dictionary<string, IDWriteFontFallback>(StringComparer.OrdinalIgnoreCase);
+        private readonly IDWriteFontCollection _systemFontCollection;
 
         public FontManager(string fontsDirectoryPath, IDebugger debugger = null)
         {
@@ -69,6 +74,24 @@ namespace JREMonitors.Core.Managers
             DwFactory?.Dispose();
         }
 
+        /// <summary>
+        ///     获取（或缓存创建）指定字体族列表的 DirectWrite 文本格式。
+        /// </summary>
+        /// <param name="familyNames">
+        ///     逗号分隔的字体族候选列表（按优先级排列）；
+        ///     首选在私有字体集合中解析，未命中时回退到系统字体集合，再未命中则以首个候选名创建并由
+        ///     <c>ja-jp</c> 回退链兜底。
+        /// </param>
+        /// <param name="size">字号。</param>
+        /// <param name="fontStyle">字形样式。</param>
+        /// <param name="fontWeight">字重。</param>
+        /// <param name="fontStretch">字体伸展。</param>
+        /// <returns>缓存的 <see cref="IDWriteTextFormat" />。</returns>
+        /// <remarks>
+        ///     返回的格式对象按 <c>(familyNames, size, style, weight, stretch)</c> 字典缓存，
+        ///     同一参数组合命中同一实例；其生命周期由 <see cref="FontManager" /> 持有（在
+        ///     <see cref="Dispose" /> 时统一释放），<b>调用者不得自行 Dispose</b>，重复获取即可复用。
+        /// </remarks>
         public IDWriteTextFormat GetOrCreateFormat(
             string familyNames,
             float size,
@@ -93,12 +116,10 @@ namespace JREMonitors.Core.Managers
             );
             var fallback = GetOrCreateFallbackChain(candidates);
             if (fallback != null)
-            {
                 using (var textFormat1 = newFormat.QueryInterface<IDWriteTextFormat1>())
                 {
                     textFormat1.FontFallback = fallback;
                 }
-            }
 
             _formatCache.Add(key, newFormat);
             return newFormat;
@@ -107,10 +128,7 @@ namespace JREMonitors.Core.Managers
         private IDWriteFontFallback GetOrCreateFallbackChain(string[] candidates)
         {
             var fallbackFonts = new List<string>();
-            if (candidates.Length > 1)
-            {
-                fallbackFonts.AddRange(candidates.Skip(1));
-            }
+            if (candidates.Length > 1) fallbackFonts.AddRange(candidates.Skip(1));
 
             if (!fallbackFonts.Contains(FallbackFont, StringComparer.OrdinalIgnoreCase))
                 fallbackFonts.Add(FallbackFont);
@@ -177,13 +195,11 @@ namespace JREMonitors.Core.Managers
 
                 var fontCount = family.FontCount;
                 for (var i = 0; i < fontCount; i++)
-                {
                     using (var font = family.GetFont(i))
                     {
                         if (needWeight && font.Weight == weight) hasNativeWeight = true;
                         if (needItalic && font.Style == style) hasNativeItalic = true;
                     }
-                }
 
                 if (needWeight && needItalic) return hasNativeWeight && hasNativeItalic;
                 if (needWeight) return hasNativeWeight;
@@ -206,9 +222,7 @@ namespace JREMonitors.Core.Managers
             try
             {
                 for (var i = 0; i < targetFamilyNames.Length; i++)
-                {
                     ptrs[i] = Marshal.StringToHGlobalUni(targetFamilyNames[i]);
-                }
 
                 fixed (IntPtr* pPtrs = ptrs)
                 {
@@ -227,10 +241,8 @@ namespace JREMonitors.Core.Managers
             finally
             {
                 for (var i = 0; i < ptrs.Length; i++)
-                {
                     if (ptrs[i] != IntPtr.Zero)
                         Marshal.FreeHGlobal(ptrs[i]);
-                }
             }
         }
     }

@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using BveEx.Extensions.Native;
-using BveEx.Extensions.SoundFactory;
 using BveTypes.ClassWrappers;
 using JREMonitors.BveEx.Configs.Vehicle;
 using JREMonitors.BveEx.Monitors;
@@ -56,10 +55,6 @@ namespace JREMonitors.BveEx.Builders.Base
             throw new ArgumentException(nameof(config));
         }
 
-        protected virtual void SeedMonitorContextProperties(MonitorContext context, TVehicleConfig config)
-        {
-        }
-
         void IVehicleBuilder.Reconfigure(VehicleBuildContext context, VehicleConfig oldConfig, VehicleConfig newConfig)
         {
             if (newConfig is TVehicleConfig typedNew)
@@ -90,6 +85,10 @@ namespace JREMonitors.BveEx.Builders.Base
                 ReconfigureMonitorLocal(context, (TVehicleConfig)oldConfig, typedNew, monitors);
             else
                 throw new ArgumentException(nameof(newConfig));
+        }
+
+        protected virtual void SeedMonitorContextProperties(MonitorContext context, TVehicleConfig config)
+        {
         }
 
         protected virtual void ReconfigureMonitorLocal(VehicleBuildContext context, TVehicleConfig oldConfig,
@@ -136,9 +135,7 @@ namespace JREMonitors.BveEx.Builders.Base
             var panelDataProvider = context.RootDataHub.Get<BvePanelDataProvider>();
             panelDataProvider.Reconfigure(finalInputs, CreatePanelDataFallbacks(newConfig, context, finalInputs));
             if (!Equals(oldConfig.Outputs.Sound, newConfig.Outputs.Sound))
-            {
                 context.RootDataHub.Get<BveSoundProvider>().Reconfigure(newConfig.Outputs.Sound);
-            }
         }
 
         protected virtual void PopulateMonitorLocalDataHub(VehiclePostBuildContext context,

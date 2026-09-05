@@ -42,6 +42,24 @@ namespace JREMonitors.Core.Widgets
             { UpdateViewModel = true, IgnoreHidden = true };
     }
 
+    /// <summary>
+    ///     响应式 UI 组件基类,屏上元素的共同骨架，负责"状态 → 脏区 → 绘制"的帧驱动流水线与子树管理。
+    /// </summary>
+    /// <remarks>
+    ///     <para>
+    ///         每个 Widget 暴露 <see cref="X" />/<see cref="Y" />/<see cref="Scale" />/<see cref="IsVisible" />
+    ///         等响应式属性；Monitor 每帧调用 <c>Update</c> 驱动五步流水线——ViewModel 汇入数据 →
+    ///         <see cref="OnArrangeLayout" /> 布局子项 → 由脏标记门控的 <see cref="OnDraw" /> 绘制与资源更新
+    ///         → 沿树汇总脏区上报 <see cref="DirtyUpdateManager" />。只有变化才重绘，隐藏节点沿途短路。
+    ///     </para>
+    ///     <para>
+    ///         <c>WatchEffect</c> 以响应式效果挂接数据源，依赖变化自动置脏；子树经
+    ///         <see cref="AddChild" /> 挂接并订阅其失效以汇总子脏标记；点击经
+    ///         <see cref="HandlePointerDown" /> 逆序派发（顶层优先）；<see cref="RequestBlock" /> 与
+    ///         <see cref="IsTypeBlocked" /> 借由 BlockingService 实现阻塞；整树以
+    ///         <see cref="Dispose" />/<see cref="Reset" /> 统一回收与复位。
+    ///     </para>
+    /// </remarks>
     public abstract class Widget : IDisposable
     {
         private readonly List<ReactiveEffect> _commitEffects = new List<ReactiveEffect>();
@@ -639,10 +657,7 @@ namespace JREMonitors.Core.Widgets
 
         protected void AddChild(Widget widget, bool isGlobalPosition = false)
         {
-            if (widget == null)
-            {
-                widget = CreateFallbackWidget();
-            }
+            if (widget == null) widget = CreateFallbackWidget();
 
             if (widget == null) return;
             Children.Add(widget);
@@ -662,10 +677,7 @@ namespace JREMonitors.Core.Widgets
 
         protected void InsertChild(Widget widget, int index = 0, bool isGlobalPosition = false)
         {
-            if (widget == null)
-            {
-                widget = CreateFallbackWidget();
-            }
+            if (widget == null) widget = CreateFallbackWidget();
 
             if (widget == null) return;
             Children.Insert(index, widget);
@@ -676,10 +688,7 @@ namespace JREMonitors.Core.Widgets
         protected void InsertChildAfter(Widget widget, Widget afterWidget, bool isGlobalPosition = false)
         {
             if (afterWidget == null) return;
-            if (widget == null)
-            {
-                widget = CreateFallbackWidget();
-            }
+            if (widget == null) widget = CreateFallbackWidget();
 
             if (widget == null) return;
             var index = Children.IndexOf(afterWidget);

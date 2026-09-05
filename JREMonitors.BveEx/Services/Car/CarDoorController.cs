@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using BveTypes.ClassWrappers;
 using JREMonitors.BveEx.Providers;
@@ -18,10 +18,10 @@ namespace JREMonitors.BveEx.Services.Car
         private readonly BvePanelDataProvider _panelDataProvider;
         private readonly Random _random;
         private readonly SingleDoorState[] _rightDoors;
-        private BveDoorState _prevLeftBveState;
-        private BveDoorState _prevRightBveState;
         private bool _latchLeftOpen;
         private bool _latchRightOpen;
+        private BveDoorState _prevLeftBveState;
+        private BveDoorState _prevRightBveState;
 
         public CarDoorController(DataHub dataHub, Random random, int carIndex, int doorCount, CarDoor bveLeftCarDoor,
             CarDoor bveRightCarDoor)

@@ -14,9 +14,7 @@
           "bottomLeft": [1234, 1723],
           "bottomRight": [1652, 1725]
         },
-        "rotation": 2.2,
-        "tiltX": 10,
-        "tiltY": -5.5
+        "rotation": 2.2
       }
     },
     "2": {
@@ -26,11 +24,11 @@
           "topRight": [2667, 1391],
           "bottomLeft": [2230, 1735],
           "bottomRight": [2695, 1735]
-        },
-        "tiltX": 15
+        }
       }
     },
     "3": {
+      "resolution": "800x600",
       "cab": {
         "enabled": false
       },
@@ -39,5 +37,10 @@
       }
     }
   },
+  "display": {},
+  "performanceCurves": {},
+  "vehicleParameters": {},
+  "outputs": {},
+  "tims": {},
   "enableHotReload": true
 }

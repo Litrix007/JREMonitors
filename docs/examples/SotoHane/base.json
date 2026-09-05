@@ -9,7 +9,6 @@
           "bottomLeft": [872, 2405],
           "bottomRight": [1532, 2405]
         },
-        "tiltX": 15,
         "lighting": {
           "shadowExtent": [1207, 2065],
           "brightExtent": [1207, 2137],
@@ -28,8 +27,6 @@
           "bottomLeft": [2318, 2391],
           "bottomRight": [3129, 2391]
         },
-        "tiltX": 9,
-        "tiltY": -0.5,
         "origin": [2308, 1842],
         "lighting": {
           "shadowExtent": [2728, 1947],
@@ -51,5 +48,10 @@
       }
     }
   },
+  "display": {},
+  "performanceCurves": {},
+  "vehicleParameters": {},
+  "outputs": {},
+  "tims": {},
   "enableHotReload": true
 }

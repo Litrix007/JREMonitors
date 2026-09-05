@@ -6,6 +6,29 @@ using BveTypes.ClassWrappers;
 
 namespace JREMonitors.BveEx.Utils
 {
+    /// <summary>
+    ///     编组辆数迁移辅助类。
+    /// </summary>
+    /// <remarks>
+    ///     <para>
+    ///         热重载改变辆数后，用反射补齐 BVE 内部按"旧车门数"定长的状态，
+    ///         使车门系统、关门状态机、开/关门音效、门状态数组与编组总长整体迁移到新辆数。
+    ///     </para>
+    ///     <para>
+    ///         BVE 的车门数重建涉及多处内部状态：<see cref="cn" /> 的全局 Tick 事件、按侧重建的车门列表
+    ///         <see cref="cg" /> 挂在首门上的开/关音效回调、<see cref="fb" /> 的
+    ///         <c>v/w</c> 逐车门开闭状态数组、以及 <see cref="fg" /> 的编组总长。任何一处遗漏都会
+    ///         造成越界、状态残留或静音门。
+    ///     </para>
+    ///     <para>
+    ///         本类按 <see cref="SetCarCount" /> 的执行顺序依次完成：解除旧门 Tick 订阅
+    ///         （<see cref="CleanUpOldDoors" />）→ 按侧重建车门并恢复开/关状态（<see cref="SetSideCarCount" />）→
+    ///         将 <see cref="cg" /> 四个开/关音效回调重新挂到新首门（<see cref="RepairDoorSounds" />，经反射与
+    ///         InvocationList 定位 <see cref="cg" /> 实例）→ 按新辆数重建 <see cref="fb" />
+    ///         的 <c>v/w</c> 数组（<see cref="EnsureFbDoorArraySize" />）→ 更新 <see cref="fg" /> 编组总长为
+    ///         辆数×车长（<see cref="UpdateFgLength" />）。
+    ///     </para>
+    /// </remarks>
     public static class CarCountHelper
     {
         private const BindingFlags Flags = BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public;
@@ -41,20 +64,13 @@ namespace JREMonitors.BveEx.Utils
             var leftSideDoors = vehicle.Doors.GetSide(DoorSide.Left);
             var rightSideDoors = vehicle.Doors.GetSide(DoorSide.Right);
 
-            if (carLength <= 0 && vehicle.Dynamics.CarLength > 0)
-            {
-                carLength = vehicle.Dynamics.CarLength;
-            }
+            if (carLength <= 0 && vehicle.Dynamics.CarLength > 0) carLength = vehicle.Dynamics.CarLength;
 
-            if (carLength <= 0)
-            {
-                carLength = 20.0;
-            }
+            if (carLength <= 0) carLength = 20.0;
 
             if (leftSideDoors.CarDoors.Count != count || rightSideDoors.CarDoors.Count != count)
             {
                 CleanUpOldDoors(vehicle);
-                // HACK 不能用 vehicle.Doors.SetCarLength，会导致车门永远无法关闭
                 SetSideCarCount(leftSideDoors, count);
                 SetSideCarCount(rightSideDoors, count);
                 RepairDoorSounds(vehicle);
@@ -154,27 +170,17 @@ namespace JREMonitors.BveEx.Utils
             if (fbInstance == null) return;
             var leftCount = vehicle.Doors.GetSide(DoorSide.Left).CarDoors.Count;
             var rightCount = vehicle.Doors.GetSide(DoorSide.Right).CarDoors.Count;
-            // fb.v/w 在 fb 构造时按当时的车门数一次性定长；热重载改变车门数后必须重新分配为精确长度（双向）。
-            if (fbInstance.v == null || fbInstance.v.Length != leftCount)
-            {
-                fbInstance.v = new double[leftCount];
-            }
+            // fb.v/w 在 fb 构造时按当时的车门数一次性定长；热重载改变车门数后必须重新分配为精确长度。
+            if (fbInstance.v == null || fbInstance.v.Length != leftCount) fbInstance.v = new double[leftCount];
 
-            if (fbInstance.w == null || fbInstance.w.Length != rightCount)
-            {
-                fbInstance.w = new double[rightCount];
-            }
+            if (fbInstance.w == null || fbInstance.w.Length != rightCount) fbInstance.w = new double[rightCount];
         }
 
         private static fb GetFbFromBf(bf bfInstance)
         {
             for (var i = 0; i < BfFields.Length; i++)
-            {
                 if (BfFields[i].FieldType == typeof(fb))
-                {
                     return BfFields[i].GetValue(bfInstance) as fb;
-                }
-            }
 
             return null;
         }
@@ -203,13 +209,11 @@ namespace JREMonitors.BveEx.Utils
                     if (!(fld.GetValue(obj) is Delegate del)) continue;
                     var invocationList = del.GetInvocationList();
                     foreach (var d in invocationList)
-                    {
                         if (d.Target is cg cgInstance)
                         {
                             _cachedCgInstance = cgInstance;
                             return cgInstance;
                         }
-                    }
                 }
             }
 

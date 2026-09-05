@@ -1,0 +1,58 @@
+{
+  "type": "E233-3000",
+  "defaultFormation": "10+5",
+  "inputPresets": ["GAP-ATS-P", "GAP-ATS-S"],
+  "inputs": {},
+  "monitors": {
+    "1": {
+      "cab": {
+        "rotation": 2,
+        "positions": {
+          "topLeft": [2521, 2980],
+          "topRight": [3479, 3014],
+          "bottomLeft": [2431, 3720],
+          "bottomRight": [3444, 3740]
+        },
+        "lighting": {
+          "shadowExtent": [3492, 3024],
+          "brightExtent": [3492, 3301],
+          "glassReflectanceLight": 0.025,
+          "glassReflectanceDark": 0,
+          "glareColor": [0.9, 0.95, 1]
+        }
+      }
+    },
+    "2": {
+      "cab": {
+        "positions": {
+          "topLeft": [4670, 2907],
+          "topRight": [5719, 2903],
+          "bottomLeft": [4703, 3720],
+          "bottomRight": [5820, 3718]
+        },
+        "lighting": {
+          "shadowExtent": [3468, 2910],
+          "brightExtent": [3468, 3079],
+          "glassReflectanceLight": 0.02,
+          "glassReflectanceDark": 0,
+          "glareColor": [0.9, 0.95, 1]
+        }
+      }
+    },
+    "3": {
+      "resolution": "800x600",
+      "cab": {
+        "enabled": true
+      },
+      "external": {
+        "show": false
+      }
+    }
+  },
+  "display": {},
+  "performanceCurves": {},
+  "vehicleParameters": {},
+  "outputs": {},
+  "tims": {},
+  "enableHotReload": true
+}

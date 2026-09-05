@@ -35,8 +35,8 @@
         <EmbeddedResource Include="Resources\Brightness.svg"/>
         <EmbeddedResource Include="Resources\Home.svg"/>
         <EmbeddedResource Include="Resources\JRE.png"/>
-        <EmbeddedResource Include="Resources\MeterScreenWithSafetyLampsAndTasc0.png" />
-        <EmbeddedResource Include="Resources\TidScreenWithSafetyLampsAndTasc0.png" />
+        <EmbeddedResource Include="Resources\MeterScreenWithSafetyLampsAndTasc0.png"/>
+        <EmbeddedResource Include="Resources\TidScreenWithSafetyLampsAndTasc0.png"/>
         <EmbeddedResource Include="Resources\MeterScreenWithSafetyLampsNoTasc1000.png"/>
         <EmbeddedResource Include="Resources\MeterScreenWithSafetyLampsAndTasc1000.png"/>
         <EmbeddedResource Include="Resources\TidScreenWithSafetyLampsNoTasc1000.png"/>
@@ -141,7 +141,7 @@
         <Compile Include="TidScreen\LampGroups\TidTascCompactLampGroup.cs"/>
         <Compile Include="TidScreen\LampGroups\TidTascWideLampGroup.cs"/>
         <Compile Include="TidScreen\LampGroups\TidLampGroupBase.cs"/>
-        <Compile Include="TidScreen\TidChangeToTIMSWarningScreen.cs" />
+        <Compile Include="TidScreen\TidChangeToTIMSWarningScreen.cs"/>
         <Compile Include="TidScreen\TidScreen0.cs"/>
         <Compile Include="TidScreen\TidScreen1000.cs"/>
         <Compile Include="TidScreen\TIdScreen3000.cs"/>

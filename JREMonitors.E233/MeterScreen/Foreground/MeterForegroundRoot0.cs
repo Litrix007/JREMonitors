@@ -73,6 +73,8 @@ namespace JREMonitors.E233.MeterScreen.Foreground
                 atsStateLampGroupWithoutTasc, vehicleStateLampGroupWithoutTasc));
         }
 
+        public override RectangleF SelfRelativeDirtyBounds => RectangleF.Empty;
+
         protected override void OnSafetyLampsVisible()
         {
             if (!ViewModel.SupportsTasc)
@@ -80,7 +82,5 @@ namespace JREMonitors.E233.MeterScreen.Foreground
             else
                 base.OnSafetyLampsVisible();
         }
-
-        public override RectangleF SelfRelativeDirtyBounds => RectangleF.Empty;
     }
 }

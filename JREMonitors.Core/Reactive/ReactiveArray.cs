@@ -7,6 +7,20 @@ using System.Linq;
 
 namespace JREMonitors.Core.Reactive
 {
+    /// <summary>
+    ///     响应式定长数组，固定长度的可观察 <typeparamref name="T" /> 序列，支持按索引细粒度失效。
+    /// </summary>
+    /// <remarks>
+    ///     <para>
+    ///         单个索引写入或元素级信号（如经索引构造）变化时仅标记对应槽位，批处理提交后统一广播，
+    ///         便于大数组的局部更新；<see cref="IValueSignal{T}" /> 源构造/<c>Bind</c> 后整体透传源集合。
+    ///     </para>
+    ///     <para>
+    ///         用法：Widget 经 <c>CreateReactiveArray(dirtyType, length, ...)</c> 创建（失效触发重绘）或
+    ///         <c>CreateRelayReactiveArray</c> 创建；下标读取参与依赖追踪，批量写入在
+    ///         <c>ReactiveScope</c> 批处理中提交。
+    ///     </para>
+    /// </remarks>
     public class ReactiveArray<T> : IReadOnlyList<T>, ISignal, IInvalidatable, ITrackable, ICommitable, IDisposable,
         IBatchConsumer
     {

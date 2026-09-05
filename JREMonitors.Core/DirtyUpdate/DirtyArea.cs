@@ -2,6 +2,9 @@
 
 namespace JREMonitors.Core.DirtyUpdate
 {
+    /// <summary>
+    ///     脏矩形区域。
+    /// </summary>
     public readonly struct DirtyArea
     {
         public readonly RectangleF Rect;

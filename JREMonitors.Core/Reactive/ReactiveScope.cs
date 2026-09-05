@@ -3,6 +3,20 @@ using System.Collections.Generic;
 
 namespace JREMonitors.Core.Reactive
 {
+    /// <summary>
+    ///     响应式作用域，负责依赖收集（当前订阅者）与批量写入的提交/刷新协调，状态为线程静态。
+    /// </summary>
+    /// <remarks>
+    ///     <para>
+    ///         求值期间自身插入为 <see cref="CurrentSubscriber" />，读取信号即调用 <see cref="RecordSubscription" /> 建立依赖；
+    ///         Widget 的 <c>UpdateStates</c> 与效果执行用 <see cref="BeginBatch" />/<see cref="EndBatch" />
+    ///         包裹批量写入，提交期按 Commit→NotifyPending→FlushConsumers 三阶段下发通知并级联惰性重算。
+    ///     </para>
+    ///     <para>
+    ///         <see cref="TrackAll" /> 供效果体开头显式跟踪一组信号（如 <c>WatchEffect(action, trackable...)</c>）；
+    ///         全部状态均为线程静态，仅应在 UI 线程内使用。
+    ///     </para>
+    /// </remarks>
     public static class ReactiveScope
     {
         [ThreadStatic] internal static IDependencyTracker CurrentSubscriber;

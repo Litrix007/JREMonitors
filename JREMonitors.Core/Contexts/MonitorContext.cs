@@ -16,6 +16,14 @@ using FeatureLevel = Vortice.Direct3D.FeatureLevel;
 
 namespace JREMonitors.Core.Contexts
 {
+    /// <summary>
+    ///     全局 D3D11 / D2D1 设备与共享资源上下文。
+    /// </summary>
+    /// <remarks>
+    ///     <para>
+    ///         每个适配层仅创建一个实例，负责创建 D3D11 设备、D2D1 工厂/设备/上下文、字体管理器、阴影处理器等设备级资源，并统一释放。
+    ///     </para>
+    /// </remarks>
     public class MonitorContext : IDisposable
     {
         private IDXGIAdapter _adapter;
@@ -25,10 +33,6 @@ namespace JREMonitors.Core.Contexts
             Debugger = debugger;
             _adapter = adapter;
             var driverType = adapter != null ? DriverType.Unknown : DriverType.Hardware;
-
-            // VideoSupport 供后续视频编码管线（ID3D11VideoDevice / MF 硬编 MFT）使用；
-            // 病态无视频能力的设备（虚拟显卡等）上带此 flag 创建会失败，回退到无 flag 重建（视频功能届时不可用）。
-            // 纯功能性声明：不改变渲染路径性能，不启用任何视频硬件任务。
             var creationFlags = DeviceCreationFlags.BgraSupport | DeviceCreationFlags.VideoSupport;
 #if DEBUG
             creationFlags |= DeviceCreationFlags.Debug;
@@ -90,37 +94,54 @@ namespace JREMonitors.Core.Contexts
                 QueryType = QueryType.Event,
                 MiscFlags = QueryFlags.None
             };
-            D3D11FenceQuery = D3D11Device.CreateQuery(queryDesc);
         }
 
         public IDebugger Debugger { get; }
+
+        /// <summary>
+        ///     全局共享属性字典，所有 <see cref="RenderContext" /> 引用同一实例。
+        /// </summary>
         public Dictionary<PropertyKey, object> Properties { get; private set; } = new Dictionary<PropertyKey, object>();
 
         /// <summary>
-        ///     D3D11 设备是否带 <c>VideoSupport</c> flag 创建成功（可供视频编码管线使用）。
-        ///     无视频能力的病态设备上回退为 false，视频相关功能届时应检查此属性并禁用。
+        ///     D3D11 设备是否带 <c>VideoSupport</c> flag 创建成功。
+        ///     无视频能力的设备上回退为 false，视频相关功能届时应检查此属性并禁用。
         /// </summary>
         public bool SupportsVideo { get; private set; }
 
         public ID3D11Device D3D11Device { get; private set; }
-        public ID3D11Query D3D11FenceQuery { get; private set; }
         public ID3D11DeviceContext D3D11Context { get; private set; }
         public IDXGIDevice DxgiDevice { get; private set; }
         public ID2D1Factory1 D2D1Factory { get; private set; }
         public ID2D1Device D2D1Device { get; private set; }
         public ID2D1DeviceContext D2D1Context { get; private set; }
+
+        /// <summary>
+        ///     全局共享颜色画刷。
+        /// </summary>
         public ID2D1SolidColorBrush Brush { get; private set; }
+
         public IWICImagingFactory WicImagingFactory { get; private set; }
+
+        /// <summary>
+        ///     外阴影处理器。
+        /// </summary>
         public DropShadowProcessor DropShadowProcessor { get; private set; }
+
+        /// <summary>
+        ///     内阴影处理器。
+        /// </summary>
         public InnerShadowProcessor InnerShadowProcessor { get; private set; }
+
+        /// <summary>
+        ///     字体管理器。
+        /// </summary>
         public FontManager FontManager { get; private set; }
 
         public void Dispose()
         {
             DisposeProperties();
             Properties = null;
-            D3D11FenceQuery?.Dispose();
-            D3D11FenceQuery = null;
             FontManager?.Dispose();
             FontManager = null;
             InnerShadowProcessor?.Dispose();

@@ -24,12 +24,11 @@ namespace JREMonitors.Core.Widgets
             Slowest
         }
 
-        protected override bool SkipUpdateWhenHidden => false;
+        private readonly HashSet<Widget> _addedWidgets = new HashSet<Widget>();
         private readonly FrameCollector _frameCollector = new FrameCollector();
         private readonly RefreshPolicy _refreshPolicy;
         private readonly RefreshSpeedPreferences _refreshSpeedPreferences;
         private readonly Dictionary<string, Widget> _widgets = new Dictionary<string, Widget>();
-        private readonly HashSet<Widget> _addedWidgets = new HashSet<Widget>();
         private string _displayedWidgetId;
         private bool _pendingFadeIn;
 
@@ -76,11 +75,16 @@ namespace JREMonitors.Core.Widgets
             foreach (var pair in widgets) Add(pair.Key, pair.Value);
         }
 
+        protected override bool SkipUpdateWhenHidden => false;
+
         public PropertySlot<string> ActiveWidgetId { get; }
 
         public override RectangleF SelfRelativeDirtyBounds => RectangleF.Empty;
 
-        public bool Add(string id, Widget widget) => Add(widget, id);
+        public bool Add(string id, Widget widget)
+        {
+            return Add(widget, id);
+        }
 
         public bool Add(Widget widget, params string[] ids)
         {

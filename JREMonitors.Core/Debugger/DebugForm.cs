@@ -11,6 +11,9 @@ using JREMonitors.Core.Utils;
 
 namespace JREMonitors.Core.Debugger
 {
+    /// <summary>
+    ///     日志调试窗口。
+    /// </summary>
     public class DebugForm : Form, IDebugger
     {
         private const int MaxLastingLines = 200;
@@ -90,6 +93,16 @@ namespace JREMonitors.Core.Debugger
             }
         }
 
+        public void AddLineLasting(string text)
+        {
+            lock (_lockObj)
+            {
+                _lastingLines.Enqueue($"[{DateTime.Now:HH:mm:ss.fff}] {text}");
+                while (_lastingLines.Count > MaxLastingLines) _lastingLines.Dequeue();
+                _rightDirty = true;
+            }
+        }
+
         public void ClearRight()
         {
             lock (_lockObj)
@@ -99,16 +112,6 @@ namespace JREMonitors.Core.Debugger
             }
 
             UpdateRightTextBox();
-        }
-
-        public void AddLineLasting(string text)
-        {
-            lock (_lockObj)
-            {
-                _lastingLines.Enqueue($"[{DateTime.Now:HH:mm:ss.fff}] {text}");
-                while (_lastingLines.Count > MaxLastingLines) _lastingLines.Dequeue();
-                _rightDirty = true;
-            }
         }
 
         public event Action Hidden;

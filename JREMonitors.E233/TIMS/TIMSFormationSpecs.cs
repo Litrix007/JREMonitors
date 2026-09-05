@@ -219,7 +219,7 @@ namespace JREMonitors.E233.TIMS
                     new TIMSCarSpec(2, TIMSCarType.MotorCar, TIMSCarPantoGraphType.None, 4, true, false, false),
                     new TIMSCarSpec(3, TIMSCarType.MotorCar, TIMSCarPantoGraphType.WithYellowRect, 4, false, false,
                         false),
-                    new TIMSCarSpec(4, TIMSCarType.LastCar, TIMSCarPantoGraphType.None, 4, false, true, false),
+                    new TIMSCarSpec(4, TIMSCarType.LastCar, TIMSCarPantoGraphType.None, 4, false, true, false)
                 }),
                 ["6"] = new TIMSFormationSpec(false, new[]
                 {
@@ -229,7 +229,7 @@ namespace JREMonitors.E233.TIMS
                     new TIMSCarSpec(4, TIMSCarType.MotorCar, TIMSCarPantoGraphType.None, 4, true, false, false),
                     new TIMSCarSpec(5, TIMSCarType.MotorCar, TIMSCarPantoGraphType.WithYellowRect, 4, false, false,
                         false),
-                    new TIMSCarSpec(6, TIMSCarType.LastCar, TIMSCarPantoGraphType.None, 4, false, true, false),
+                    new TIMSCarSpec(6, TIMSCarType.LastCar, TIMSCarPantoGraphType.None, 4, false, true, false)
                 }),
                 ["6+4"] = new TIMSFormationSpec(false, new[]
                 {

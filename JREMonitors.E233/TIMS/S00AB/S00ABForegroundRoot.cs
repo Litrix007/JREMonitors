@@ -116,7 +116,7 @@ namespace JREMonitors.E233.TIMS.S00AB
             var suicaButton = new TIMSButton(context, Vector2.Zero, LayoutLength.Flex(), LayoutLength.Flex(),
                 context.TIMS().TextButtonStyle,
                 this.CreateTIMSTextDrawer(
-                    documentSource: CreateComputed(() => RichTextParser.Raw(ViewModel.IsTIMSMain.Value ? "Ｓｕｉｃａ" : "")),
+                    CreateComputed(() => RichTextParser.Raw(ViewModel.IsTIMSMain.Value ? "Ｓｕｉｃａ" : "")),
                     1, 2, 0.5f, 0.5f, useVerticalOverhangMetrics: true),
                 reboundImmediate: true
             );

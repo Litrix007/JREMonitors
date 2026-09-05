@@ -12,6 +12,9 @@ using Vortice.Mathematics;
 
 namespace JREMonitors.Core.Svg
 {
+    /// <summary>
+    ///     Svg 文档绘制器。
+    /// </summary>
     public class SvgDocument : IResourceSlot
     {
         private readonly RenderContext _context;

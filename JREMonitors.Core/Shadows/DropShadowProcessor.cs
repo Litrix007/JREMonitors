@@ -6,6 +6,9 @@ using Vortice.Mathematics;
 
 namespace JREMonitors.Core.Shadows
 {
+    /// <summary>
+    ///     外阴影处理器。
+    /// </summary>
     public class DropShadowProcessor : IDisposable
     {
         private readonly ID2D1DeviceContext _dc;

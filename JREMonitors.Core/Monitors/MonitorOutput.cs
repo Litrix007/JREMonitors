@@ -12,6 +12,26 @@ using Vortice.Mathematics;
 
 namespace JREMonitors.Core.Monitors
 {
+    /// <summary>
+    ///     监视器输出,单个输出端在 D2D/D3D11 上的渲染与状态资源集合。
+    /// </summary>
+    /// <remarks>
+    ///     <para>
+    ///         包含最终合成位图、离屏行扫描缓冲（<c>DelayedBitmap</c>）、纯色背景位图以及按屏幕缓存的
+    ///         背景缓冲（<see cref="GetOrCreateBuffer" />）。<see cref="MonitorRenderTargetBitmap" /> 是每帧
+    ///         内容合成目标，<see cref="OutputD3D11Texture" /> 将输出以共享纹理形式暴露给显示端。
+    ///     </para>
+    ///     <para>
+    ///         渲染路径二选一：关闭残影时直接合成到 <c>FinalBitmap</c>（直连 D3D11 纹理）；开启残影时经
+    ///         <see cref="GhostingEffect" /> 在双缓冲状态位图间做 EMA 合成并以 <see cref="CommitStateSwap" />
+    ///         换面，<see cref="PendingStateBitmap" /> 为当前写入面。两路径可经
+    ///         <see cref="ReconfigureGhosting" /> 热切换。
+    ///     </para>
+    ///     <para>
+    ///         冻结判定：<see cref="UpdateFreezeState" /> 累计无内容更新的时长，达到残影衰减时间后置
+    ///         <see cref="Frozen" />（<see cref="JustFrozen" /> 标记过渡帧），画面静止时停止内容生产。
+    ///     </para>
+    /// </remarks>
     public class MonitorOutput : IDisposable
     {
         public const float DefaultGhostingDecayTimeSeconds = 0.1f;

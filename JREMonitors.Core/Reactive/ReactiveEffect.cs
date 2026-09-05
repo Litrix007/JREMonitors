@@ -3,6 +3,21 @@ using System.Collections.Generic;
 
 namespace JREMonitors.Core.Reactive
 {
+    /// <summary>
+    ///     依赖追踪副作用，运行动作时收集依赖，依赖变化时触发 <see cref="OnInvalidated" /> 并可按需重跑。
+    /// </summary>
+    /// <remarks>
+    ///     <para>
+    ///         <see cref="Run" /> 执行动作并重建依赖集（开启动态解绑时移除不再读取的依赖订阅）；依赖按
+    ///         Dirty/Check 分级：直接失效即置 Dirty 并可重跑，Check 态经批处理队列延迟确认，确认有变化才
+    ///         触发 <see cref="OnInvalidated" />。
+    ///     </para>
+    ///     <para>
+    ///         用法：Widget 经 <c>WatchEffect(phase, action, enableDynamicUnbinding)</c> 创建——Commit 效果体
+    ///         自动注入 Invalidate 以驱动重绘，State/Visual/Commit 三阶段效果分别在对应更新环节由 Widget 调用
+    ///         <see cref="Run" />；动作体内读信号即完成依赖声明。
+    ///     </para>
+    /// </remarks>
     public class ReactiveEffect : IDependencyTracker, IDisposable, IBatchConsumer
     {
         private readonly Action _effectAction;

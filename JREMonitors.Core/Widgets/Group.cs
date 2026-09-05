@@ -5,8 +5,6 @@ namespace JREMonitors.Core.Widgets
 {
     public class Group : Widget
     {
-        public override RectangleF SelfRelativeDirtyBounds => RectangleF.Empty;
-
         public Group(RenderContext context, params Widget[] children) : this(context, 0, 0, children)
         {
         }
@@ -16,6 +14,8 @@ namespace JREMonitors.Core.Widgets
             if (children == null) return;
             foreach (var child in children) AddChild(child);
         }
+
+        public override RectangleF SelfRelativeDirtyBounds => RectangleF.Empty;
 
         public new void AddChild(Widget widget, bool isGlobalPosition = false)
         {

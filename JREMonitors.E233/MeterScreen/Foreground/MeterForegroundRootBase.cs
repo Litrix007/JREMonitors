@@ -43,15 +43,15 @@ namespace JREMonitors.E233.MeterScreen.Foreground
         private readonly Lamp _holdSpeedLamp;
         private readonly WidgetSwitcher _lampPanelSwitcher;
         private readonly LampPanel _lampPanelWhenSafetyLampsHidden;
-        private readonly List<LampPanel> _safetyLampsVisiblePanels = new List<LampPanel>();
         private readonly MrForeground _mrForeground;
+        private readonly List<LampPanel> _safetyLampsVisiblePanels = new List<LampPanel>();
         private readonly bool _showHoldSpeedLamp;
         private readonly SpeedNumTitle _speedNumTitle;
         protected readonly InfoButtonGroup InfoButtonGroup;
+        protected readonly float SpeedOffsetY;
 
         protected RootProperties RootPropertiesWithoutSafetyLamps;
         protected RootProperties RootPropertiesWithSafetyLamps;
-        protected readonly float SpeedOffsetY;
 
         public MeterForegroundRootBase(
             RenderContext context,

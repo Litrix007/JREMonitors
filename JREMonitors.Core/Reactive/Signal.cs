@@ -6,6 +6,21 @@ using JREMonitors.Core.Constants;
 
 namespace JREMonitors.Core.Reactive
 {
+    /// <summary>
+    ///     可变响应式信号，持有单个 <typeparamref name="T" /> 值，值变更时驱动下游订阅者失效。
+    /// </summary>
+    /// <remarks>
+    ///     <para>
+    ///         用法：ViewModel 暴露信号（如 <c>public Signal&lt;bool&gt; SupportsTasc { get; } = new();</c>），
+    ///         在 <c>OnUpdate</c> 中赋值 <c>SupportsTasc.Value = ...</c>；Widget 侧将其
+    ///         <see cref="PropertySlot{T}.Bind" /> 到属性槽，或直接作为 <c>WatchEffect</c> 的跟踪项，
+    ///         读值即建立依赖，值变化触发 Invalidate，效果重跑。
+    ///     </para>
+    ///     <para>
+    ///         赋值处于批量作用域内时先缓冲到临时值，Batch 提交（Commit→NotifyPending）时统一生效；
+    ///         同值写入由 <see cref="IsValueChanged" /> 短路、不产生通知。
+    ///     </para>
+    /// </remarks>
     public class Signal<T> : IValueSignal<T>, ICommitable
     {
         private readonly HashSet<IInvalidatable> _subscribers = new HashSet<IInvalidatable>();

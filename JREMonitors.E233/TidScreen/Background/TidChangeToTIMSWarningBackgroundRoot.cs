@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Drawing;
 using JREMonitors.Core.Contexts;
 using JREMonitors.Core.Layouts;
@@ -17,16 +17,16 @@ namespace JREMonitors.E233.TidScreen.Background
 {
     public class TidChangeToTIMSWarningBackgroundRoot : Widget<TidChangeToTIMSWarningBackgroundRootViewModel>
     {
-        private static readonly PropertyKey ImageCacheKey = new PropertyKey("TidChangeToTIMSWarningImageCache");
         private const float ImageWidth = 250;
         private const float BoundsWidth = 700;
         private const float BoundsHeight = 150;
         private const float PaddingTop = 20;
+        private static readonly PropertyKey ImageCacheKey = new PropertyKey("TidChangeToTIMSWarningImageCache");
         private readonly ID2D1Bitmap _meterScreenWithSafetyLampsBitmap;
         private readonly ID2D1Bitmap _meterScreenWithSafetyLampsWithoutTascBitmap;
+        private readonly BitmapScaleDrawer _textDrawer;
         private readonly ID2D1Bitmap _tidScreenWithSafetyLampsBitmap;
         private readonly ID2D1Bitmap _tidScreenWithSafetyLampsWithoutTascBitmap;
-        private readonly BitmapScaleDrawer _textDrawer;
 
         public TidChangeToTIMSWarningBackgroundRoot(RenderContext context, string meterScreenWithSafetyLampsName,
             string tidScreenWithSafetyLampsName, string meterScreenWithSafetyLampsWithoutTascName = null,
@@ -53,6 +53,8 @@ namespace JREMonitors.E233.TidScreen.Background
             WatchEffect(ViewModel.SupportsTasc);
         }
 
+        public override RectangleF SelfRelativeDirtyBounds => RectangleF.Empty;
+
         private static ID2D1Bitmap LoadOptionalBitmap(ResourceCache<string, ID2D1Bitmap> resourceCache,
             RenderContext context, string resourceName)
         {
@@ -61,8 +63,6 @@ namespace JREMonitors.E233.TidScreen.Background
                 context.DeviceContext.LoadBitmapFromResource(context.WicImagingFactory, typeof(Images),
                     resourceName));
         }
-
-        public override RectangleF SelfRelativeDirtyBounds => RectangleF.Empty;
 
         protected override void OnDraw(float totalScale)
         {

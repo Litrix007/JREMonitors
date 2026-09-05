@@ -138,7 +138,7 @@ namespace JREMonitors.E233.TidScreen.LampGroups
             var row2 = new Row(context, widgetSpacing: TidScreens.WideLampSpacing, widgets: row2Children,
                 positionSnapToPixels: true);
             var col = new Col(context, AnchorX, y, TidScreens.WideLampWidth, TidScreens.WideLampHeight,
-                widgetSpacing: TidScreens.WideRowSpacing, widgets: new Widget[] { row1, row2 },
+                TidScreens.WideRowSpacing, new Widget[] { row1, row2 },
                 colHorizontalAlignment: 0.5f, positionSnapToPixels: true);
             AddChild(col);
         }

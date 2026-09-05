@@ -6,10 +6,20 @@ namespace JREMonitors.Core.Services
 {
     public enum BlockingLevel
     {
+        /// <summary>
+        ///     仅阻塞当前屏幕。
+        /// </summary>
         CurrentScreen,
+
+        /// <summary>
+        ///     阻塞所有屏幕。
+        /// </summary>
         AllScreens
     }
 
+    /// <summary>
+    ///     阻塞服务，在限定时间窗内按类型与作用域（当前屏幕/全部屏幕）阻塞监视器的交互行为。
+    /// </summary>
     public class BlockingService : ITickUpdatable
     {
         private readonly Dictionary<string, Func<IReadOnlyList<string>>> _monitorScreenGetters =

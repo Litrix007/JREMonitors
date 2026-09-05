@@ -59,8 +59,8 @@ namespace JREMonitors.E233.TIMS.D01AX
     public class D01AXTrainTypeButtonGroupViewModel : ViewModel
     {
         private TickTracker _blinkTickTracker;
-        private TIMSService _timsService;
         private E233MonitorStates _monitorStates;
+        private TIMSService _timsService;
         public Signal<bool> SupportsTasc { get; } = new Signal<bool>();
         public Signal<bool> IsTrainSelectionPressed { get; } = new Signal<bool>();
         public Signal<bool> IsSetButtonHighlighted { get; } = new Signal<bool>();

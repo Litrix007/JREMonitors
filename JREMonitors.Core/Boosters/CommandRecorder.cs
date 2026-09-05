@@ -6,6 +6,9 @@ using Vortice.Direct2D1;
 
 namespace JREMonitors.Core.Boosters
 {
+    /// <summary>
+    ///     <see cref="ID2D1CommandList" /> 录制器。
+    /// </summary>
     public class CommandRecorder : IDisposable
     {
         private readonly RenderContext _context;

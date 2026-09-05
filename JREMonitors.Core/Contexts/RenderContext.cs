@@ -11,6 +11,21 @@ using Vortice.WIC;
 
 namespace JREMonitors.Core.Contexts
 {
+    /// <summary>
+    ///     组件树构建与绘制所需的全部资源与状态入口。
+    /// </summary>
+    /// <remarks>
+    ///     <para>
+    ///         每个 Monitor 持有一个独立的 <see cref="RenderContext" />，其复用 <see cref="MonitorContext" />
+    ///         的设备级资源（D2D 设备/设备上下文、字体管理器、阴影处理器等），并持有自己的
+    ///         <see cref="DirtyUpdateManager" /> 与 <see cref="DisplayController" />。
+    ///     </para>
+    ///     <para>
+    ///         <see cref="Properties" /> 与 <see cref="MonitorContext.Properties" /> 共享同一字典引用；
+    ///         <see cref="ScopedRenderContext" /> 则会为其创建层叠作用域副本。
+    ///         按需服务通过 <see cref="Properties" /> 惰性注册单例。
+    ///     </para>
+    /// </remarks>
     public class RenderContext
     {
         private readonly Func<Vector2> _physicalScaleGetter;
@@ -62,16 +77,44 @@ namespace JREMonitors.Core.Contexts
         public IDictionary<PropertyKey, object> Properties { get; }
         public ID2D1Factory1 D2D1Factory { get; }
         public IWICImagingFactory WicImagingFactory { get; }
+
+        /// <summary>
+        ///     字体管理器。
+        /// </summary>
         public FontManager FontManager { get; }
+
         public IDWriteFactory5 DwFactory { get; }
+
+        /// <summary>
+        ///     脏更新管理器。
+        /// </summary>
         public DirtyUpdateManager DirtyUpdateManager { get; }
+
         public ID2D1Device Device { get; }
         public ID2D1DeviceContext DeviceContext { get; }
+
+        /// <summary>
+        ///     全局共享颜色画刷。
+        /// </summary>
         public ID2D1SolidColorBrush CommonBrush { get; }
+
+        /// <summary>
+        ///     外阴影处理器。
+        /// </summary>
         public DropShadowProcessor DropShadowProcessor { get; }
+
+        /// <summary>
+        ///     内阴影处理器。
+        /// </summary>
         public InnerShadowProcessor InnerShadowProcessor { get; }
+
         public Vector2 PhysicalScale => _physicalScaleGetter();
+
+        /// <summary>
+        ///     显示操作控制器。
+        /// </summary>
         public DisplayController DisplayController { get; }
+
         public bool ShowDebugRect => _showDebugRectGetter();
         public IDebugger Debugger { get; }
 

@@ -123,9 +123,13 @@ namespace JREMonitors.E233.TIMS
                 if (notch < -8) isEb = true;
             }
             else if (notch > 0)
+            {
                 handleBrakeText = "P" + notch;
+            }
             else
+            {
                 handleBrakeText = string.Empty;
+            }
 
             if (tascBrake > 0)
                 if (notch >= 0 || tascMainBrake >= -notch)

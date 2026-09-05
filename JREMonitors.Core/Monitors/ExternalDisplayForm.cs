@@ -19,6 +19,9 @@ using Color = System.Drawing.Color;
 
 namespace JREMonitors.Core.Monitors
 {
+    /// <summary>
+    ///     外置显示窗口。
+    /// </summary>
     public class ExternalDisplayForm : IDisposable
     {
         private const int WS_EX_NOACTIVATE = 0x08000000;

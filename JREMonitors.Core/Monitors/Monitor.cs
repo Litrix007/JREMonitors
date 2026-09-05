@@ -15,6 +15,26 @@ using Vortice.Mathematics;
 
 namespace JREMonitors.Core.Monitors
 {
+    /// <summary>
+    ///     监视器状态机，管理屏幕集合、当前活动屏幕与渲染帧循环。
+    /// </summary>
+    /// <remarks>
+    ///     <para>
+    ///         持有独立的 <see cref="RenderContext" /> 与本地 <see cref="DataHub" />；Screen 由工厂创建并按
+    ///         AvailableIds 注册。可挂载多个 <see cref="MonitorOutput" /> 输出，各输出均绘制同一屏内容。
+    ///     </para>
+    ///     <para>
+    ///         帧循环由 <see cref="MonitorDrawState" /> 状态机驱动：背景按即时或行扫描延迟
+    ///         （<c>BackgroundDelayed</c>）方式写入各输出的背景缓冲；前景更新阶段经
+    ///         <see cref="DirtyUpdateManager" /> 收集脏区，即时脏区直接局部重绘（<c>DrawImmediate</c>），
+    ///         低刷新率内容在离屏 <c>DelayedBitmap</c> 上渲染后按刷新速度分片同步（<c>DrawDelayed</c> →
+    ///         <c>SyncDelayed</c>）；带残影的输出再叠加 EMA 状态合成。
+    ///     </para>
+    ///     <para>
+    ///         点击输入经 <c>Click</c> 将物理坐标映射为活动屏幕逻辑坐标后派发；两阶段
+    ///         （<see cref="AddOutput" /> 的 <c>WarmUpPhase1</c> 与首帧 <c>WarmUpPhase2</c>）完成离屏静态内容预热。
+    ///     </para>
+    /// </remarks>
     public class Monitor : IDisposable
     {
         private readonly BlockingService _blockingService;

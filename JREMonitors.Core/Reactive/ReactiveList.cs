@@ -6,6 +6,20 @@ using System.Diagnostics;
 
 namespace JREMonitors.Core.Reactive
 {
+    /// <summary>
+    ///     响应式列表，可观察变长的 <typeparamref name="T" /> 集合，可作只读信号源被跟踪与绑定。
+    /// </summary>
+    /// <remarks>
+    ///     <para>
+    ///         元素增删/批量替换后向订阅者广播失效（亦可在批处理内缓冲，提交时统一通知）;
+    ///         <see cref="IValueSignal{T}" /> 源构造或 <c>Bind</c> 绑定后进入透传模式，源集合整体替换时联动。
+    ///     </para>
+    ///     <para>
+    ///         用法：Widget 经 <c>CreateReactiveList(dirtyType, ...)</c> 创建（失效自动关联脏区）或
+    ///         <c>CreateRelayReactiveList</c> 绑定源；读下标/枚举同样参与依赖追踪，批量更新请包在
+    ///         <c>ReactiveScope</c> 批处理中。
+    ///     </para>
+    /// </remarks>
     public class ReactiveList<T> : IReadOnlyList<T>, ISignal, IInvalidatable, ITrackable, ICommitable, IDisposable,
         IBatchConsumer
     {

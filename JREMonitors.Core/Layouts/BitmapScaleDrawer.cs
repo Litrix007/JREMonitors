@@ -16,6 +16,31 @@ using Vortice.Mathematics;
 
 namespace JREMonitors.Core.Layouts
 {
+    /// <summary>
+    ///     位图缩放绘制器，将一组子 <see cref="DrawerProperties" /> 按水平顺序排布并逐个缩放到目标矩形内绘制。
+    /// </summary>
+    /// <remarks>
+    ///     <para>
+    ///         每个 <see cref="DrawerProperties" /> 持有子绘制器（<see cref="IContentMeasurableBoundsDrawer" />）与缩放/偏移/颜色；
+    ///         整体布局支持 <c>spacing</c> 间距、水平/垂直对齐（<c>horizontalAlignment</c>/<c>verticalAlignment</c>）、跨轴对齐
+    ///         （<see cref="ContentArrangement" />：Near/Far/Center/Step）与 <c>snapToPixels</c> 像素取整。
+    ///     </para>
+    ///     <para>烘焙策略：</para>
+    ///     <para>
+    ///         · 近似 1:1 缩放下（<c>bypassBakerOn1X</c>）直接变换绘制子内容，跳过烘焙；
+    ///     </para>
+    ///     <para>
+    ///         · 子内容为 <see cref="IContentHashable" /> 时按快照 key 命中全局 Baker 缓存，内容不变则复用预烘焙结果；
+    ///     </para>
+    ///     <para>
+    ///         · 其余情况复用内部动态 Baker。逐项烘焙使每个子项独立参与缓存，适合文字/图表等
+    ///         静态内容的批量复用。
+    ///     </para>
+    ///     <para>
+    ///         · 实现 <see cref="IContentMeasurableBoundsDrawer" /> 与 <see cref="IContentHashable" />，
+    ///         快照按项顺序敏感地参与外层缓存 key。
+    ///     </para>
+    /// </remarks>
     public class BitmapScaleDrawer : IContentMeasurableBoundsDrawer, IContentHashable
     {
         private readonly ContentArrangement _arrangement;
@@ -144,10 +169,7 @@ namespace JREMonitors.Core.Layouts
         {
             _snapshot?.Dispose();
             var count = _propertiesList.Count;
-            for (var i = 0; i < count; i++)
-            {
-                _propertiesList[i].Dispose();
-            }
+            for (var i = 0; i < count; i++) _propertiesList[i].Dispose();
 
             _propertiesList.Clear();
             _dynamicBaker.Dispose();
@@ -310,17 +332,17 @@ namespace JREMonitors.Core.Layouts
             public PropertySlot<Color4?> Color { get; }
             public bool CacheBaker { get; }
 
+            public void Dispose()
+            {
+                _disposableStack.Dispose();
+            }
+
             public void Track()
             {
                 ScaleX.Track();
                 ScaleY.Track();
                 FinalOffsetCrossAxis.Track();
                 Color.Track();
-            }
-
-            public void Dispose()
-            {
-                _disposableStack.Dispose();
             }
         }
 

@@ -6,6 +6,9 @@ using BveTypes.ClassWrappers;
 
 namespace JREMonitors.BveEx.Utils
 {
+    /// <summary>
+    ///     性能曲线数据，支持从文件加载与恢复。
+    /// </summary>
     public class PerformanceData
     {
         private static readonly FieldInfo BeIndexCacheField =

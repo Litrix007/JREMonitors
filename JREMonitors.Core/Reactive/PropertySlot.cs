@@ -5,6 +5,22 @@ using System.Diagnostics;
 
 namespace JREMonitors.Core.Reactive
 {
+    /// <summary>
+    ///     响应式属性槽，可读写或可绑定的值信号，Widget 构建响应式 UI 状态的主要载体。
+    /// </summary>
+    /// <remarks>
+    ///     <para>
+    ///         两种模式：自有信号模式（默认构造或按初值构造）下 <c>Value</c> 可读可写；
+    ///         绑定模式（<see cref="Bind" />，或经 <see cref="IValueSignal{T}" /> 源构造）下只透传源值。
+    ///         Widget 通常经 <c>CreatePropertySlot(DirtyType, ...)</c> 创建，源失效时自动触发
+    ///         <see cref="OnInvalidated" /> 驱动重绘标记。
+    ///     </para>
+    ///     <para>
+    ///         注意：绑定状态下写 <c>Value</c> 会先解绑源并转为自有信号；需要保持绑定时应先
+    ///         <see cref="Unbind" />。读 <c>Value</c> 参与依赖追踪（被求值时记录为依赖），
+    ///         <see cref="Track" /> 用于仅声明依赖而不读取该值的场景。
+    ///     </para>
+    /// </remarks>
     [DebuggerDisplay("{DebuggerDisplay,nq}")]
     public class PropertySlot<T> : IValueSignal<T>, IInvalidatable, IDisposable, IBatchConsumer
     {

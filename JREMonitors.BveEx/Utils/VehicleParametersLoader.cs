@@ -6,6 +6,9 @@ using BveTypes.ClassWrappers;
 
 namespace JREMonitors.BveEx.Utils
 {
+    /// <summary>
+    ///     车辆参数加载器，解析 BVE 车辆参数文件并应用。
+    /// </summary>
     public static class VehicleParametersLoader
     {
         private static readonly FieldInfo B2FieldM =
@@ -39,12 +42,9 @@ namespace JREMonitors.BveEx.Utils
                 if (reader.b().c() == SupportedVersions[0] ||
                     reader.b().c() == SupportedVersions[1] ||
                     reader.b().c() == SupportedVersions[2])
-                {
                     reader.a(new[] { ';' });
-                }
 
                 while (reader.k())
-                {
                     if (string.IsNullOrEmpty(reader.a()))
                     {
                         var lowerSection = reader.n().ToLower();
@@ -676,26 +676,16 @@ namespace JREMonitors.BveEx.Utils
                             }
                         }
                     }
-                }
             }
 
             var mrTank = vehicleSrc.f().b().e().g();
             var currentMrPressure = mrTank.aj();
-            foreach (var action in applyActions)
-            {
-                action(vehicleSrc);
-            }
+            foreach (var action in applyActions) action(vehicleSrc);
 
             var dynamics = vehicle.Dynamics;
-            if (motorCarCount.HasValue)
-            {
-                dynamics.MotorCar.Count = motorCarCount.Value;
-            }
+            if (motorCarCount.HasValue) dynamics.MotorCar.Count = motorCarCount.Value;
 
-            if (trailerCarCount.HasValue)
-            {
-                dynamics.TrailerCar.Count = trailerCarCount.Value;
-            }
+            if (trailerCarCount.HasValue) dynamics.TrailerCar.Count = trailerCarCount.Value;
 
             var newUpperPressure = vehicleSrc.f().b().e().d();
             mrTank.ak(Math.Min(currentMrPressure, newUpperPressure));
@@ -723,14 +713,11 @@ namespace JREMonitors.BveEx.Utils
             passengerLoad.Value = 0;
             passengerLoad.Value = passenger.Count * passenger.BodyWeight;
             dynamics.Setup();
-            if (vehicleSrc.f().a().k().c() < 0.0)
-            {
-                vehicleSrc.f().a().k().b(vehicleSrc.f().a().k().b() + 25.0 / 18.0);
-            }
+            if (vehicleSrc.f().a().k().c() < 0.0) vehicleSrc.f().a().k().b(vehicleSrc.f().a().k().b() + 25.0 / 18.0);
         }
 
         /// <summary>
-        /// 重置各参数为默认值防止残留
+        ///     重置各参数为默认值防止残留
         /// </summary>
         private static void ResetAllParametersToDefaults(f vehicleSrc)
         {

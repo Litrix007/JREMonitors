@@ -36,5 +36,10 @@
       }
     }
   },
+  "display": {},
+  "performanceCurves": {},
+  "vehicleParameters": {},
+  "outputs": {},
+  "tims": {},
   "enableHotReload": true
 }

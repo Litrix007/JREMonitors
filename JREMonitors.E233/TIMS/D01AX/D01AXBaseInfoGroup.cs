@@ -54,8 +54,8 @@ namespace JREMonitors.E233.TIMS.D01AX
                         new BitmapScaleDrawer.DrawerProperties(
                             this.CreateTIMSTextLayout(documentSource: CreateComputed(() =>
                                 RichTextParser.Raw(ViewModel.SecondRowTrainNumber)), context: scopedContext), 2,
-                            color: MonitorColors.TIMSTitleGreen),
-                    }, spacing: 8, context: scopedContext),
+                            color: MonitorColors.TIMSTitleGreen)
+                    }, 8, context: scopedContext),
                 contentColor: MonitorColors.TIMSTitleGrey, y: SecondRowY);
             secondRowTrainNumber.X.Bind(CreateComputed<float>(() =>
                 ViewModel.DisplayMode == TIMSDisplayMode.MDen ? 99 : 34));
@@ -100,11 +100,8 @@ namespace JREMonitors.E233.TIMS.D01AX
                 {
                     if (string.IsNullOrEmpty(_firstRowTrainNumberRaw))
                         return string.Empty;
-                    var number = TIMSHelper.FormatTrainNumber(_firstRowTrainNumberRaw, '0', prefixPadCount: 1);
-                    if (PassSetting)
-                    {
-                        number = "通" + number;
-                    }
+                    var number = TIMSHelper.FormatTrainNumber(_firstRowTrainNumberRaw, '0', 1);
+                    if (PassSetting) number = "通" + number;
 
                     return number.ToFullWidth();
                 }

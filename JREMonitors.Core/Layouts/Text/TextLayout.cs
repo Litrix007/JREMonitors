@@ -16,6 +16,34 @@ using Vortice.Mathematics;
 
 namespace JREMonitors.Core.Layouts.Text
 {
+    /// <summary>
+    ///     富文本排版绘制器，按行测量 DirectWrite 文本并支持缩放/偏移/对齐等排版手段。
+    /// </summary>
+    /// <remarks>
+    ///     <para>
+    ///         文本来源支持三种构造形式：普通字符串（解析 <c>RichText</c> 标记）、现成
+    ///         <see cref="RichTextDocument" />、以及可响应更新的 <see cref="IValueSignal{RichTextDocument}" />
+    ///         （绑定后内容变化自动驱动脏区）。富文本文档内可对片段设置字号、加粗、字距与颜色。
+    ///     </para>
+    ///     <para>排版能力：</para>
+    ///     <para>
+    ///         · 方向（<see cref="ContentOrientation" />：水平/垂直）与流向（<see cref="ContentFlowDirection" />：
+    ///         Forward=水平 LTR/垂直 TTB，Reverse=水平 RTL/垂直 BTT）；
+    ///     </para>
+    ///     <para>
+    ///         · 对齐（<see cref="ContentArrangement" />：Near/Far/Center/Step）；主/次轴偏移（逐行
+    ///         <c>FinalOffsetsMainAxis</c> 与整体 <c>FinalOffsetCrossAxis</c>）；缩放 <c>ScaleX</c>/<c>ScaleY</c>；
+    ///         固定行距 <c>fixedLineSpacing</c>；
+    ///     </para>
+    ///     <para>
+    ///         · 边界策略：<c>sizeLimit</c> 下限、<c>useBounds</c> 强制使用目标矩形、<c>ceilContentBounds</c>
+    ///         取整边界；日本字体过hanging 可通过 <c>useHorizontal/VerticalOverhangMetrics</c> 开关，
+    ///         并支持 <c>isGdiCompatible</c> 的 GDI 兼容测量；
+    ///     </para>
+    ///     <para>
+    ///         测量结果按文档哈希全局缓存（<c>cacheMetrics</c>）或按实例缓存。
+    ///     </para>
+    /// </remarks>
     public class TextLayout : IContentMeasurableBoundsDrawer, IContentHashable
     {
         private readonly ContentArrangement _arrangement;

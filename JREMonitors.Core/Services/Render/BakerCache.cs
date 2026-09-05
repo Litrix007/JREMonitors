@@ -4,6 +4,9 @@ using JREMonitors.Core.Contexts;
 
 namespace JREMonitors.Core.Services.Render
 {
+    /// <summary>
+    ///     <see cref="Baker" /> 全局缓存。
+    /// </summary>
     public class BakerCache : TypedResourceCache<Baker>
     {
         public static readonly PropertyKey Key = new PropertyKey(nameof(BakerCache));

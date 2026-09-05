@@ -29,6 +29,9 @@ namespace JREMonitors.Core.Layouts
         public bool Enabled { get; set; } = true;
     }
 
+    /// <summary>
+    ///     组件间距调整器基类。
+    /// </summary>
     public abstract class AdjacencyManagerBase<TElement, TState> where TElement : class, IExpandableElement<TState>
     {
         private readonly List<AdjacencyConnection<TElement, TState>> _connections =

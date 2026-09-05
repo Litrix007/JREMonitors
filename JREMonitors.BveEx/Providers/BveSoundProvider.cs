@@ -30,6 +30,12 @@ namespace JREMonitors.BveEx.Providers
             LoadSounds(soundPaths);
         }
 
+        public void Dispose()
+        {
+            Clear(_sounds);
+            _sounds = null;
+        }
+
         public void PlaySound(string soundName, float volume)
         {
             if (!_sounds.TryGetValue(soundName, out var sound)) return;
@@ -39,10 +45,7 @@ namespace JREMonitors.BveEx.Providers
         private void Clear(Dictionary<string, Sound> sounds)
         {
             if (sounds == null) return;
-            foreach (var sound in sounds.Values)
-            {
-                DisposeSound(sound);
-            }
+            foreach (var sound in sounds.Values) DisposeSound(sound);
 
             sounds.Clear();
         }
@@ -98,12 +101,6 @@ namespace JREMonitors.BveEx.Providers
 
             Clear(_sounds);
             _sounds = newSounds;
-        }
-
-        public void Dispose()
-        {
-            Clear(_sounds);
-            _sounds = null;
         }
     }
 }

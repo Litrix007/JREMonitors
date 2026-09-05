@@ -53,11 +53,11 @@ namespace JREMonitors.BveEx.Configs.Vehicle
         }
 
         /// <summary>
-        /// 各编组使用的车辆参数路径。
+        ///     各编组使用的车辆参数路径。
         /// </summary>
         /// <remarks>
-        /// <para>当某编组未配置或解析失败时，将尝试回退至车辆文件中定义的的参数路径。</para>
-        /// <para>不会更新<c>[OneLeverCab]</c>、<c>[Cab]</c>、<c>[ViewPoint]</c>。</para>
+        ///     <para>当某编组未配置或解析失败时，将尝试回退至车辆文件中定义的的参数路径。</para>
+        ///     <para>不会更新<c>[OneLeverCab]</c>、<c>[Cab]</c>、<c>[ViewPoint]</c>。</para>
         /// </remarks>
         public Dictionary<string, ConfigPath> VehicleParameters
         {

@@ -14,7 +14,7 @@ using Usage = SlimDX.Direct3D9.Usage;
 
 namespace JREMonitors.BveEx.Monitors
 {
-    public class D3D9ExSharedBuffer : IDisposable
+    public class D3D9ExBufferQueue : IDisposable
     {
         private readonly Size _cabSize;
         private readonly int _capacity;
@@ -26,7 +26,7 @@ namespace JREMonitors.BveEx.Monitors
 
         private int _writeIndex;
 
-        public D3D9ExSharedBuffer(MonitorContext context, bool isCabEnabled,
+        public D3D9ExBufferQueue(MonitorContext context, bool isCabEnabled,
             Size cabSize,
             int capacity = 3)
         {

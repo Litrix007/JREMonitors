@@ -9,14 +9,45 @@ using Vortice.Direct2D1;
 
 namespace JREMonitors.Core.Boosters
 {
+    /// <summary>
+    ///     Baker 预缩放模式。
+    /// </summary>
     public enum BakerPrescaleMode
     {
+        /// <summary>
+        ///     矢量缩放。
+        /// </summary>
         Vector,
+
+        /// <summary>
+        ///     在缩放大小<c>>=1.5</c>倍时为<see cref="SharpCubic" />模式，否则为<see cref="None" />模式。
+        /// </summary>
         AutoCubic,
+
+        /// <summary>
+        ///     先按向上取整缩放烘培，再绘制到目标缩放大小。
+        /// </summary>
         SharpCubic,
+
+        /// <summary>
+        ///     直接绘制到目标缩放大小。
+        /// </summary>
         None
     }
 
+    /// <summary>
+    ///     纹理烘焙器，将任意的 D2D 绘制动作预先渲染到位图，再以缓存位图重复绘制，避免每帧重复执行绘制操作。
+    /// </summary>
+    /// <remarks>
+    ///     <para>
+    ///         按有效缩放比（世界缩放 × 目标/源尺寸比）在本实例内缓存烘焙结果；
+    ///         内容变化时调用 <see cref="Refresh(bool)" /> 使缓存失效（命中路径仍会重新烘焙），
+    ///         <see cref="Dispose" />/<c>Refresh(false)</c> 则释放全部位图。
+    ///     </para>
+    ///     <para>
+    ///         绘制时按缩放是否整数自动选择最近邻/三次插值（<see cref="GetInterpolationMode" />）。
+    ///     </para>
+    /// </remarks>
     public class Baker : IDisposable
     {
         private readonly Dictionary<Vector2, CachedBitmap> _bitmaps = new Dictionary<Vector2, CachedBitmap>();

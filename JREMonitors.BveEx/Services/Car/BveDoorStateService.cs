@@ -42,9 +42,7 @@ namespace JREMonitors.BveEx.Services.Car
             var rightSideDoors = vehicle.Doors.GetSide(DoorSide.Right);
             if (Math.Abs(vehicle.Dynamics.MotorCar.Count + vehicle.Dynamics.TrailerCar.Count - carCount) >
                 Epsilons.DoubleEpsilon)
-            {
                 CarCountHelper.SetCarCount(vehicle, carCount);
-            }
 
             _cars = new CarDoorController[carCount];
             _leftStatesCache = new DoorState[carCount][];

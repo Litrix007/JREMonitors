@@ -32,17 +32,17 @@ namespace JREMonitors.E233.MeterScreen.Background
             Vector2.Zero,
             0);
 
-        protected readonly bool BoldCenterMinorTicksWithoutSafetyLamps;
-        protected readonly bool BoldCenterMinorTicksWithSafetyLamps;
-
         private readonly CatenaryVoltGaugeBackground _catenaryVoltGaugeBackground;
         private readonly DeviceVoltGaugeBackground _deviceVoltGaugeBackground;
         private readonly Lamp _ebLamp;
         private readonly IDWriteTextFormat _format;
+
+        protected readonly bool BoldCenterMinorTicksWithoutSafetyLamps;
+        protected readonly bool BoldCenterMinorTicksWithSafetyLamps;
+        protected readonly bool ShowHoldSpeedLamp;
         protected readonly float SpeedOffsetY;
         protected RootProperties RootPropertiesWithoutSafetyLamps;
         protected RootProperties RootPropertiesWithSafetyLamps;
-        protected readonly bool ShowHoldSpeedLamp;
 
         protected MeterBackgroundRootBase(
             RenderContext context,

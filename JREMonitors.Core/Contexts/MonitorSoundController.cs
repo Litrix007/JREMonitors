@@ -3,6 +3,9 @@ using Vortice.Mathematics;
 
 namespace JREMonitors.Core.Contexts
 {
+    /// <summary>
+    ///     声音控制器，用于在组件内请求播放声音。
+    /// </summary>
     public class MonitorSoundController
     {
         private readonly ISoundProvider _soundProvider;

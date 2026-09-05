@@ -67,11 +67,9 @@
         <Compile Include="Layouts\ContentOrientation.cs"/>
         <Compile Include="Layouts\IContentHashable.cs"/>
         <Compile Include="Layouts\LayoutRect.cs"/>
-        <Compile Include="Layouts\IBoundsDrawer.cs"/>
         <Compile Include="Layouts\IContentMeasurableBoundsDrawer.cs"/>
         <Compile Include="Layouts\Text\RichText.cs"/>
         <Compile Include="Layouts\Text\TextLayout.cs"/>
-        <Compile Include="Managers\ResourceGroup.cs"/>
         <Compile Include="Managers\ExecutionGraph.cs"/>
         <Compile Include="Managers\DisposableStack.cs"/>
         <Compile Include="Managers\FontManager.cs"/>
@@ -122,6 +120,7 @@
         <Compile Include="Svg\SvgRect.cs"/>
         <Compile Include="Svg\SvgUse.cs"/>
         <Compile Include="Layouts\AdjacencyManagerBase.cs"/>
+        <Compile Include="Layouts\IBoundsDrawer.cs"/>
         <Compile Include="Layouts\IExpandableElement.cs"/>
         <Compile Include="Layouts\LayoutLength.cs"/>
         <Compile Include="Layouts\ILayoutable.cs"/>
@@ -156,7 +155,7 @@
         <Compile Include="Utils\TimeSpanHelper.cs"/>
         <Compile Include="Utils\Win32Helper.cs"/>
         <Compile Include="Widgets\BoundsDrawerWidget.cs"/>
-        <Compile Include="Widgets\Group.cs" />
+        <Compile Include="Widgets\Group.cs"/>
         <Compile Include="Widgets\ViewModel.cs"/>
         <Compile Include="Widgets\Widget.cs"/>
         <Compile Include="Widgets\WidgetSwitcher.cs"/>

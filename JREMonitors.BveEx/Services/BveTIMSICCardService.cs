@@ -31,8 +31,8 @@ namespace JREMonitors.BveEx.Services
         private bool _jumping;
         private bool _pendingIcCardReload;
         private Dictionary<string, string> _performanceCurvePaths;
-        private Dictionary<string, string> _vehicleParametersMap;
         private bool _shouldForceInstant;
+        private Dictionary<string, string> _vehicleParametersMap;
 
         public BveTIMSICCardService(
             DataHub dataHub,
@@ -67,9 +67,7 @@ namespace JREMonitors.BveEx.Services
             if (hasNewErrors)
             {
                 while (loadingProgressForm.ErrorListView.Items.Count > prevItemCount)
-                {
                     loadingProgressForm.ErrorListView.Items.RemoveAt(loadingProgressForm.ErrorListView.Items.Count - 1);
-                }
 
                 loadingProgressForm.ErrorCount = prevErrorCount;
                 loadingProgressForm.IsAborted = prevAborted;
@@ -102,7 +100,6 @@ namespace JREMonitors.BveEx.Services
             var performance = _scenario.Vehicle?.Instruments?.Electricity?.Performance;
             _initialPerformanceData.RestoreTo(performance);
             if (!string.IsNullOrEmpty(_initialVehicleParametersPath) && _scenario.Vehicle != null)
-            {
                 try
                 {
                     VehicleParametersLoader.LoadAndApply(_scenario.Vehicle, _initialVehicleParametersPath);
@@ -111,7 +108,6 @@ namespace JREMonitors.BveEx.Services
                 {
                     // ignored
                 }
-            }
         }
 
         public void OnJumpStation()
@@ -285,10 +281,10 @@ namespace JREMonitors.BveEx.Services
                 else
                     trailerCarCount++;
             }
+
             var canRestore = !string.IsNullOrEmpty(_initialVehicleParametersPath);
             if (_vehicleParametersMap.TryGetValue(formation, out var vehicleParameterPath) &&
                 vehicleParameterPath != null)
-            {
                 try
                 {
                     VehicleParametersLoader.LoadAndApply(_scenario.Vehicle, vehicleParameterPath, motorCarCount,
@@ -302,7 +298,6 @@ namespace JREMonitors.BveEx.Services
                             $"Vehicle parameters '{vehicleParameterPath}' load failed: {e}");
 
                     if (canRestore)
-                    {
                         try
                         {
                             VehicleParametersLoader.LoadAndApply(_scenario.Vehicle, _initialVehicleParametersPath,
@@ -312,14 +307,11 @@ namespace JREMonitors.BveEx.Services
                         {
                             // 忽略恢复失败
                         }
-                    }
 
                     NotifyVehicleParametersLoadFailed(vehicleParameterPath, e);
                     return;
                 }
-            }
             else if (canRestore)
-            {
                 try
                 {
                     VehicleParametersLoader.LoadAndApply(_scenario.Vehicle, _initialVehicleParametersPath,
@@ -334,7 +326,6 @@ namespace JREMonitors.BveEx.Services
                     NotifyVehicleParametersRestoreFailed(_initialVehicleParametersPath, e);
                     return;
                 }
-            }
 
             if (_performanceCurvePaths.TryGetValue(formation, out var performanceCurvePath) &&
                 performanceCurvePath != null)

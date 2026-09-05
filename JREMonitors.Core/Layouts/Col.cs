@@ -9,6 +9,27 @@ using JREMonitors.Core.Widgets;
 
 namespace JREMonitors.Core.Layouts
 {
+    /// <summary>
+    ///     垂直排布容器，将子组件按列依次排列并布局。
+    /// </summary>
+    /// <remarks>
+    ///     <para>
+    ///         仅布局直接子项中实现 <see cref="ILayoutable" /> 的 Widget；每个子项依据其 <see cref="PreferredHeight" />
+    ///         的绝对值与 Flex 权重分配高度，Flex 子项可拉伸占满剩余空间（<see cref="ExplicitAvailableHeight" /> 给出时
+    ///         按剩余空间均分，否则按 <see cref="FallbackFlexUnitHeight" /> 兜底），并支持像素取整下的 Flex 余量分摊
+    ///         （<c>positionSnapToPixels</c>）。
+    ///     </para>
+    ///     <para>
+    ///         列内对齐：整体在目标区域内的偏移由 <c>colVerticalAlignment</c>/<c>colHorizontalAlignment</c>
+    ///         （0~1：起点~终点）决定；各列宽取子项最大宽度，子项横向位置由 <c>widgetHorizontalAlignment</c> 对齐；
+    ///         子项间以 <c>widgetSpacing</c> 分隔，并计入各自的 <see cref="MarginWidth" />/<see cref="MarginHeight" />。
+    ///     </para>
+    ///     <para>
+    ///         <see cref="PreferredHeight" />/<see cref="PreferredWidth" /> 为响应式计算属性：高度汇总参与排布子项的
+    ///         固定高、Flex 权重与间距，宽度取子项最大宽度；尺寸由外部通过 <see cref="SetLayoutSize" />/
+    ///         <see cref="UpdateFromBounds" />（或 <see cref="FromBounds" /> 便捷构造）下发，并以各参数版本签名缓存 Arrange 结果。
+    ///     </para>
+    /// </remarks>
     public class Col : Widget, ILayoutable
     {
         private readonly float _colHorizontalAlignment;

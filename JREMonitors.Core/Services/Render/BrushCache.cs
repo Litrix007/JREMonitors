@@ -4,6 +4,9 @@ using Vortice.Mathematics;
 
 namespace JREMonitors.Core.Services.Render
 {
+    /// <summary>
+    ///     <see cref="ID2D1SolidColorBrush" /> 全局缓存。
+    /// </summary>
     public class BrushCache : ResourceCache<Color4, ID2D1SolidColorBrush>
     {
         public static readonly PropertyKey Key = new PropertyKey(nameof(BrushCache));

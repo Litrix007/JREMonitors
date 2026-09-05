@@ -3,6 +3,9 @@ using Vortice.Mathematics;
 
 namespace JREMonitors.Core.Contexts
 {
+    /// <summary>
+    ///     显示操作控制器，用于在组件内请求重置、切换屏幕、调整亮度等操作。
+    /// </summary>
     public class DisplayController
     {
         private readonly Func<string> _activeScreenIdGetter;

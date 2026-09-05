@@ -7,6 +7,9 @@ using Vortice.DirectWrite;
 
 namespace JREMonitors.Core.Services.Render
 {
+    /// <summary>
+    ///     文本测量结果全局缓存。
+    /// </summary>
     public class TextMetricsCache : ResourceCache<TextMetricsCacheKey, TextMetricsHolder>
     {
         public static readonly PropertyKey Key = new PropertyKey(nameof(TextMetricsCache));

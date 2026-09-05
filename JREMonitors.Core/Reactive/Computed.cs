@@ -5,6 +5,20 @@ using System.Diagnostics;
 
 namespace JREMonitors.Core.Reactive
 {
+    /// <summary>
+    ///     惰性派生值，由 <c>supplier</c> 计算、缓存结果，并仅在依赖变化且实际读取时重算。
+    /// </summary>
+    /// <remarks>
+    ///     <para>
+    ///         求值期间读到的信号自动成为依赖（经 <see cref="ReactiveScope" /> 记录）；依赖失效按
+    ///         Check→Dirty 状态逐级上报，读 <see cref="Value" /> 时才真正重算，且结果未变化不递增
+    ///         <see cref="Version" />（变值检测）。动态解绑开启时每次重算后移除不再读取的依赖订阅。
+    ///     </para>
+    ///     <para>
+    ///         用法：Widget 内经 <c>CreateComputed(supplier)</c> 创建并随组件释放，适合由多个
+    ///         其他响应式变量派生的组合状态；读 <see cref="Value" /> 即随依赖联动。
+    ///     </para>
+    /// </remarks>
     public class Computed<T> : IValueSignal<T>, IDependencyTracker, IDisposable
     {
         private readonly Func<T, T> _converter;

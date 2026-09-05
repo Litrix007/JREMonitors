@@ -8,6 +8,14 @@ using JREMonitors.Core.Widgets;
 
 namespace JREMonitors.Core.Layouts
 {
+    /// <summary>
+    ///     网格容器，将二维行集合在给定矩形内等分行高，逐行构建 <see cref="Row" /> 排布子项并保持列对齐。
+    /// </summary>
+    /// <remarks>
+    ///     行高按 <c>rowSpacing</c> 扣除后均分（支持像素取整余量分摊），列布局由 <see cref="Row" /> 以
+    ///     <c>colSpacing</c> 与 <see cref="Row" /> 的横向对齐完成；整体可经 <c>verticalAlignment</c>/
+    ///     <c>horizontalAlignment</c>（0~1）在区域内偏移。
+    /// </remarks>
     public class RowGrid : Widget
     {
         public RowGrid(

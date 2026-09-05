@@ -43,7 +43,7 @@ namespace JREMonitors.BveEx.Monitors
     {
         private bool _hadConsumers;
         private bool _hasPendingAcquisition;
-        private D3D9ExSharedBuffer _sharedBuffer;
+        private D3D9ExBufferQueue _bufferQueue;
 
         public MonitorHolderD3D9Ex(DataHub dataHub, MonitorContext context, MonitorProperties properties,
             ITimeProvider timeProvider, bool showDebugRect, int bufferFrameCount,
@@ -56,8 +56,8 @@ namespace JREMonitors.BveEx.Monitors
         {
             if (TexWidth <= 0 || TexHeight <= 0) return;
             var cabSize = Properties.Cab.Enabled ? new Size(TexWidth, TexHeight) : Size.Empty;
-            _sharedBuffer?.Dispose();
-            _sharedBuffer = new D3D9ExSharedBuffer(Context, Properties.Cab.Enabled, cabSize,
+            _bufferQueue?.Dispose();
+            _bufferQueue = new D3D9ExBufferQueue(Context, Properties.Cab.Enabled, cabSize,
                 BufferFrameCount);
             _hadConsumers = true;
             UpdateRenderTargets();
@@ -72,13 +72,13 @@ namespace JREMonitors.BveEx.Monitors
         /// </summary>
         protected override bool IsProductionBlocked()
         {
-            return _sharedBuffer != null && _sharedBuffer.IsNextWriteSlotPending();
+            return _bufferQueue != null && _bufferQueue.IsNextWriteSlotPending();
         }
 
         private void UpdateRenderTargets()
         {
-            if (_sharedBuffer == null) return;
-            var writeSlot = _sharedBuffer.AcquireWriteSlot();
+            if (_bufferQueue == null) return;
+            var writeSlot = _bufferQueue.AcquireWriteSlot();
             if (Properties.Cab.Enabled)
             {
                 CabD3D11Texture = writeSlot.ProjectedD3D11Texture;
@@ -106,7 +106,7 @@ namespace JREMonitors.BveEx.Monitors
                 D3D9TextureRecreated = true;
             }
 
-            _sharedBuffer?.EnsureD3D9ExTextures(Direct3DProvider.Instance.Device);
+            _bufferQueue?.EnsureD3D9ExTextures(Direct3DProvider.Instance.Device);
         }
 
         public override void Submit()
@@ -114,7 +114,7 @@ namespace JREMonitors.BveEx.Monitors
             if (!Actions.ShouldSubmit) return;
             if (!Properties.Cab.Enabled && (ExternalForm == null || !ExternalForm.IsVisible)) return;
             Submitted = true;
-            _sharedBuffer?.SubmitWriteSlot();
+            _bufferQueue?.SubmitWriteSlot();
             UpdateRenderTargets();
             Debugger?.AddLine($"{Monitor.Id} submit");
         }
@@ -134,15 +134,15 @@ namespace JREMonitors.BveEx.Monitors
             var isTransition = !_hadConsumers;
             if (isTransition)
             {
-                _sharedBuffer?.PrepareTransition();
+                _bufferQueue?.PrepareTransition();
                 _hadConsumers = true;
             }
 
             if (!Actions.ShouldSync && !isTransition && !D3D9TextureRecreated && !_hasPendingAcquisition &&
                 !ExtFormNeedsSync) return;
             D3D9TextureRecreated = false;
-            var readSlot = _sharedBuffer?.TryAcquireDisplaySlot();
-            _hasPendingAcquisition = _sharedBuffer?.HasNewerPending ?? false;
+            var readSlot = _bufferQueue?.TryAcquireDisplaySlot();
+            _hasPendingAcquisition = _bufferQueue?.HasNewerPending ?? false;
             if (readSlot == null) Debugger?.AddLine($"{Monitor.Id} skipped");
             if (readSlot == null && !ExtFormNeedsSync) return;
 
@@ -153,7 +153,7 @@ namespace JREMonitors.BveEx.Monitors
                     Direct3DProvider.Instance.Device.StretchRectangle(srcSurface, dstSurface,
                         TextureFilter.None);
                     // 读取 fence 必须紧跟 StretchRect 之后 Issue：查询完成点 = GPU 通过该读取点
-                    _sharedBuffer?.MarkD3D9ExReadIssued(readSlot);
+                    _bufferQueue?.MarkD3D9ExReadIssued(readSlot);
                     Debugger?.AddLine($"{Monitor.Id} sync");
                 }
 
@@ -168,7 +168,7 @@ namespace JREMonitors.BveEx.Monitors
         public override void Detach()
         {
             base.Detach();
-            _sharedBuffer?.Reset();
+            _bufferQueue?.Reset();
             _hasPendingAcquisition = false;
             UpdateRenderTargets();
         }
@@ -176,18 +176,18 @@ namespace JREMonitors.BveEx.Monitors
         public override void DisposeD3D9Texture()
         {
             base.DisposeD3D9Texture();
-            _sharedBuffer?.DisposeD3D9ExResourcesOnly();
+            _bufferQueue?.DisposeD3D9ExResourcesOnly();
         }
 
         /// <summary>
-        ///     热重载 BufferFrameCount：重建 D3D9ExSharedBuffer 与 D3D9Ex 侧纹理，重置 Sync 状态机。
-        ///     CreateCabD3D11Texture 会 Dispose 旧 _sharedBuffer 并按新 BufferFrameCount 重建，
-        ///     状态机天然回到干净初值（新建 D3D9ExSharedBuffer：_writeIndex=0、全部槽位未提交）。
+        ///     热重载 BufferFrameCount：重建 D3D9ExBufferQueue 与 D3D9Ex 侧纹理，重置 Sync 状态机。
+        ///     CreateCabD3D11Texture 会 Dispose 旧 _bufferQueue 并按新 BufferFrameCount 重建，
+        ///     状态机天然回到干净初值（新建 D3D9ExBufferQueue：_writeIndex=0、全部槽位未提交）。
         /// </summary>
         public override void ReconfigureBufferFrameCount(int newBufferFrameCount)
         {
             BufferFrameCount = newBufferFrameCount;
-            // 释放旧 D3D9Ex 侧纹理（CreateCabD3D11Texture 内部会重建 _sharedBuffer 并重绑 CabD3D11Texture）
+            // 释放旧 D3D9Ex 侧纹理（CreateCabD3D11Texture 内部会重建 _bufferQueue 并重绑 CabD3D11Texture）
             DisposeD3D9Texture();
             D3D9MergedTexture?.Dispose();
             D3D9MergedTexture = null;
@@ -201,8 +201,8 @@ namespace JREMonitors.BveEx.Monitors
 
         public override void Dispose()
         {
-            _sharedBuffer?.Dispose();
-            _sharedBuffer = null;
+            _bufferQueue?.Dispose();
+            _bufferQueue = null;
             base.Dispose();
         }
     }

@@ -27,6 +27,9 @@ namespace JREMonitors.Core.Lighting
         private float _pad3;
     }
 
+    /// <summary>
+    ///     屏幕光照特效。
+    /// </summary>
     public class AdaptiveScreenLightingEffect : ID2D1Effect
     {
         private readonly Implementation _impl;

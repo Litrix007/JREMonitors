@@ -49,9 +49,9 @@ namespace JREMonitors.E233.Lamps
         private readonly Color4 _onBackgroundColor;
         private readonly float _onBorderRadius;
         private readonly DropShadow[] _onDropShadows;
+        private readonly float _onInnerShadowAlphaRatio;
         private readonly InnerShadowEffectChain _onInnerShadowChain;
         private readonly float _onInnerShadowWidth;
-        private readonly float _onInnerShadowAlphaRatio;
         private readonly Color4 _onOutlineColor;
         private readonly float _onOutlineRadius;
         private readonly float _onOutlineWidth;
@@ -346,7 +346,7 @@ namespace JREMonitors.E233.Lamps
         private void DrawOff()
         {
             var bakeBounds = SelfRelativeDirtyBounds;
-            var key = BuildBackgroundKey(bakeBounds, isOn: false);
+            var key = BuildBackgroundKey(bakeBounds, false);
             var baker = Context.GetBakerCache()
                 .GetOrCreateBaker<Lamp, LampBakerKey>(Context, key);
             baker.BakeAndDraw(bakeBounds, () =>
@@ -382,7 +382,7 @@ namespace JREMonitors.E233.Lamps
         private void DrawOn()
         {
             var bakeBounds = SelfRelativeDirtyBounds;
-            var key = BuildBackgroundKey(bakeBounds, isOn: true);
+            var key = BuildBackgroundKey(bakeBounds, true);
             var baker = Context.GetBakerCache().GetOrCreateBaker<Lamp, LampBakerKey>(Context, key);
             baker.BakeAndDraw(bakeBounds, () =>
             {
@@ -467,6 +467,81 @@ namespace JREMonitors.E233.Lamps
 
             localBaker.BakeAndDraw(bounds, () => _boundsDrawer.Draw(textBounds, color),
                 overrideInterpolationMode: _overrideTextInterpolationMode);
+        }
+
+        private void GetRectPositions(out float rectX, out float rectY, out float rectW, out float rectH)
+        {
+            var leftExp = StaticExtensionLeft + (_expandToFillGaps
+                ? _currentLeftExpansion < 0 ? MaxDynamicExpansion : _currentLeftExpansion
+                : 0f);
+            var rightExp = StaticExtensionRight + (_expandToFillGaps
+                ? _currentRightExpansion < 0 ? MaxDynamicExpansion : _currentRightExpansion
+                : 0f);
+            var topExp = StaticExtensionTop + (_expandToFillGaps
+                ? _currentTopExpansion < 0 ? MaxDynamicExpansion : _currentTopExpansion
+                : 0f);
+            var bottomExp = StaticExtensionBottom + (_expandToFillGaps
+                ? _currentBottomExpansion < 0 ? MaxDynamicExpansion : _currentBottomExpansion
+                : 0f);
+
+            rectX = 0 - leftExp;
+            rectY = 0 - topExp;
+            rectW = BaseWidth + leftExp + rightExp;
+            rectH = BaseHeight + topExp + bottomExp;
+        }
+
+        private void RecordTopLeftMaskGeometry()
+        {
+            GetRectPositions(out var rectX, out var rectY, out var rectW, out var rectH);
+            var b = _topLeftInnerShadowImage.Blur * 3.0f;
+
+            using (var geom = Context.D2D1Factory.CreatePathGeometry())
+            {
+                using (var sink = geom.Open())
+                {
+                    sink.AddTopLeftInnerBevelFigure(rectW, rectH, _onInnerShadowWidth, _onBorderRadius, b);
+                    sink.Close();
+                }
+
+                Context.CommonBrush.Color = Colors.Black;
+                var oldTransform = Context.DeviceContext.Transform;
+                Context.DeviceContext.Transform = Matrix3x2.CreateTranslation(rectX, rectY) * oldTransform;
+                Context.DeviceContext.FillGeometry(geom, Context.CommonBrush);
+                Context.DeviceContext.Transform = oldTransform;
+            }
+        }
+
+        private void RecordBottomRightMaskGeometry()
+        {
+            GetRectPositions(out var rectX, out var rectY, out var rectW, out var rectH);
+            var b = _bottomRightInnerShadowImage.Blur * 3.0f;
+
+            using (var geom = Context.D2D1Factory.CreatePathGeometry())
+            {
+                using (var sink = geom.Open())
+                {
+                    sink.AddBottomRightInnerBevelFigure(rectW, rectH, _onInnerShadowWidth, _onBorderRadius, b);
+                    sink.Close();
+                }
+
+                Context.CommonBrush.Color = Colors.Black;
+                var oldTransform = Context.DeviceContext.Transform;
+                Context.DeviceContext.Transform = Matrix3x2.CreateTranslation(rectX, rectY) * oldTransform;
+                Context.DeviceContext.FillGeometry(geom, Context.CommonBrush);
+                Context.DeviceContext.Transform = oldTransform;
+            }
+        }
+
+        protected override void ClearStates(bool clearDirtyStates, bool clearRenderStates, bool parentWasUpdated)
+        {
+            var firstRender = IsFirstRender;
+            base.ClearStates(clearDirtyStates, clearRenderStates, parentWasUpdated);
+            if (KeepOffWhenFirstRender && firstRender) Invalidate(DirtyType.Visual);
+        }
+
+        protected override void OnDispose()
+        {
+            _onGeometryBottomRight?.Dispose();
         }
 
         private readonly struct LampBakerKey : IEquatable<LampBakerKey>
@@ -678,81 +753,6 @@ namespace JREMonitors.E233.Lamps
                     _snapshot?.ContentHash ?? 0, _bakeWidth, _bakeHeight, _color,
                     _offsetX, _offsetY, _textWidth, _textHeight);
             }
-        }
-
-        private void GetRectPositions(out float rectX, out float rectY, out float rectW, out float rectH)
-        {
-            var leftExp = StaticExtensionLeft + (_expandToFillGaps
-                ? _currentLeftExpansion < 0 ? MaxDynamicExpansion : _currentLeftExpansion
-                : 0f);
-            var rightExp = StaticExtensionRight + (_expandToFillGaps
-                ? _currentRightExpansion < 0 ? MaxDynamicExpansion : _currentRightExpansion
-                : 0f);
-            var topExp = StaticExtensionTop + (_expandToFillGaps
-                ? _currentTopExpansion < 0 ? MaxDynamicExpansion : _currentTopExpansion
-                : 0f);
-            var bottomExp = StaticExtensionBottom + (_expandToFillGaps
-                ? _currentBottomExpansion < 0 ? MaxDynamicExpansion : _currentBottomExpansion
-                : 0f);
-
-            rectX = 0 - leftExp;
-            rectY = 0 - topExp;
-            rectW = BaseWidth + leftExp + rightExp;
-            rectH = BaseHeight + topExp + bottomExp;
-        }
-
-        private void RecordTopLeftMaskGeometry()
-        {
-            GetRectPositions(out var rectX, out var rectY, out var rectW, out var rectH);
-            var b = _topLeftInnerShadowImage.Blur * 3.0f;
-
-            using (var geom = Context.D2D1Factory.CreatePathGeometry())
-            {
-                using (var sink = geom.Open())
-                {
-                    sink.AddTopLeftInnerBevelFigure(rectW, rectH, _onInnerShadowWidth, _onBorderRadius, b);
-                    sink.Close();
-                }
-
-                Context.CommonBrush.Color = Colors.Black;
-                var oldTransform = Context.DeviceContext.Transform;
-                Context.DeviceContext.Transform = Matrix3x2.CreateTranslation(rectX, rectY) * oldTransform;
-                Context.DeviceContext.FillGeometry(geom, Context.CommonBrush);
-                Context.DeviceContext.Transform = oldTransform;
-            }
-        }
-
-        private void RecordBottomRightMaskGeometry()
-        {
-            GetRectPositions(out var rectX, out var rectY, out var rectW, out var rectH);
-            var b = _bottomRightInnerShadowImage.Blur * 3.0f;
-
-            using (var geom = Context.D2D1Factory.CreatePathGeometry())
-            {
-                using (var sink = geom.Open())
-                {
-                    sink.AddBottomRightInnerBevelFigure(rectW, rectH, _onInnerShadowWidth, _onBorderRadius, b);
-                    sink.Close();
-                }
-
-                Context.CommonBrush.Color = Colors.Black;
-                var oldTransform = Context.DeviceContext.Transform;
-                Context.DeviceContext.Transform = Matrix3x2.CreateTranslation(rectX, rectY) * oldTransform;
-                Context.DeviceContext.FillGeometry(geom, Context.CommonBrush);
-                Context.DeviceContext.Transform = oldTransform;
-            }
-        }
-
-        protected override void ClearStates(bool clearDirtyStates, bool clearRenderStates, bool parentWasUpdated)
-        {
-            var firstRender = IsFirstRender;
-            base.ClearStates(clearDirtyStates, clearRenderStates, parentWasUpdated);
-            if (KeepOffWhenFirstRender && firstRender) Invalidate(DirtyType.Visual);
-        }
-
-        protected override void OnDispose()
-        {
-            _onGeometryBottomRight?.Dispose();
         }
     }
 }

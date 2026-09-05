@@ -6,6 +6,9 @@ using Vortice.Mathematics;
 
 namespace JREMonitors.Core.Layouts.Text
 {
+    /// <summary>
+    ///     富文本解析器。
+    /// </summary>
     public static class RichTextParser
     {
         public static RichTextDocument Parse(string markup)
