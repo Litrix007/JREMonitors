@@ -45,28 +45,24 @@ namespace JREMonitors.BveEx.Builders.Base
             );
         }
 
-        protected override void PopulateMonitorLocalDataHub(VehiclePostBuildContext context,
-            Dictionary<string, Monitor> monitors, TConfig vehicleConfig)
+        protected override void PopulateRootDataHub(VehicleBuildContext context, TConfig config)
         {
-            base.PopulateMonitorLocalDataHub(context, monitors, vehicleConfig);
-            var supportsTasc = vehicleConfig.EffectiveSupportsTasc;
-            foreach (var monitor in monitors.Values)
-                monitor.LocalDataHub.Put(new E233MonitorStates { SupportsTasc = supportsTasc });
-            var interlockMediator = new E233MonitorInterlockMediator(monitors);
+            base.PopulateRootDataHub(context, config);
+            var interlockMediator = new E233MonitorInterlockMediator();
             context.TickUpdateManager.Register(interlockMediator);
             context.RootDataHub.Put(interlockMediator);
         }
 
         protected override void PopulateMonitorLocalDataHub(VehicleBuildContext context,
-            IReadOnlyCollection<Monitor> monitors, TConfig vehicleConfig)
+            Dictionary<string, Monitor> monitors, TConfig vehicleConfig)
         {
             base.PopulateMonitorLocalDataHub(context, monitors, vehicleConfig);
-            var mediator = context.RootDataHub.GetOrNull<E233MonitorInterlockMediator>();
             var supportsTasc = vehicleConfig.EffectiveSupportsTasc;
-            foreach (var monitor in monitors)
+            var mediator = context.RootDataHub.Get<E233MonitorInterlockMediator>();
+            foreach (var monitor in monitors.Values)
             {
                 monitor.LocalDataHub.Put(new E233MonitorStates { SupportsTasc = supportsTasc });
-                mediator?.AddMonitor(monitor);
+                mediator.AddMonitor(monitor);
             }
         }
 
@@ -101,7 +97,7 @@ namespace JREMonitors.BveEx.Builders.Base
             }
         }
 
-        protected override void PostPopulateRootDataHub(VehiclePostBuildContext context, TConfig vehicleConfig)
+        protected override void PostPopulateRootDataHub(VehicleBuildContext context, TConfig vehicleConfig)
         {
             base.PostPopulateRootDataHub(context, vehicleConfig);
             var timsConfig = vehicleConfig.TIMS;

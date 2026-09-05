@@ -24,7 +24,7 @@ namespace JREMonitors.BveEx.Builders.Base
                 throw new ArgumentException(nameof(vehicleConfig));
         }
 
-        void IVehicleBuilder.PopulateMonitorLocalDataHub(VehiclePostBuildContext context,
+        void IVehicleBuilder.PopulateMonitorLocalDataHub(VehicleBuildContext context,
             Dictionary<string, Monitor> monitors,
             VehicleConfig vehicleConfig)
         {
@@ -34,7 +34,7 @@ namespace JREMonitors.BveEx.Builders.Base
                 throw new ArgumentException(nameof(vehicleConfig));
         }
 
-        void IVehicleBuilder.PostPopulateRootDataHub(VehiclePostBuildContext context, VehicleConfig vehicleConfig)
+        void IVehicleBuilder.PostPopulateRootDataHub(VehicleBuildContext context, VehicleConfig vehicleConfig)
         {
             if (vehicleConfig is TVehicleConfig typedConfig)
                 PostPopulateRootDataHub(context, typedConfig);
@@ -61,15 +61,6 @@ namespace JREMonitors.BveEx.Builders.Base
                 Reconfigure(context, (TVehicleConfig)oldConfig, typedNew);
             else
                 throw new ArgumentException(nameof(newConfig));
-        }
-
-        void IVehicleBuilder.PopulateMonitorLocalDataHub(VehicleBuildContext context,
-            IReadOnlyCollection<Monitor> newMonitors, VehicleConfig config)
-        {
-            if (config is TVehicleConfig typedConfig)
-                PopulateMonitorLocalDataHub(context, newMonitors, typedConfig);
-            else
-                throw new ArgumentException(nameof(config));
         }
 
         void IVehicleBuilder.OnMonitorsRemoved(VehicleBuildContext context, IList<Monitor> removedMonitors,
@@ -138,19 +129,12 @@ namespace JREMonitors.BveEx.Builders.Base
                 context.RootDataHub.Get<BveSoundProvider>().Reconfigure(newConfig.Outputs.Sound);
         }
 
-        protected virtual void PopulateMonitorLocalDataHub(VehiclePostBuildContext context,
-            Dictionary<string, Monitor> monitors,
-            TVehicleConfig vehicleConfig)
-        {
-            PopulateMonitorLocalDataHub(context, monitors.Values, vehicleConfig);
-        }
-
         protected virtual void PopulateMonitorLocalDataHub(VehicleBuildContext context,
-            IReadOnlyCollection<Monitor> monitors, TVehicleConfig vehicleConfig)
+            Dictionary<string, Monitor> monitors, TVehicleConfig vehicleConfig)
         {
             var soundProvider = context.RootDataHub.GetOrNull<ISoundProvider>();
             if (soundProvider != null)
-                foreach (var monitor in monitors)
+                foreach (var monitor in monitors.Values)
                     monitor.LocalDataHub.Put(new MonitorSoundController(soundProvider));
         }
 
@@ -159,7 +143,7 @@ namespace JREMonitors.BveEx.Builders.Base
         {
         }
 
-        protected virtual void PostPopulateRootDataHub(VehiclePostBuildContext context, TVehicleConfig vehicleConfig)
+        protected virtual void PostPopulateRootDataHub(VehicleBuildContext context, TVehicleConfig vehicleConfig)
         {
             var native = context.RootDataHub.Get<INative>();
             var panelDataProvider = context.RootDataHub.Get<BvePanelDataProvider>();

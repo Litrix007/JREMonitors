@@ -11,22 +11,18 @@ namespace JREMonitors.BveEx.Builders.Base
     {
         void PopulateRootDataHub(VehicleBuildContext context, VehicleConfig config);
 
-        void PopulateMonitorLocalDataHub(VehiclePostBuildContext context, Dictionary<string, Monitor> monitors,
+        void PopulateMonitorLocalDataHub(VehicleBuildContext context, Dictionary<string, Monitor> monitors,
             VehicleConfig config);
 
-        void PostPopulateRootDataHub(VehiclePostBuildContext context, VehicleConfig config);
+        void PostPopulateRootDataHub(VehicleBuildContext context, VehicleConfig config);
 
         IEnumerable<MonitorProperties> CreateMonitorProperties(
             MonitorContext context,
             VehicleConfig config, DataHub dataHub);
 
         void Reconfigure(VehicleBuildContext context, VehicleConfig oldConfig, VehicleConfig newConfig);
-
         void ReconfigureMonitorLocal(VehicleBuildContext context, VehicleConfig oldConfig, VehicleConfig newConfig,
             IList<Monitor> monitors);
-
-        void PopulateMonitorLocalDataHub(VehicleBuildContext context, IReadOnlyCollection<Monitor> newMonitors,
-            VehicleConfig config);
 
         void OnMonitorsRemoved(VehicleBuildContext context, IList<Monitor> removedMonitors,
             VehicleConfig config);

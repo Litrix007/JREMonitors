@@ -30,7 +30,7 @@ namespace JREMonitors.BveEx.Builders.Base
             context.RootDataHub.Put(delayService);
         }
 
-        protected override void PostPopulateRootDataHub(VehiclePostBuildContext context, TConfig vehicleConfig)
+        protected override void PostPopulateRootDataHub(VehicleBuildContext context, TConfig vehicleConfig)
         {
             base.PostPopulateRootDataHub(context, vehicleConfig);
             var delayService = context.RootDataHub.Get<DelayService>();

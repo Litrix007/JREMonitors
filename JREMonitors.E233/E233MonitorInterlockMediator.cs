@@ -16,6 +16,10 @@ namespace JREMonitors.E233
         private Monitor _m3;
         private E233MonitorStates _m3States;
 
+        public E233MonitorInterlockMediator()
+        {
+        }
+
         public E233MonitorInterlockMediator(Dictionary<string, Monitor> monitors)
         {
             monitors.TryGetValue(MonitorIds.Monitor1, out _m1);

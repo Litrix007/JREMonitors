@@ -14,8 +14,10 @@ namespace JREMonitors.Core.Debugger
     /// <summary>
     ///     日志调试窗口。
     /// </summary>
+    [DebuggerDisplay("{DebugView}")]
     public class DebugForm : Form, IDebugger
     {
+        private string DebugView => $"DebugForm last={_lastingLines.Count}";
         private const int MaxLastingLines = 200;
         private const int LeftTextBoxUpdateIntervalMs = 33;
         private const string SectionSeparator = "===";

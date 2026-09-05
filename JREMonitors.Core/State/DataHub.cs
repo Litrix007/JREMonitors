@@ -29,6 +29,8 @@ namespace JREMonitors.Core.State
 
         public void Put<T>(T provider, bool autoDispose = false) where T : class
         {
+            if (_storage.ContainsKey(typeof(T)))
+                throw new ArgumentException($"{typeof(T)} has already been registered.");
             _storage[typeof(T)] = new ValueEntry(provider, autoDispose);
         }
 

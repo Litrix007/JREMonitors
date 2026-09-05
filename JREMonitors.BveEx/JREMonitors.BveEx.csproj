@@ -56,7 +56,6 @@
         <Compile Include="Builders\Base\JREVehicleBuilderBase.cs"/>
         <Compile Include="Builders\Base\VehicleBuildContext.cs"/>
         <Compile Include="Builders\Base\VehicleBuilderBase.cs"/>
-        <Compile Include="Builders\Base\VehiclePostBuildContext.cs"/>
         <Compile Include="Builders\E233_0Builder.cs"/>
         <Compile Include="Builders\E233_1000Builder.cs"/>
         <Compile Include="Builders\E233_3000Builder.cs"/>

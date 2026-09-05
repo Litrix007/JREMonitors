@@ -295,7 +295,7 @@ namespace JREMonitors.BveEx.Monitors
                     addedMonitors.Add(holder.Monitor);
                 }
 
-                builder.PopulateMonitorLocalDataHub(context, addedMonitors, newConfig);
+                builder.PopulateMonitorLocalDataHub(context, addedMonitors.ToDictionary(m => m.Id), newConfig);
                 if (CurrentScenario != null)
                     foreach (var h in addedHolders)
                     {
