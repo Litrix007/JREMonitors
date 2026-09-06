@@ -14,8 +14,8 @@ namespace JREMonitors.E233.ViewModels
 {
     public class MeterForegroundRootBaseViewModel : ViewModel
     {
-        private const double WaitSeconds = 1.5;
-        private const double HighlightInterval = 0.5;
+        private const double HighlightWaitSeconds = 5;
+        private TickTracker _blinkTracker;
         private TickTracker _brakeTickTracker;
         private DelayedSpeedProvider _delayedSpeedProvider;
         private double _lowBcPressureTime;
@@ -24,8 +24,8 @@ namespace JREMonitors.E233.ViewModels
         private IPanelDataProvider _panelDataProvider;
         private IVehicleStateProvider _vehicleStateProvider;
 
-        public Signal<float> DeviceVoltage { get; } = new Signal<float>();
-        public Signal<float> CatenaryVoltage { get; } = new Signal<float>();
+        public Signal<int> DeviceVoltage { get; } = new Signal<int>();
+        public Signal<int> CatenaryVoltage { get; } = new Signal<int>();
         public Signal<int> Speed { get; } = new Signal<int>();
         public Signal<float> BcPressure { get; } = new Signal<float>(800);
         public Signal<float> MrPressure { get; } = new Signal<float>(1000);
@@ -45,6 +45,7 @@ namespace JREMonitors.E233.ViewModels
             var delayService = dataHub.Get<DelayService>();
             _brakeTickTracker = new TickTracker(delayService.GetDelayProvider(DelayTypes.Brake));
             _normalTickTracker = new TickTracker(delayService.GetDelayProvider(DelayTypes.Normal));
+            _blinkTracker = new TickTracker(delayService.GetDelayProvider(DelayTypes.BcKpaBlink));
             _delayedSpeedProvider = dataHub.Get<DelayedSpeedProvider>();
             _monitorStates = dataHub.Get<E233MonitorStates>();
         }
@@ -72,22 +73,19 @@ namespace JREMonitors.E233.ViewModels
             }
 
             Speed.Value = _delayedSpeedProvider.Speed;
-            if (!_vehicleStateProvider.AreAllDoorClosed && _vehicleStateProvider.FirstCarBcPressure < 200)
+            if (_vehicleStateProvider.FirstCarBcPressure < 200)
                 _lowBcPressureTime += elapsed.TotalSeconds;
             else
                 _lowBcPressureTime = 0;
-
-            if (_lowBcPressureTime >= WaitSeconds)
-                Highlight200Kpa.Value =
-                    (int)((_lowBcPressureTime - WaitSeconds) / HighlightInterval) % 2 == 0;
-            else
-                Highlight200Kpa.Value = false;
+            Highlight200Kpa.Value = Speed.Value < 1 && _lowBcPressureTime > HighlightWaitSeconds &&
+                                    TIMSHelper.IsBlink(_blinkTracker.Sync());
         }
 
         protected override void OnReset()
         {
             _normalTickTracker.Reset();
             _brakeTickTracker.Reset();
+            _blinkTracker.Reset();
             _lowBcPressureTime = 0;
         }
 

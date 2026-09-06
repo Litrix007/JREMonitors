@@ -15,7 +15,8 @@ namespace JREMonitors.JRE.Services
             delayService.Register(DelayTypes.Brake, new RandomDelayProvider(0.2f, 0.35f));
             delayService.Register(DelayTypes.Speed, new RandomDelayProvider(0.2f, 0.3f));
             delayService.Register(DelayTypes.Button, new RandomDelayProvider(0, 0));
-            delayService.Register(DelayTypes.Blink, new RandomDelayProvider(0.4f, 0.4f));
+            delayService.Register(DelayTypes.TIMSBlink, new RandomDelayProvider(0.4f, 0.4f));
+            delayService.Register(DelayTypes.BcKpaBlink, new RandomDelayProvider(0.5f, 0.5f));
             return delayService;
         }
     }

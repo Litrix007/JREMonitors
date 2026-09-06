@@ -138,7 +138,7 @@ namespace JREMonitors.E233.TIMS.D01AX.EDen
         {
             base.OnInitialize(dataHub);
             var delayService = dataHub.Get<DelayService>();
-            _blinkTracker = new TickTracker(delayService.GetDelayProvider(DelayTypes.Blink));
+            _blinkTracker = new TickTracker(delayService.GetDelayProvider(DelayTypes.TIMSBlink));
         }
 
         protected override void OnUpdate(TimeSpan elapsed)

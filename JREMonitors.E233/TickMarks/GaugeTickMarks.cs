@@ -33,13 +33,10 @@ namespace JREMonitors.E233.TickMarks
         private readonly PropertySlot<float> _minorTickMarkWidth;
         private readonly PropertySlot<float> _radius;
         private readonly PropertySlot<float> _startAngleInDegrees;
-        private readonly ID2D1StrokeStyle1 _strokeStyle;
         private readonly PropertySlot<float> _sweepAngleInDegrees;
 
         public GaugeTickMarks(RenderContext context, float x, float y) : base(context, x, y)
         {
-            _strokeStyle = context.D2D1Factory.CreateStrokeStyle(GeometryHelper.RoundStrokeStyleProperties);
-            RegisterResource(_strokeStyle);
             _baker = new Baker(context);
             RegisterResource(_baker);
             _majorTickMarkColor = CreatePropertySlot(DirtyType.Visual, MonitorColors.White);
@@ -219,6 +216,13 @@ namespace JREMonitors.E233.TickMarks
         {
             Context.DropShadowProcessor.DrawWithDropShadows(Shadows.TickMarkDrop, () =>
             {
+                var dc = Context.DeviceContext;
+                var brush = Context.CommonBrush;
+                // 改为画圆以避免端点处像素缺失
+                var majorCapR = MajorTickMarkStrokeWidth / 2f;
+                var minorBoldCapR = MinorTickMarkBoldStrokeWidth / 2f;
+                var minorCapR = MinorTickMarkStrokeWidth / 2f;
+
                 for (var i = 0; i <= MajorScaleCount; i++)
                 {
                     var scaleMajor = SweepAngleInDegrees / MajorScaleCount;
@@ -226,35 +230,44 @@ namespace JREMonitors.E233.TickMarks
                     var fromLengthMajor = Radius + MajorTickMarkWidth;
                     var fromMajor = Pos.ForwardByAngle(angleMajor, fromLengthMajor);
                     var toMajor = Pos.ForwardByAngle(angleMajor, Radius);
-                    Context.CommonBrush.Color = MajorTickMarkColor;
-                    Context.DeviceContext.DrawLine(fromMajor, toMajor, Context.CommonBrush, MajorTickMarkStrokeWidth,
-                        _strokeStyle);
+
+                    brush.Color = MajorTickMarkColor;
+                    dc.DrawLine(fromMajor, toMajor, brush, MajorTickMarkStrokeWidth);
+                    dc.FillEllipse(new Ellipse(fromMajor, majorCapR, majorCapR), brush);
+                    dc.FillEllipse(new Ellipse(toMajor, majorCapR, majorCapR), brush);
+
                     MajorTickMarkAction?.Invoke(new GaugeTickMarkState
                     {
                         Index = i,
                         Angle = angleMajor,
                         Outer = fromMajor
                     });
+
                     if (i == MajorScaleCount) continue;
+
                     for (var j = 1; j < MinorScaleCount; j++)
                     {
                         var angleMinor = angleMajor + scaleMajor * j / MinorScaleCount;
                         var fromLengthMinor = fromLengthMajor - MinorTickMarkOffset;
                         var fromMinor = Pos.ForwardByAngle(angleMinor, fromLengthMinor);
+
                         if (MinorTickMarkBoldInterval > 0 && j % MinorTickMarkBoldInterval == 0)
                         {
-                            Context.CommonBrush.Color = MinorBoldTickMarkColor;
-                            Context.DeviceContext.DrawLine(fromMinor,
-                                Pos.ForwardByAngle(angleMinor,
-                                    fromLengthMinor - MinorTickMarkBoldedWidth),
-                                Context.CommonBrush, MinorTickMarkBoldStrokeWidth, _strokeStyle);
+                            var toMinor = Pos.ForwardByAngle(angleMinor, fromLengthMinor - MinorTickMarkBoldedWidth);
+                            brush.Color = MinorBoldTickMarkColor;
+
+                            dc.DrawLine(fromMinor, toMinor, brush, MinorTickMarkBoldStrokeWidth);
+                            dc.FillEllipse(new Ellipse(fromMinor, minorBoldCapR, minorBoldCapR), brush);
+                            dc.FillEllipse(new Ellipse(toMinor, minorBoldCapR, minorBoldCapR), brush);
                         }
                         else
                         {
-                            Context.CommonBrush.Color = MinorTickMarkColor;
-                            Context.DeviceContext.DrawLine(fromMinor,
-                                Pos.ForwardByAngle(angleMinor, fromLengthMinor - MinorTickMarkWidth),
-                                Context.CommonBrush, MinorTickMarkStrokeWidth, _strokeStyle);
+                            var toMinor = Pos.ForwardByAngle(angleMinor, fromLengthMinor - MinorTickMarkWidth);
+                            brush.Color = MinorTickMarkColor;
+
+                            dc.DrawLine(fromMinor, toMinor, brush, MinorTickMarkStrokeWidth);
+                            dc.FillEllipse(new Ellipse(fromMinor, minorCapR, minorCapR), brush);
+                            dc.FillEllipse(new Ellipse(toMinor, minorCapR, minorCapR), brush);
                         }
                     }
                 }

@@ -1,11 +1,10 @@
-﻿using System;
+using System;
 using System.Drawing;
 using System.Linq;
 using System.Numerics;
 using JREMonitors.Core.Boosters;
 using JREMonitors.Core.Contexts;
 using JREMonitors.Core.Reactive;
-using JREMonitors.Core.Utils;
 using JREMonitors.Core.Utils.Render;
 using JREMonitors.Core.Widgets;
 using JREMonitors.E233.Constants;
@@ -28,17 +27,18 @@ namespace JREMonitors.E233.TickMarks
         private readonly PropertySlot<int> _bottomMajorTickMarkWidth;
         private readonly bool _drawTitle;
         private readonly PropertySlot<int> _majorScaleCount;
+        private readonly PropertySlot<bool> _majorTickMarkLengthMatchesMinor;
         private readonly PropertySlot<float> _majorTickMarkStrokeWidth;
         private readonly PropertySlot<int> _max;
         private readonly PropertySlot<int> _min;
         private readonly PropertySlot<int> _minorScaleCount;
+        private readonly PropertySlot<int> _minorTickMarkBoldInterval;
         private readonly PropertySlot<float> _minorTickMarkOffsetX;
         private readonly PropertySlot<float> _minorTickMarkStrokeWidth;
         private readonly PropertySlot<float> _minorTickMarkWidth;
         private readonly PropertySlot<bool> _numAlwaysCenterAlign;
         private readonly Computed<float> _scaleMajor;
         private readonly Computed<float> _scaleMinor;
-        private readonly ID2D1StrokeStyle1 _strokeStyle;
         private readonly IDWriteTextFormat _tickTextFormat;
         private readonly PropertySlot<int> _topMajorTickMarkWidth;
 
@@ -48,8 +48,6 @@ namespace JREMonitors.E233.TickMarks
             _drawTitle = drawTitle;
             _baker = new Baker(context);
             RegisterResource(_baker);
-            _strokeStyle = context.D2D1Factory.CreateStrokeStyle(GeometryHelper.RoundStrokeStyleProperties);
-            RegisterResource(_strokeStyle);
             _tickTextFormat = GetOrCreateTickTextFormat(context);
             _bottomMajorTickMarkWidth = CreatePropertySlot<int>(DirtyType.Visual);
             _topMajorTickMarkWidth = CreatePropertySlot<int>(DirtyType.Visual);
@@ -58,10 +56,12 @@ namespace JREMonitors.E233.TickMarks
             _max = CreatePropertySlot<int>(DirtyType.Visual);
             _min = CreatePropertySlot<int>(DirtyType.Visual);
             _minorScaleCount = CreatePropertySlot<int>(DirtyType.Visual);
+            _minorTickMarkBoldInterval = CreatePropertySlot<int>(DirtyType.Visual);
             _minorTickMarkOffsetX = CreatePropertySlot<float>(DirtyType.Visual);
             _minorTickMarkStrokeWidth = CreatePropertySlot(DirtyType.Visual, DefaultMinorTickMarkStrokeWidth);
             _minorTickMarkWidth = CreatePropertySlot<float>(DirtyType.Visual);
             _numAlwaysCenterAlign = CreatePropertySlot<bool>(DirtyType.Visual);
+            _majorTickMarkLengthMatchesMinor = CreatePropertySlot<bool>(DirtyType.Visual);
             _scaleMajor = CreateComputed(() =>
                 MajorScaleCount > 1 ? Height / MajorScaleCount : 0);
             _scaleMinor = CreateComputed(() =>
@@ -75,10 +75,12 @@ namespace JREMonitors.E233.TickMarks
                 _max,
                 _min,
                 _minorScaleCount,
+                _minorTickMarkBoldInterval,
                 _minorTickMarkOffsetX,
                 _minorTickMarkStrokeWidth,
                 _minorTickMarkWidth,
                 _numAlwaysCenterAlign,
+                _majorTickMarkLengthMatchesMinor,
                 _scaleMajor,
                 _scaleMinor
             );
@@ -94,6 +96,18 @@ namespace JREMonitors.E233.TickMarks
         {
             get => _minorScaleCount.Value;
             set => _minorScaleCount.Value = value;
+        }
+
+        public int MinorTickMarkBoldInterval
+        {
+            get => _minorTickMarkBoldInterval.Value;
+            set => _minorTickMarkBoldInterval.Value = value;
+        }
+
+        public bool MajorTickMarkLengthMatchesMinor
+        {
+            get => _majorTickMarkLengthMatchesMinor.Value;
+            set => _majorTickMarkLengthMatchesMinor.Value = value;
         }
 
         public int TopMajorTickMarkWidth
@@ -183,15 +197,28 @@ namespace JREMonitors.E233.TickMarks
             if (MajorScaleCount == 0) return;
             var scaleMajor = _scaleMajor.Value;
             var scaleMinor = _scaleMinor.Value;
+            // 改为画圆以避免端点处像素缺失
+            var majorCapR = MajorTickMarkStrokeWidth / 2f;
+            var minorCapR = MinorTickMarkStrokeWidth / 2f;
             Context.DropShadowProcessor.DrawWithDropShadows(Shadows.TickMarkDrop, () =>
             {
+                var dc = Context.DeviceContext;
                 for (var i = 0; i <= MajorScaleCount; i++)
                 {
                     var y = i * scaleMajor;
-                    var w = MathHelper.Lerp(TopMajorTickMarkWidth, BottomMajorTickMarkWidth, y / Height);
+                    var w = i == 0
+                        ? TopMajorTickMarkWidth
+                        : i == MajorScaleCount
+                            ? BottomMajorTickMarkWidth
+                            : MajorTickMarkLengthMatchesMinor
+                                ? MinorTickMarkWidth
+                                : MathHelper.Lerp(TopMajorTickMarkWidth, BottomMajorTickMarkWidth, y / Height);
+                    var fromMajor = new Vector2(0, y);
+                    var toMajor = new Vector2(-w, y);
                     Context.CommonBrush.Color = MonitorColors.White;
-                    Context.DeviceContext.DrawLine(new Vector2(0, y), new Vector2(-w, y), Context.CommonBrush,
-                        MajorTickMarkStrokeWidth, _strokeStyle);
+                    dc.DrawLine(fromMajor, toMajor, Context.CommonBrush, MajorTickMarkStrokeWidth);
+                    dc.FillEllipse(new Ellipse(fromMajor, majorCapR, majorCapR), Context.CommonBrush);
+                    dc.FillEllipse(new Ellipse(toMajor, majorCapR, majorCapR), Context.CommonBrush);
                     var num = Min == Max ? Min : Max - (Max - Min) * i / MajorScaleCount;
                     Context.DeviceContext.DrawDynamicText(Context.DwFactory, num.ToString(), TextSpacingX, y,
                         _tickTextFormat,
@@ -203,13 +230,15 @@ namespace JREMonitors.E233.TickMarks
                     {
                         var my = y + j * scaleMinor;
                         var mw = MinorTickMarkWidth;
-                        var color = MinorScaleCount % 2 == 0 && j == MinorScaleCount / 2
+                        var color = MinorTickMarkBoldInterval > 0 && j % MinorTickMarkBoldInterval == 0
                             ? MonitorColors.White
                             : MonitorColors.MinorTickMark;
+                        var fromMinor = new Vector2(0 - MinorTickMarkOffsetX - mw, my);
+                        var toMinor = new Vector2(0 - MinorTickMarkOffsetX, my);
                         Context.CommonBrush.Color = color;
-                        Context.DeviceContext.DrawLine(new Vector2(0 - MinorTickMarkOffsetX - mw, my),
-                            new Vector2(0 - MinorTickMarkOffsetX, my), Context.CommonBrush, MinorTickMarkStrokeWidth,
-                            _strokeStyle);
+                        dc.DrawLine(fromMinor, toMinor, Context.CommonBrush, MinorTickMarkStrokeWidth);
+                        dc.FillEllipse(new Ellipse(fromMinor, minorCapR, minorCapR), Context.CommonBrush);
+                        dc.FillEllipse(new Ellipse(toMinor, minorCapR, minorCapR), Context.CommonBrush);
                     }
                 }
             });

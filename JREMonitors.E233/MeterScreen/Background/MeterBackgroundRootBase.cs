@@ -36,7 +36,8 @@ namespace JREMonitors.E233.MeterScreen.Background
         private readonly DeviceVoltGaugeBackground _deviceVoltGaugeBackground;
         private readonly Lamp _ebLamp;
         private readonly IDWriteTextFormat _format;
-
+        protected readonly bool ShortenMinorTicksWithoutSafetyLamps;
+        protected readonly bool ShortenMinorTicksWithSafetyLamps;
         protected readonly bool BoldCenterMinorTicksWithoutSafetyLamps;
         protected readonly bool BoldCenterMinorTicksWithSafetyLamps;
         protected readonly bool ShowHoldSpeedLamp;
@@ -47,17 +48,21 @@ namespace JREMonitors.E233.MeterScreen.Background
         protected MeterBackgroundRootBase(
             RenderContext context,
             RootProperties propertiesWithSafetyLamps,
+            bool shortenMinorTicksWithSafetyLamps,
             bool boldCenterMinorTicksWithSafetyLamps,
             RootProperties propertiesWithoutSafetyLamps,
+            bool shortenMinorTicksWithoutSafetyLamps,
             bool boldCenterMinorTicksWithoutSafetyLamps,
             float speedOffsetY
         ) : base(context)
         {
             ViewModel = new MeterBackgroundBaseViewModel();
             RootPropertiesWithSafetyLamps = propertiesWithSafetyLamps;
+            ShortenMinorTicksWithSafetyLamps = shortenMinorTicksWithSafetyLamps;
             BoldCenterMinorTicksWithSafetyLamps = boldCenterMinorTicksWithSafetyLamps;
             RootPropertiesWithoutSafetyLamps = propertiesWithoutSafetyLamps;
             BoldCenterMinorTicksWithoutSafetyLamps = boldCenterMinorTicksWithoutSafetyLamps;
+            ShortenMinorTicksWithoutSafetyLamps = shortenMinorTicksWithoutSafetyLamps;
             ShowHoldSpeedLamp = propertiesWithSafetyLamps.ShowHoldSpeedLamp;
             SpeedOffsetY = speedOffsetY;
             _format = context.FontManager.GetOrCreateFormat(Fonts.MyriadProFamily, 28);
@@ -98,7 +103,8 @@ namespace JREMonitors.E233.MeterScreen.Background
             WatchEffect(EffectPhase.State, () =>
             {
                 if (!ViewModel.IsSafetyLampVisible)
-                    ApplyLayout(RootPropertiesWithoutSafetyLamps, BoldCenterMinorTicksWithoutSafetyLamps);
+                    ApplyLayout(RootPropertiesWithoutSafetyLamps, ShortenMinorTicksWithoutSafetyLamps,
+                        BoldCenterMinorTicksWithoutSafetyLamps);
                 else
                     OnSafetyLampsVisible();
             });
@@ -106,7 +112,7 @@ namespace JREMonitors.E233.MeterScreen.Background
 
         public override RectangleF SelfRelativeDirtyBounds => RectangleF.Empty;
 
-        protected void ApplyLayout(RootProperties properties, bool boldCenterMinorTicks)
+        protected void ApplyLayout(RootProperties properties, bool shortenMinorTicks, bool boldCenterMinorTicks)
         {
             _deviceVoltGaugeBackground.X.Value = properties.DeviceVoltageGaugePos.X;
             _deviceVoltGaugeBackground.Y.Value = properties.DeviceVoltageGaugePos.Y;
@@ -116,13 +122,15 @@ namespace JREMonitors.E233.MeterScreen.Background
             _catenaryVoltGaugeBackground.Y.Value = properties.CatenaryVoltageGaugePos.Y;
             _catenaryVoltGaugeBackground.Scale.Value =
                 properties.CatenaryVoltageSectorRadius / CatenaryVoltGaugeBackground.SectorRadius;
+            _catenaryVoltGaugeBackground.SetShortenMinorTickMarks(shortenMinorTicks);
             _catenaryVoltGaugeBackground.BoldCenterMinorTicks = boldCenterMinorTicks;
             _ebLamp.Y.Value = properties.ShowHoldSpeedLamp ? 290 : 333;
         }
 
         protected virtual void OnSafetyLampsVisible()
         {
-            ApplyLayout(RootPropertiesWithSafetyLamps, BoldCenterMinorTicksWithSafetyLamps);
+            ApplyLayout(RootPropertiesWithSafetyLamps, ShortenMinorTicksWithSafetyLamps,
+                BoldCenterMinorTicksWithSafetyLamps);
         }
 
         protected override void OnDraw(float totalScale)

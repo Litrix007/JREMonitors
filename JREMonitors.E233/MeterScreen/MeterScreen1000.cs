@@ -21,6 +21,7 @@ namespace JREMonitors.E233.MeterScreen
             BackgroundRoot = new MeterBackgroundRoot1000(context);
             ForegroundRoot = new MeterForegroundRoot1000(context);
         }
+
         public override Color4 BackgroundColor => MonitorColors.MeterScreenBackground;
     }
 }

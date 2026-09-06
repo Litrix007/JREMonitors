@@ -18,7 +18,7 @@ namespace JREMonitors.E233.MeterScreen.Foreground.Base
     {
         public const float TextSize = BrakeBackground.PieceHeight + 8;
         public static readonly Color4 BrakeNormalColor = "#FFF14E".ToColor4();
-        public static readonly Color4 BrakeMaxColor = "#FFC96E".ToColor4();
+        public static readonly Color4 BrakeMaxColor = "#FFC165".ToColor4();
         private readonly Baker[] _bakers = new Baker[BrakeBackground.MaxBrake];
         private readonly PropertySlot<int> _clampedBrake;
         private readonly ID2D1PathGeometry _maxGeometry;

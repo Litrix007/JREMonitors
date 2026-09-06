@@ -110,7 +110,9 @@
         <Compile Include="MeterScreen\Foreground\Base\BrakeForeground.cs"/>
         <Compile Include="MeterScreen\Foreground\Base\MrForeground.cs"/>
         <Compile Include="MeterScreen\Foreground\Base\NormalSpeedGaugeNeedle.cs"/>
-        <Compile Include="MeterScreen\Foreground\Base\SpeedNumTitle.cs"/>
+        <Compile Include="MeterScreen\Foreground\Base\MeterNum.cs" />
+        <Compile Include="MeterScreen\Foreground\Base\MeterSpeedNum.cs" />
+        <Compile Include="MeterScreen\Foreground\Base\ShadowedMeterNum.cs" />
         <Compile Include="MeterScreen\Foreground\MeterForegroundRoot0.cs"/>
         <Compile Include="MeterScreen\Foreground\MeterForegroundRoot1000.cs"/>
         <Compile Include="MeterScreen\Foreground\MeterForegroundRoot3000.cs"/>
@@ -272,7 +274,7 @@
         </ProjectReference>
     </ItemGroup>
     <ItemGroup>
-        <PackageReference Include="Microsoft.Bcl.HashCode" Version="1.1.0"/>
+        <PackageReference Include="Microsoft.Bcl.HashCode" Version="1.1.1"/>
         <PackageReference Include="System.Buffers" Version="4.6.1"/>
         <PackageReference Include="System.Memory" Version="4.6.3"/>
         <PackageReference Include="System.Numerics.Vectors" Version="4.6.1"/>

@@ -62,6 +62,7 @@ namespace JREMonitors.BveEx
         private Scenario _scenario;
         private ToolStripMenuItem _showDebugMenuItem;
         private bool _succeed;
+        private bool _previewScenarioExecuted;
         private TickUpdateManager _tickUpdateManager = new TickUpdateManager();
         private IVehicleBuilder _vehicleBuilder;
         private VehicleConfig _vehicleConfig;
@@ -261,9 +262,12 @@ namespace JREMonitors.BveEx
 
         private void OnPreviewScenarioCreated(ScenarioCreatedEventArgs e)
         {
+            // 加载线路过程中打断再加载可能会触发多次OnPreviewScenarioCreated
+            if (_disposed || _previewScenarioExecuted) return;
+            _previewScenarioExecuted = true;
             _scenario = e.Scenario;
             if (_monitorManager == null)
-            {
+            { 
                 ShowLoadFailedMessage();
                 return;
             }

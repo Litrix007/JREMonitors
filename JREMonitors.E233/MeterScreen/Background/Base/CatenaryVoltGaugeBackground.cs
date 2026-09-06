@@ -47,18 +47,19 @@ namespace JREMonitors.E233.MeterScreen.Background.Base
                 MajorScaleCount = 4,
                 MinorScaleCount = 10,
                 MajorTickMarkWidth = 13,
-                MinorTickMarkWidth = 11,
-                MinorTickMarkBoldedWidth = 11,
+                MinorTickMarkWidth = 8,
+                MinorTickMarkBoldedWidth = 8,
                 MajorTickMarkStrokeWidth = 4,
-                MinorTickMarkStrokeWidth = 3,
-                MinorTickMarkBoldStrokeWidth = 3,
+                MinorTickMarkStrokeWidth = 2.5f,
+                MinorTickMarkBoldStrokeWidth = 2.5f,
                 MinorTickMarkBoldInterval = 2,
                 MajorTickMarkAction = OnDrawTickText,
                 BoundsInflate = new RawRectF(-5, -10, 10, 10)
             };
             AddChild(_tickMarks);
             _tickTextFormat =
-                context.FontManager.GetOrCreateFormat(Fonts.CenturyGothic, DeviceVoltGaugeBackground.TickTextSize);
+                context.FontManager.GetOrCreateFormat(Fonts.CenturyGothic, DeviceVoltGaugeBackground.TickTextSize,
+                    fontWeight: FontWeight.Medium);
             _titleFormat =
                 context.FontManager.GetOrCreateFormat(Fonts.ArialFamily, DeviceVoltGaugeBackground.TitleSize,
                     fontWeight: FontWeight.Bold);
@@ -78,6 +79,20 @@ namespace JREMonitors.E233.MeterScreen.Background.Base
                 bounds.Width += 25;
                 bounds.Height += 25;
                 return bounds;
+            }
+        }
+
+        public void SetShortenMinorTickMarks(bool shorten)
+        {
+            if (shorten)
+            {
+                _tickMarks.MinorTickMarkWidth = 8;
+                _tickMarks.MinorTickMarkBoldedWidth = 8;
+            }
+            else
+            {
+                _tickMarks.MinorTickMarkWidth = 10;
+                _tickMarks.MinorTickMarkBoldedWidth = 10;
             }
         }
 
@@ -148,7 +163,7 @@ namespace JREMonitors.E233.MeterScreen.Background.Base
                     Context.DeviceContext.DrawDynamicText(Context.DwFactory, "kV",
                         DeviceVoltGaugeBackground.TitleOffsetX,
                         DeviceVoltGaugeBackground.TitleOffsetY, _titleFormat, Context.CommonBrush, 1,
-                        weights: new[] { new TextWeight(0, 1, FontWeight.Medium) });
+                        spacings: new[] { new TextSpacing { Index = 0, Length = 1, TrailingSpacing = 2 } });
                 });
         }
 

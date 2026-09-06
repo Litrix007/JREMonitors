@@ -13,6 +13,12 @@ namespace JREMonitors.E233.Constants
                 { OffsetX = 1, OffsetY = 1, BlurX = 3, BlurY = 3, Color = new Color4(0, 0, 0, 190) }
         };
 
+        public static readonly DropShadow[] VoltNumDrop =
+        {
+            new DropShadow
+                { OffsetX = 3f, OffsetY = 3f, BlurX = 1, BlurY = 1, Color = new Color4(0, 0, 0, 200) }
+        };
+
         public static readonly OffsetInnerShadow RecessedInnerTopLeft =
             new OffsetInnerShadow(4, 4, 2, Colors.Black.MultiplyAlpha(190f / 255));
 

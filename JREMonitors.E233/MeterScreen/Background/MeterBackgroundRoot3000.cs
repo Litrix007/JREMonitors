@@ -9,7 +9,9 @@ namespace JREMonitors.E233.MeterScreen.Background
             context,
             CommonRootPropertiesWithoutSafetyLamps,
             true,
+            true,
             CommonRootPropertiesWithoutSafetyLamps,
+            true,
             true,
             0
         )

@@ -8,8 +8,8 @@ namespace JREMonitors.E233.TIMS.D05AB
 {
     public abstract class D05ABViewModelBase : TIMSFormationViewModel
     {
-        private CarStateService _carStateService;
         protected readonly List<TickTracker> TickTrackers = new List<TickTracker>();
+        private CarStateService _carStateService;
 
         protected D05ABViewModelBase(TIMSVehicleSpec spec) : base(spec)
         {
@@ -25,13 +25,11 @@ namespace JREMonitors.E233.TIMS.D05AB
         {
             base.OnUpdate(elapsed);
             if (IsVehicleDirectionChanged || IsFormationSpecChanged)
-            {
                 for (var i = 0; i < TickTrackers.Count; i++)
                 {
                     var tickTracker = TickTrackers[i];
                     tickTracker.Reset();
                 }
-            }
 
             if (FormationSpec.Value == null) return;
             var carCount = FormationSpec.Value.CarCount;

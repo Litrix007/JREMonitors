@@ -41,8 +41,8 @@ namespace JREMonitors.E233.MeterScreen.Foreground.Base
             Bc = CreateRelayPropertySlot<float>();
             _clampedBc =
                 CreatePropertySlot(DirtyType.Visual, source: CreateComputed(() => MathHelper.Clamp(Bc, 0, 800)));
-            Highlight200Kpa = CreatePropertySlot<bool>(DirtyType.Visual);
-            _highlight200KpaWidget.IsVisible.Bind(CreateComputed(() => Highlight200Kpa.Value));
+            Highlight200Kpa = CreateRelayPropertySlot<bool>();
+            _highlight200KpaWidget.IsVisible.Bind(Highlight200Kpa);
             AddChild(_highlight200KpaWidget);
             _needle.Y.Bind(CreateComputed(() => BcBackground.Height * (1 - _clampedBc / BcBackground.MaxBc)));
             _needle.RectPartWidth.Bind(CreateComputed(() =>

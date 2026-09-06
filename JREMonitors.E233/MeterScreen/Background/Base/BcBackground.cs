@@ -1,4 +1,4 @@
-﻿using System.Drawing;
+using System.Drawing;
 using System.Numerics;
 using JREMonitors.Core.Boosters;
 using JREMonitors.Core.Contexts;
@@ -40,6 +40,8 @@ namespace JREMonitors.E233.MeterScreen.Background.Base
             {
                 MajorScaleCount = 4,
                 MinorScaleCount = 10,
+                // 与旧"偶数次要刻度中间为白色"行为一致：MinorScaleCount(10) / 2 = 5 → 仅第 5 根次要刻度加粗为白色
+                MinorTickMarkBoldInterval = 5,
                 TopMajorTickMarkWidth = TopMajorTickMarkWidth,
                 BottomMajorTickMarkWidth = BottomMajorTickMarkWidth,
                 MinorTickMarkWidth = 19,

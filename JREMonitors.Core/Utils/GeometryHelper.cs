@@ -23,13 +23,6 @@ namespace JREMonitors.Core.Utils
 
     public static class GeometryHelper
     {
-        public static readonly StrokeStyleProperties1 RoundStrokeStyleProperties = new StrokeStyleProperties1
-        {
-            StartCap = CapStyle.Round,
-            EndCap = CapStyle.Round,
-            LineJoin = LineJoin.Round
-        };
-
         public static readonly StrokeStyleProperties1 SquareStrokeStyleProperties = new StrokeStyleProperties1
         {
             StartCap = CapStyle.Square,

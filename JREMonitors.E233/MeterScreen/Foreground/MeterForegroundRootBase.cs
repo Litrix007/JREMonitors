@@ -39,6 +39,7 @@ namespace JREMonitors.E233.MeterScreen.Foreground
         private readonly BrakeForeground _brakeForeground;
         private readonly GaugeNeedle _catenaryVoltGaugeNeedle;
         private readonly GaugeNeedle _deviceVoltGaugeNeedle;
+        private readonly ShadowedMeterNum _deviceVoltNum;
         private readonly Lamp _ebLamp;
         private readonly Lamp _holdSpeedLamp;
         private readonly WidgetSwitcher _lampPanelSwitcher;
@@ -46,10 +47,9 @@ namespace JREMonitors.E233.MeterScreen.Foreground
         private readonly MrForeground _mrForeground;
         private readonly List<LampPanel> _safetyLampsVisiblePanels = new List<LampPanel>();
         private readonly bool _showHoldSpeedLamp;
-        private readonly SpeedNumTitle _speedNumTitle;
+        private readonly MeterNum _speedNum;
         protected readonly InfoButtonGroup InfoButtonGroup;
         protected readonly float SpeedOffsetY;
-
         protected RootProperties RootPropertiesWithoutSafetyLamps;
         protected RootProperties RootPropertiesWithSafetyLamps;
 
@@ -67,8 +67,8 @@ namespace JREMonitors.E233.MeterScreen.Foreground
             _showHoldSpeedLamp = propertiesWithSafetyLamps.ShowHoldSpeedLamp;
             InfoButtonGroup = new InfoButtonGroup(context, 10, new Vector2(1024, 768));
             AddChild(InfoButtonGroup);
-            _speedNumTitle = new SpeedNumTitle(context, 840, 728 + SpeedOffsetY);
-            AddChild(_speedNumTitle);
+            _speedNum = new MeterSpeedNum(context, 840, 728 + SpeedOffsetY);
+            AddChild(_speedNum);
             _mrForeground = new MrForeground(context, 354, 333);
             AddChild(_mrForeground);
             _brakeForeground = new BrakeForeground(context, 128, 730);
@@ -103,11 +103,15 @@ namespace JREMonitors.E233.MeterScreen.Foreground
                 AddChild(_holdSpeedLamp);
             }
 
-            _deviceVoltGaugeNeedle =
-                new GaugeNeedle(context, 0, 0,
-                    DeviceVoltGaugeBackground.SectorRadius + DeviceVoltGaugeBackground.TickMarkSpacing + 2,
-                    Shadows.GaugeNeedleInnerSmall);
+            _deviceVoltGaugeNeedle = new GaugeNeedle(context, 0, 0,
+                DeviceVoltGaugeBackground.SectorRadius + DeviceVoltGaugeBackground.TickMarkSpacing + 2,
+                Shadows.GaugeNeedleInnerSmall);
             AddChild(_deviceVoltGaugeNeedle);
+            _deviceVoltNum = new ShadowedMeterNum(context, 0, 0, DeviceVoltGaugeBackground.TickTextSize + 2,
+                Shadows.VoltNumDrop, 78, 53);
+            _deviceVoltNum.IsVisible.Bind(CreateComputed(() => ViewModel.DeviceVoltage <= 85));
+            _deviceVoltNum.Num.Bind(ViewModel.DeviceVoltage);
+            AddChild(_deviceVoltNum);
             if (propertiesWithSafetyLamps.CurrentSectorRadius > 0)
             {
                 // TODO 添加电流表指针
@@ -135,7 +139,7 @@ namespace JREMonitors.E233.MeterScreen.Foreground
                 _lampPanelSwitcher.SetActiveWidget(activeLampPanelId);
                 _deviceVoltGaugeNeedle.Degree.Value = -210 + 210 * ViewModel.DeviceVoltage / 150;
                 _catenaryVoltGaugeNeedle.Degree.Value = -210 + 210 * ViewModel.CatenaryVoltage / 2000;
-                _speedNumTitle.Speed = ViewModel.Speed;
+                _speedNum.Num.Value = ViewModel.Speed;
                 _bcForeground.Bc.Value = ViewModel.BcPressure;
                 _bcForeground.Highlight200Kpa.Value = ViewModel.Highlight200Kpa;
                 _mrForeground.Mr.Value = ViewModel.MrPressure;
@@ -156,6 +160,9 @@ namespace JREMonitors.E233.MeterScreen.Foreground
             _deviceVoltGaugeNeedle.Y.Value = properties.DeviceVoltageGaugePos.Y;
             _deviceVoltGaugeNeedle.Scale.Value = properties.DeviceVoltageSectorRadius /
                                                  DeviceVoltGaugeBackground.SectorRadius;
+            _deviceVoltNum.X.Value = properties.DeviceVoltageGaugePos.X;
+            _deviceVoltNum.Y.Value = properties.DeviceVoltageGaugePos.Y;
+            _deviceVoltNum.Scale.Value = properties.DeviceVoltageSectorRadius / DeviceVoltGaugeBackground.SectorRadius;
             _catenaryVoltGaugeNeedle.X.Value = properties.CatenaryVoltageGaugePos.X;
             _catenaryVoltGaugeNeedle.Y.Value = properties.CatenaryVoltageGaugePos.Y;
             _catenaryVoltGaugeNeedle.Scale.Value =

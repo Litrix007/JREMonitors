@@ -97,7 +97,7 @@ namespace JREMonitors.E233.TIMS.D01AX.MDen
         protected override void OnInitialize(DataHub dataHub)
         {
             var delayService = dataHub.Get<DelayService>();
-            _blinkTracker = new TickTracker(delayService.GetDelayProvider(DelayTypes.Blink));
+            _blinkTracker = new TickTracker(delayService.GetDelayProvider(DelayTypes.TIMSBlink));
             _icCardService = dataHub.Get<TIMSICCardService<E233SignalSystem>>();
             for (var i = 0; i < Rows.Length; i++) Rows[i].Initialize(dataHub);
         }

@@ -13,7 +13,7 @@ namespace JREMonitors.E233.Constants
         public static readonly Color4 PanelColor = "#2A343A".ToColor4();
         public static readonly Color4 MinorTickMark = "#7a7d80".ToColor4();
         public static readonly Color4 MeterTitleGrey = "#919191".ToColor4();
-        public static readonly Color4 Recessed = "#091712".ToColor4();
+        public static readonly Color4 Recessed = "#091714".ToColor4();
         public static readonly Color4 RecessedDivider = "354643".ToColor4();
         public static readonly Color4 PanelLampOffBackgroundColor = "#1D2428".ToColor4();
         public static readonly Color4 White = "#fff".ToColor4();

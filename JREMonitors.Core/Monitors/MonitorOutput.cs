@@ -117,6 +117,8 @@ namespace JREMonitors.Core.Monitors
         public bool Frozen { get; private set; }
         public bool JustFrozen { get; private set; }
 
+        public Color4? LastBackgroundColor { get; set; }
+
         public void Dispose()
         {
             if (_dc != null) _dc.Target = null;
@@ -126,8 +128,6 @@ namespace JREMonitors.Core.Monitors
             _disposableStack.Dispose();
             _screenBuffers.Clear();
         }
-
-        public Color4? LastBackgroundColor { get; set; }
 
         public void CommitStateSwap()
         {

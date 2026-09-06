@@ -17,7 +17,6 @@ namespace JREMonitors.Core.Debugger
     [DebuggerDisplay("{DebugView}")]
     public class DebugForm : Form, IDebugger
     {
-        private string DebugView => $"DebugForm last={_lastingLines.Count}";
         private const int MaxLastingLines = 200;
         private const int LeftTextBoxUpdateIntervalMs = 33;
         private const string SectionSeparator = "===";
@@ -66,6 +65,8 @@ namespace JREMonitors.Core.Debugger
             splitContainer.Panel2.Controls.Add(_rightTextBox);
             Controls.Add(splitContainer);
         }
+
+        private string DebugView => $"DebugForm last={_lastingLines.Count}";
 
         protected override bool ShowWithoutActivation => true;
 

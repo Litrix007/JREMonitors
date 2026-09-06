@@ -271,8 +271,8 @@ namespace JREMonitors.E233.TIMS.D05AB
 
     public class D05ABDataTableViewModel : D05ABViewModelBase
     {
-        private TickTracker _normalTickTracker;
         private TickTracker _brakeTickTracker;
+        private TickTracker _normalTickTracker;
         private IPanelDataProvider _panelDataProvider;
         private IVehicleStateProvider _vehicleStateProvider;
 

@@ -1,7 +1,6 @@
 ﻿using JREMonitors.Core.Contexts;
 using JREMonitors.Core.Monitors;
 using JREMonitors.E233.Constants;
-using Vortice.Mathematics;
 
 namespace JREMonitors.E233.TIMS.D05AB
 {

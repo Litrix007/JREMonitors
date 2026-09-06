@@ -13,9 +13,9 @@ namespace JREMonitors.E233.MeterScreen.Background.Base
     public class DeviceVoltGaugeBackground : GaugeBackground
     {
         public const float SectorRadius = 90;
-        public const float TickMarkSpacing = 5;
+        public const float TickMarkSpacing = 10;
         public const float DividerStrokeWidth = 3;
-        public const float MajorTickMarkWidth = 18;
+        public const float MajorTickMarkWidth = 13;
         public const float TickTextSize = 27;
         public const float TitleSize = 35;
         public const float TitleOffsetX = SectorRadius + TickMarkSpacing + MajorTickMarkWidth / 2;
@@ -40,13 +40,13 @@ namespace JREMonitors.E233.MeterScreen.Background.Base
                 MajorScaleCount = 3,
                 MinorScaleCount = 25,
                 MajorTickMarkWidth = MajorTickMarkWidth,
-                MinorTickMarkWidth = 11,
-                MinorTickMarkBoldedWidth = 13,
+                MinorTickMarkWidth = 9,
+                MinorTickMarkBoldedWidth = 11,
                 MajorTickMarkStrokeWidth = 3,
                 MinorTickMarkStrokeWidth = 2,
                 MinorTickMarkBoldStrokeWidth = 3,
                 MinorTickMarkBoldInterval = MinorTickMarkBoldInterval,
-                MinorTickMarkOffset = 3,
+                MinorTickMarkOffset = 2,
                 MajorTickMarkAction = OnDrawTickText,
                 BoundsInflate = new RawRectF(0, -10, 35, 10)
             };

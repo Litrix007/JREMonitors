@@ -41,9 +41,9 @@ namespace JREMonitors.BveEx.Monitors
 
     public class MonitorHolderD3D9Ex : MonitorHolderBase
     {
+        private D3D9ExBufferQueue _bufferQueue;
         private bool _hadConsumers;
         private bool _hasPendingAcquisition;
-        private D3D9ExBufferQueue _bufferQueue;
 
         public MonitorHolderD3D9Ex(DataHub dataHub, MonitorContext context, MonitorProperties properties,
             ITimeProvider timeProvider, bool showDebugRect, int bufferFrameCount,

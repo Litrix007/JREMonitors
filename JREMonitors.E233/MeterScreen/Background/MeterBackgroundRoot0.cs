@@ -17,7 +17,9 @@ namespace JREMonitors.E233.MeterScreen.Background
                 Vector2.Zero,
                 0),
             false,
+            false,
             CommonRootPropertiesWithoutSafetyLamps,
+            true,
             true,
             0
         )
@@ -28,7 +30,7 @@ namespace JREMonitors.E233.MeterScreen.Background
         protected override void OnSafetyLampsVisible()
         {
             if (!ViewModel.SupportsTasc)
-                ApplyLayout(RootPropertiesWithoutSafetyLamps, BoldCenterMinorTicksWithoutSafetyLamps);
+                ApplyLayout(RootPropertiesWithoutSafetyLamps, ShortenMinorTicksWithoutSafetyLamps, BoldCenterMinorTicksWithoutSafetyLamps);
             else
                 base.OnSafetyLampsVisible();
         }
