@@ -50,5 +50,10 @@ namespace JREMonitors.BveEx.Configs.Vehicle.TIMS
         ///     <para>此为监视器构建期定型配置，更改此属性将重建整个监视器系统。</para>
         /// </remarks>
         public int? TimeTableSecondsOffsetY { get; set; }
+
+        /// <summary>
+        /// 调试功能，里程单位是否精确到米。
+        /// </summary>
+        public bool ShowMileageInMeter { get; set; }
     }
 }

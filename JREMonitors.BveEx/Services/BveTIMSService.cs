@@ -11,9 +11,15 @@ namespace JREMonitors.BveEx.Services
         private bool _jumping;
         private bool _shouldForceInstant;
 
-        public BveTIMSService(DataHub dataHub, TIMSVehicleDirection vehicleDirection, float? baseInteriorTemperature,
-            float? externalTemperature, float? baseHumidity) : base(dataHub, vehicleDirection, baseInteriorTemperature,
-            externalTemperature, baseHumidity)
+        public BveTIMSService(
+            DataHub dataHub,
+            TIMSVehicleDirection vehicleDirection,
+            float? baseInteriorTemperature = null,
+            float? externalTemperature = null,
+            float? baseHumidity = null,
+            bool showMileageInMeter = false
+        ) : base(dataHub, vehicleDirection, baseInteriorTemperature, externalTemperature, baseHumidity,
+            showMileageInMeter)
         {
         }
 
@@ -24,11 +30,14 @@ namespace JREMonitors.BveEx.Services
 
         public override void Reconfigure(
             TIMSVehicleDirection vehicleDirection,
-            float? baseInteriorTemperature,
-            float? externalTemperature,
-            float? baseHumidity)
+            float? baseInteriorTemperature = null,
+            float? externalTemperature = null,
+            float? baseHumidity = null,
+            bool showMileageInMeter = false
+        )
         {
-            base.Reconfigure(vehicleDirection, baseInteriorTemperature, externalTemperature, baseHumidity);
+            base.Reconfigure(vehicleDirection, baseInteriorTemperature, externalTemperature, baseHumidity,
+                showMileageInMeter);
             _shouldForceInstant = true;
         }
 

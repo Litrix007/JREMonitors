@@ -32,13 +32,15 @@ namespace JREMonitors.E233.TIMS
             TIMSVehicleDirection vehicleDirection,
             float? baseInteriorTemperature = null,
             float? externalTemperature = null,
-            float? baseHumidity = null
+            float? baseHumidity = null,
+            bool showMileageInMeter = false
         )
         {
             VehicleDirection = vehicleDirection;
             BaseInteriorTemperature = baseInteriorTemperature ?? DefaultBaseInteriorTemperature;
             ExternalTemperature = externalTemperature ?? DefaultExternalTemperature;
             BaseHumidity = baseHumidity ?? DefaultBaseHumidity;
+            ShowMileageInMeter = showMileageInMeter;
             _debugger = dataHub.GetOrNull<IDebugger>();
             _provider = dataHub.Get<ITimeProvider>();
             _blockingService = dataHub.Get<BlockingService>();
@@ -47,7 +49,6 @@ namespace JREMonitors.E233.TIMS
         public float BaseInteriorTemperature { get; set; }
         public float ExternalTemperature { get; set; }
         public float BaseHumidity { get; set; }
-
         public int TrainSelectionCount { get; set; }
         public TIMSVehicleDirection VehicleDirection { get; protected set; }
         public TIMSSelectionType? CurrentSelectionType { get; private set; }
@@ -56,6 +57,7 @@ namespace JREMonitors.E233.TIMS
         public bool HasPassSetting { get; private set; }
         public bool IsSettingCompleted { get; private set; }
         public bool HasSettingCompleted { get; private set; }
+        public bool ShowMileageInMeter { get; set; }
 
         public virtual void Update(TimeSpan elapsed)
         {
@@ -192,14 +194,17 @@ namespace JREMonitors.E233.TIMS
 
         public virtual void Reconfigure(
             TIMSVehicleDirection vehicleDirection,
-            float? baseInteriorTemperature,
-            float? externalTemperature,
-            float? baseHumidity)
+            float? baseInteriorTemperature = null,
+            float? externalTemperature = null,
+            float? baseHumidity = null,
+            bool showMileageInMeter = false
+        )
         {
             VehicleDirection = vehicleDirection;
             BaseInteriorTemperature = baseInteriorTemperature ?? DefaultBaseInteriorTemperature;
             ExternalTemperature = externalTemperature ?? DefaultExternalTemperature;
             BaseHumidity = baseHumidity ?? DefaultBaseHumidity;
+            ShowMileageInMeter = showMileageInMeter;
         }
 
         public void CompleteSetting()

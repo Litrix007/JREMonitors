@@ -173,6 +173,7 @@
     </ItemGroup>
     <ItemGroup>
         <Content Include="..\docs\README_DIST.md" Link="README.md" CopyToOutputDirectory="PreserveNewest"/>
+        <Content Include="..\LICENSE" Link="LICENSE" CopyToOutputDirectory="PreserveNewest"/>
         <Content Include="..\docs\SETUP.md" Link="docs\SETUP.md" CopyToOutputDirectory="PreserveNewest"/>
         <Content Include="..\docs\examples\**\*" Link="docs\examples\%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest"/>
     </ItemGroup>

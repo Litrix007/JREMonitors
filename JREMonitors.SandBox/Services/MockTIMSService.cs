@@ -5,7 +5,8 @@ namespace JREMonitors.SandBox.Services
 {
     public class MockTIMSService : TIMSService
     {
-        public MockTIMSService(DataHub dataHub, TIMSVehicleDirection vehicleDirection) : base(dataHub, vehicleDirection)
+        public MockTIMSService(DataHub dataHub, TIMSVehicleDirection vehicleDirection) : base(dataHub, vehicleDirection,
+            showMileageInMeter: false)
         {
         }
 

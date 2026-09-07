@@ -22,22 +22,24 @@ namespace JREMonitors.E233.TIMS
             ViewModel = new TIMSVehicleStateViewModel();
             var timeWidget = new BoundsDrawerWidget(context,
                 this.CreateTIMSTextDrawer(CreateComputed(() => RichTextParser.Raw(ViewModel.Time.Value)),
-                    horizontalAlignment: 1, verticalAlignment: 0, cache: false), x: 388, y: 0,
+                    horizontalAlignment: 1, verticalAlignment: 0, cache: false), x: 387, y: 0,
                 contentColor: MonitorColors.White);
             AddChild(timeWidget);
             var speedWidget = new BoundsDrawerWidget(context,
                 this.CreateTIMSTextDrawer(
                     CreateComputed(() =>
                         new RichTextBuilder().Append(ViewModel.Speed).Append("km/h", color: MonitorColors.TIMSTitleGrey)
-                            .Build()), horizontalAlignment: 1, verticalAlignment: 0, cache: false), x: 388, y: 21,
+                            .Build()), horizontalAlignment: 1, verticalAlignment: 0, cache: false), x: 387, y: 21,
                 contentColor: MonitorColors.White);
             AddChild(speedWidget);
             var locationWidget = new BoundsDrawerWidget(context,
                 this.CreateTIMSTextDrawer(
                     CreateComputed(() =>
-                        new RichTextBuilder().Append(ViewModel.Mileage).Append("km", color: MonitorColors.TIMSTitleGrey)
-                            .Build()), horizontalAlignment: 1, verticalAlignment: 0, cache: false), x: 387, y: 42,
-                contentColor: MonitorColors.White);
+                        new RichTextBuilder().Append(ViewModel.Mileage)
+                            .Append(ViewModel.ShowMileageInMeter ? "m " : "km ", color: MonitorColors.TIMSTitleGrey)
+                            .Build()), horizontalAlignment: 1, verticalAlignment: 0, cache: false), x: 387, y: 42);
+            locationWidget.ContentColor.Bind(CreateComputed(() =>
+                ViewModel.ShowMileageInMeter ? Colors.Yellow : MonitorColors.White));
             AddChild(locationWidget);
             if (isDriverScreen)
             {
@@ -62,6 +64,7 @@ namespace JREMonitors.E233.TIMS
         public Signal<string> Time { get; } = new Signal<string>(string.Empty);
         public Signal<string> Speed { get; } = new Signal<string>(string.Empty);
         public Signal<string> Mileage { get; } = new Signal<string>(string.Empty);
+        public Signal<bool> ShowMileageInMeter { get; } = new Signal<bool>();
         public Signal<string> AlertText { get; } = new Signal<string>(string.Empty);
 
         protected override void OnInitialize(DataHub dataHub)
@@ -82,11 +85,25 @@ namespace JREMonitors.E233.TIMS
             var second = currentTime.Seconds;
             Time.Value = $"{hour:D2}:{minute:D2}:{second:D2}".ToFullWidth();
             Speed.Value = $"{_delayedSpeedProvider.Speed}".ToFullWidth();
-            if (_normalTickTracker.TrackAndSync())
+            ShowMileageInMeter.Value = TIMSService.ShowMileageInMeter;
+            if (ShowMileageInMeter)
             {
-                var value = ICCardService.CurrentMileage / 1000.0;
-                var truncatedValue = Math.Truncate(value * 10) / 10;
-                Mileage.Value = truncatedValue.ToString("F1").ToFullWidth();
+                var mileage = $"{(int)ICCardService.CurrentMileage}";
+                if (mileage.Length <= 8)
+                {
+                    mileage = mileage.ToFullWidth();
+                }
+
+                Mileage.Value = mileage;
+            }
+            else
+            {
+                if (_normalTickTracker.TrackAndSync())
+                {
+                    var value = ICCardService.CurrentMileage / 1000;
+                    var truncatedValue = Math.Truncate(value * 10) / 10;
+                    Mileage.Value = truncatedValue.ToString("F1").ToFullWidth();
+                }
             }
 
             AlertText.Value = string.Empty;

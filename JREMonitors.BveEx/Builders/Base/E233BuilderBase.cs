@@ -80,7 +80,7 @@ namespace JREMonitors.BveEx.Builders.Base
             base.Reconfigure(context, oldConfig, newConfig);
             var timsService = context.RootDataHub.Get<TIMSService>();
             timsService.Reconfigure(newConfig.TIMS.VehicleDirection, newConfig.TIMS.BaseInteriorTemperature,
-                newConfig.TIMS.ExternalTemperature, newConfig.TIMS.BaseHumidity);
+                newConfig.TIMS.ExternalTemperature, newConfig.TIMS.BaseHumidity, newConfig.TIMS.ShowMileageInMeter);
             var icCardService = context.RootDataHub.Get<BveTIMSICCardService<E233SignalSystem>>();
             icCardService.Reconfigure(newConfig, newConfig.TIMS.ICCardPath?.GetAbsolutePath());
         }
@@ -102,7 +102,8 @@ namespace JREMonitors.BveEx.Builders.Base
             base.PostPopulateRootDataHub(context, vehicleConfig);
             var timsConfig = vehicleConfig.TIMS;
             var timsService = new BveTIMSService(context.RootDataHub, timsConfig.VehicleDirection,
-                timsConfig.BaseInteriorTemperature, timsConfig.ExternalTemperature, timsConfig.BaseHumidity);
+                timsConfig.BaseInteriorTemperature, timsConfig.ExternalTemperature, timsConfig.BaseHumidity,
+                timsConfig.ShowMileageInMeter);
             context.TickUpdateManager.Register(timsService);
             context.JumpStationManager.Register(timsService);
             context.RootDataHub.Put<TIMSService>(timsService);

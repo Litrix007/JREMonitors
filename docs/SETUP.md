@@ -188,6 +188,9 @@ interface TIMSConfig {
      * 此为监视器构建期定型配置，更改此属性将重建整个监视器系统。
      */
     timeTableSecondsOffsetY?: number | null;
+
+    /** 调试功能，里程单位是否精确到米。 */
+    showMileageInMeter?: boolean;
 }
 
 /** 监视器配置。 */
